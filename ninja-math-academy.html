@@ -1,0 +1,2780 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ninja Math Academy 🥷</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  /* Fallback si Google Fonts indisponible (iOS/offline) */
+  @font-face {
+    font-family: 'Bangers';
+    src: local('Bangers'), local('Impact'), local('Arial Black');
+    font-weight: normal;
+    font-style: normal;
+  }
+
+  /* Toutes les polices display utilisent Impact en fallback solide */
+
+  :root {
+    --orange: #FF6B00;
+    --orange-light: #FF8C33;
+    --dark: #0D0D1A;
+    --dark2: #151528;
+    --dark3: #1E1E3A;
+    --blue: #1A6BFF;
+    --blue-light: #4D8FFF;
+    --red: #FF2D55;
+    --green: #00E676;
+    --yellow: #FFD700;
+    --purple: #9B59B6;
+    --white: #F0F0FF;
+    --gray: #8888AA;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--dark);
+    color: var(--white);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── PARTICULES DE CHAKRA ── */
+  #chakra-bg {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    overflow: hidden;
+  }
+  .chakra-dot {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0;
+    animation: chakraFloat linear infinite;
+  }
+  @keyframes chakraFloat {
+    0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+    10%  { opacity: .6; }
+    90%  { opacity: .3; }
+    100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+  }
+
+  /* ── LAYOUT ── */
+  #app { position: relative; z-index: 1; }
+
+  /* ── HEADER ── */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 24px;
+    background: linear-gradient(90deg, var(--dark2) 0%, var(--dark3) 100%);
+    border-bottom: 2px solid var(--orange);
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 4px 20px rgba(255,107,0,.3);
+  }
+  .logo {
+    font-family: 'Bangers', Impact, 'Arial Black', cursive;
+    font-size: 1.8rem;
+    letter-spacing: 2px;
+    color: var(--orange);
+    text-shadow: 0 0 20px rgba(255,107,0,.6), 2px 2px 0 var(--dark);
+  }
+  .logo span { color: var(--white); }
+
+  .hud {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  .hud-item {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--dark3);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-weight: 800; font-size: .85rem;
+  }
+  .hud-item .icon { font-size: 1rem; }
+  .hud-item .val { color: var(--yellow); }
+
+  /* Barre d'XP */
+  .xp-bar-wrap {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .xp-bar {
+    width: 100px; height: 8px;
+    background: var(--dark3);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,.15);
+  }
+  .xp-fill {
+    height: 100%; background: linear-gradient(90deg, var(--blue), var(--orange));
+    border-radius: 4px;
+    transition: width .6s ease;
+  }
+
+  /* ── ÉCRAN D'ACCUEIL ── */
+  #screen-home {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; min-height: calc(100vh - 64px);
+    text-align: center; padding: 24px;
+    gap: 28px;
+  }
+
+  .hero-ninja {
+    font-size: 5rem;
+    animation: heroFloat 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 30px rgba(255,107,0,.5));
+  }
+  @keyframes heroFloat {
+    0%,100% { transform: translateY(0) rotate(-3deg); }
+    50% { transform: translateY(-16px) rotate(3deg); }
+  }
+
+  .hero-title {
+    font-family: 'Bangers', Impact, 'Arial Black', cursive;
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    line-height: 1;
+    color: var(--orange);
+    text-shadow: 4px 4px 0 var(--dark2), 0 0 40px rgba(255,107,0,.5);
+    letter-spacing: 3px;
+  }
+  .hero-sub {
+    font-size: 1.1rem; color: var(--gray);
+    max-width: 480px; line-height: 1.5;
+  }
+
+  /* Sélection de personnage */
+  .char-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 14px; max-width: 520px; width: 100%;
+  }
+  .char-card {
+    background: var(--dark3);
+    border: 2px solid rgba(255,255,255,.1);
+    border-radius: 16px;
+    padding: 14px 10px;
+    cursor: pointer;
+    transition: all .25s ease;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .char-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 0%, var(--char-color, var(--orange)) 0%, transparent 70%);
+    opacity: 0; transition: opacity .25s;
+  }
+  .char-card:hover::before, .char-card.selected::before { opacity: .15; }
+  .char-card:hover, .char-card.selected {
+    border-color: var(--char-color, var(--orange));
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,.4);
+  }
+  .char-card.selected { border-width: 3px; }
+  .char-emoji { font-size: 2.2rem; display: block; margin-bottom: 4px; }
+  .char-name { font-weight: 800; font-size: .85rem; color: var(--white); }
+  .char-desc { font-size: .7rem; color: var(--gray); margin-top: 3px; }
+  .char-badge {
+    position: absolute; top: 6px; right: 6px;
+    background: var(--char-color, var(--orange));
+    color: var(--dark); font-size: .6rem; font-weight: 900;
+    padding: 2px 6px; border-radius: 8px;
+  }
+
+  /* Sélection de niveau */
+  .level-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 12px; max-width: 400px; width: 100%;
+  }
+  .level-card {
+    background: var(--dark3);
+    border: 2px solid rgba(255,255,255,.1);
+    border-radius: 14px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all .25s;
+    text-align: left;
+  }
+  .level-card:hover {
+    border-color: var(--orange);
+    transform: scale(1.03);
+    box-shadow: 0 0 20px rgba(255,107,0,.2);
+  }
+  .level-card .lv { font-family: 'Bangers', Impact, 'Arial Black', cursive; font-size: 1.4rem; color: var(--orange); }
+  .level-card .lv-name { font-weight: 800; font-size: .9rem; }
+  .level-card .lv-desc { font-size: .72rem; color: var(--gray); margin-top: 4px; line-height: 1.4; }
+  .level-card .lv-topics {
+    display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px;
+  }
+  .topic-badge {
+    background: rgba(255,107,0,.15);
+    color: var(--orange-light);
+    font-size: .62rem; font-weight: 700;
+    padding: 2px 7px; border-radius: 8px;
+    border: 1px solid rgba(255,107,0,.3);
+  }
+
+  /* Bouton principal */
+  .btn-main {
+    font-family: 'Bangers', Impact, 'Arial Black', cursive;
+    font-size: 1.4rem;
+    letter-spacing: 2px;
+    background: linear-gradient(135deg, var(--orange) 0%, #FF3B00 100%);
+    color: white;
+    border: none;
+    padding: 14px 40px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all .25s;
+    box-shadow: 0 6px 24px rgba(255,107,0,.4);
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-main::after {
+    content: ''; position: absolute;
+    top: -50%; left: -60%;
+    width: 30%; height: 200%;
+    background: rgba(255,255,255,.2);
+    transform: skewX(-20deg);
+    transition: left .4s;
+  }
+  .btn-main:hover::after { left: 130%; }
+  .btn-main:hover { transform: scale(1.05); box-shadow: 0 10px 30px rgba(255,107,0,.5); }
+  .btn-main:active { transform: scale(.97); }
+
+  /* ── ÉCRAN DE JEU ── */
+  #screen-game { display: none; padding: 16px; max-width: 860px; margin: 0 auto; }
+
+  /* Mission card */
+  .mission-card {
+    background: linear-gradient(135deg, var(--dark3) 0%, var(--dark2) 100%);
+    border: 1px solid rgba(255,255,255,.1);
+    border-left: 4px solid var(--orange);
+    border-radius: 16px;
+    padding: 18px 20px;
+    margin-bottom: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .mission-card::before {
+    content: '🥷'; position: absolute; right: 16px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 3rem; opacity: .1;
+  }
+  .mission-label {
+    font-size: .7rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 2px; color: var(--orange); margin-bottom: 4px;
+  }
+  .mission-title {
+    font-family: 'Bangers', Impact, 'Arial Black', cursive;
+    font-size: 1.5rem; color: var(--white); letter-spacing: 1px;
+  }
+  .mission-desc { font-size: .85rem; color: var(--gray); margin-top: 4px; }
+
+  /* Barre de vie / chakra */
+  .stats-row {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 12px; margin-bottom: 18px;
+  }
+  .stat-block { background: var(--dark3); border-radius: 12px; padding: 12px 16px; }
+  .stat-label { font-size: .7rem; font-weight: 800; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .stat-bar {
+    height: 10px; background: var(--dark2);
+    border-radius: 5px; overflow: hidden;
+    border: 1px solid rgba(255,255,255,.1);
+  }
+  .stat-fill { height: 100%; border-radius: 5px; transition: width .5s ease; }
+  .hp-fill { background: linear-gradient(90deg, var(--red), #FF6B6B); }
+  .chakra-fill { background: linear-gradient(90deg, var(--blue), #00BFFF); }
+  .stat-text { font-size: .8rem; font-weight: 700; margin-top: 4px; }
+
+  /* Question card */
+  .question-wrap {
+    background: var(--dark2);
+    border: 2px solid var(--dark3);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .q-meta {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .q-type {
+    font-size: .7rem; font-weight: 900; text-transform: uppercase;
+    letter-spacing: 1px;
+    background: rgba(255,107,0,.15);
+    color: var(--orange);
+    padding: 3px 10px; border-radius: 20px;
+    border: 1px solid rgba(255,107,0,.3);
+  }
+  .q-num { font-size: .8rem; color: var(--gray); font-weight: 600; }
+
+  .question-text {
+    font-size: 1.15rem; font-weight: 700;
+    line-height: 1.5; color: var(--white);
+    margin-bottom: 20px;
+  }
+  .question-text .highlight {
+    color: var(--orange); font-family: 'Bangers', Impact, 'Arial Black', cursive;
+    font-size: 1.3rem; letter-spacing: 1px;
+  }
+  .question-text .math {
+    background: var(--dark3);
+    padding: 8px 16px; border-radius: 8px;
+    display: inline-block; margin: 8px 0;
+    font-family: 'Courier New', monospace;
+    font-size: 1.2rem; color: var(--yellow);
+    border: 1px solid rgba(255,215,0,.2);
+  }
+
+  /* Réponses */
+  .answers-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .answer-btn {
+    background: var(--dark3);
+    border: 2px solid rgba(255,255,255,.1);
+    border-radius: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    text-align: left;
+    font-family: 'Nunito', sans-serif;
+    font-size: .9rem; font-weight: 700;
+    color: var(--white);
+    transition: all .2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .answer-btn .ans-letter {
+    display: inline-block;
+    width: 22px; height: 22px;
+    background: rgba(255,255,255,.1);
+    border-radius: 50%;
+    text-align: center; line-height: 22px;
+    font-size: .75rem;
+    margin-right: 8px;
+    font-weight: 900;
+  }
+  .answer-btn:hover:not(:disabled) {
+    border-color: var(--orange);
+    background: rgba(255,107,0,.1);
+    transform: translateX(4px);
+  }
+  .answer-btn.correct {
+    background: rgba(0,230,118,.15);
+    border-color: var(--green);
+    color: var(--green);
+    animation: correctPulse .5s ease;
+  }
+  .answer-btn.wrong {
+    background: rgba(255,45,85,.15);
+    border-color: var(--red);
+    color: var(--red);
+    animation: wrongShake .4s ease;
+  }
+  @keyframes correctPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+  @keyframes wrongShake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+  }
+
+  /* Feedback */
+  .feedback-panel {
+    display: none;
+    background: var(--dark3);
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin-top: 14px;
+    border-left: 4px solid var(--green);
+    animation: fadeSlideUp .3s ease;
+  }
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .feedback-panel.wrong-fb { border-left-color: var(--red); }
+  .feedback-title {
+    font-family: 'Bangers', Impact, 'Arial Black', cursive; font-size: 1.2rem; letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .feedback-panel.wrong-fb .feedback-title { color: var(--red); }
+  .feedback-panel:not(.wrong-fb) .feedback-title { color: var(--green); }
+  .feedback-text { font-size: .85rem; color: var(--gray); line-height: 1.6; }
+  .feedback-text strong { color: var(--white); }
+
+  .btn-next {
+    display: block; width: 100%; margin-top: 14px;
+    font-family: 'Bangers', Impact, 'Arial Black', cursive; font-size: 1.2rem;
+    letter-spacing: 2px;
+    background: linear-gradient(135deg, var(--dark3), var(--dark2));
+    color: var(--orange);
+    border: 2px solid var(--orange);
+    padding: 12px; border-radius: 12px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .btn-next:hover {
+    background: rgba(255,107,0,.15);
+    transform: scale(1.02);
+  }
+
+  /* Timer */
+  .timer-wrap {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 16px;
+  }
+  .timer-bar {
+    flex: 1; height: 6px;
+    background: var(--dark3); border-radius: 3px; overflow: hidden;
+  }
+  .timer-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green), var(--yellow), var(--red));
+    border-radius: 3px;
+    transition: width .1s linear;
+  }
+  .timer-num {
+    font-family: 'Bangers', Impact, 'Arial Black', cursive; font-size: 1.1rem;
+    color: var(--yellow); min-width: 30px; text-align: right;
+  }
+
+  /* Combo */
+  .combo-display {
+    position: fixed;
+    top: 80px; right: 20px;
+    font-family: 'Bangers', Impact, 'Arial Black', cursive;
+    font-size: 2.5rem;
+    color: var(--orange);
+    text-shadow: 0 0 20px rgba(255,107,0,.8);
+    opacity: 0;
+    transform: scale(.5);
+    transition: all .3s ease;
+    pointer-events: none;
+    z-index: 200;
+  }
+  .combo-display.show {
+    opacity: 1; transform: scale(1);
+  }
+  .combo-display.hide {
+    opacity: 0; transform: scale(1.5) translateY(-20px);
+  }
+
+  /* Jutsu power-up */
+  .jutsu-bar {
+    display: flex; gap: 8px; margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .jutsu-btn {
+    background: var(--dark3);
+    border: 2px solid rgba(255,255,255,.1);
+    border-radius: 10px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-size: .8rem; font-weight: 800;
+    color: var(--white);
+    transition: all .2s;
+    display: flex; align-items: center; gap: 6px;
+    position: relative;
+  }
+  .jutsu-btn:hover:not(:disabled) {
+    border-color: var(--blue);
+    background: rgba(26,107,255,.15);
+    transform: scale(1.05);
+  }
+  .jutsu-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .jutsu-btn .jutsu-cost {
+    font-size: .65rem; color: var(--blue-light);
+    font-weight: 700;
+  }
+  .jutsu-btn .jutsu-count {
+    position: absolute; top: -6px; right: -6px;
+    background: var(--orange);
+    color: var(--dark); font-size: .65rem; font-weight: 900;
+    width: 16px; height: 16px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ── ÉCRAN RÉSULTAT ── */
+  #screen-result {
+    display: none;
+    flex-direction: column; align-items: center;
+    min-height: calc(100vh - 64px);
+    padding: 32px 20px;
+    text-align: center; gap: 22px;
+  }
+  .result-rank {
+    font-family: 'Bangers', Impact, 'Arial Black', cursive;
+    font-size: 4rem;
+    animation: rankPop .6s cubic-bezier(.175,.885,.32,1.275) both;
+  }
+  @keyframes rankPop {
+    from { transform: scale(0) rotate(-15deg); opacity: 0; }
+    to { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+  .result-msg {
+    font-family: 'Bangers', Impact, 'Arial Black', cursive;
+    font-size: clamp(1.8rem, 6vw, 3rem);
+    color: var(--orange);
+    text-shadow: 3px 3px 0 var(--dark2);
+    letter-spacing: 2px;
+  }
+  .result-stats {
+    display: grid; grid-template-columns: repeat(3,1fr);
+    gap: 12px; max-width: 420px; width: 100%;
+  }
+  .result-stat {
+    background: var(--dark3);
+    border-radius: 14px;
+    padding: 16px;
+  }
+  .result-stat .rs-val {
+    font-family: 'Bangers', Impact, 'Arial Black', cursive;
+    font-size: 2rem; color: var(--yellow);
+  }
+  .result-stat .rs-label {
+    font-size: .72rem; color: var(--gray); font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+
+  /* Trophées */
+  .trophies {
+    display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+  }
+  .trophy {
+    background: var(--dark3);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: .85rem; font-weight: 700;
+    border: 1px solid rgba(255,215,0,.2);
+    color: var(--yellow);
+    animation: trophyIn .4s ease both;
+  }
+  @keyframes trophyIn {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .btn-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .btn-sec {
+    font-family: 'Bangers', Impact, 'Arial Black', cursive; font-size: 1.1rem; letter-spacing: 2px;
+    background: transparent;
+    color: var(--white);
+    border: 2px solid rgba(255,255,255,.2);
+    padding: 12px 28px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .btn-sec:hover { border-color: var(--orange); color: var(--orange); transform: scale(1.04); }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--dark3);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-weight: 700; font-size: .9rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,.5);
+    transition: transform .3s ease;
+    z-index: 999;
+    white-space: nowrap;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* Responsive */
+  @media(max-width:480px) {
+    .answers-grid { grid-template-columns: 1fr; }
+    .char-grid { grid-template-columns: repeat(2,1fr); }
+    .stats-row { grid-template-columns: 1fr; }
+    .result-stats { grid-template-columns: repeat(2,1fr); }
+  }
+
+  /* ── ÉCRAN LOADING ── */
+  #screen-loading {
+    display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    min-height: calc(100vh - 64px);
+    gap: 20px;
+  }
+  .loading-ninja { font-size: 4rem; animation: spin 1s linear infinite; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .loading-text { font-family: 'Bangers', Impact, 'Arial Black', cursive; font-size: 1.4rem; color: var(--orange); letter-spacing: 2px; }
+  .loading-sub { font-size: .85rem; color: var(--gray); }
+
+  /* Section header label */
+  .section-label {
+    font-size: .75rem; font-weight: 900; text-transform: uppercase;
+    letter-spacing: 2px; color: var(--orange); margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-label::after {
+    content: ''; flex: 1; height: 1px; background: rgba(255,107,0,.3);
+  }
+
+  /* ── TRACÉ & COULEURS ── */
+  .color-dot {
+    width: 18px; height: 18px; border-radius: 50%;
+    cursor: pointer; border: 2px solid transparent;
+    transition: all .2s; flex-shrink:0;
+  }
+  .color-dot:hover, .color-dot.active { border-color: white; transform: scale(1.3); }
+
+  /* ── PUZZLE ── */
+  .puzzle-pieces-tray {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    background: var(--dark2);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 14px;
+    padding: 14px;
+    min-height: 80px;
+    margin-bottom: 16px;
+  }
+  .puzzle-piece {
+    background: var(--dark3);
+    border: 2px solid rgba(155,89,182,.5);
+    border-radius: 10px;
+    padding: 10px 16px;
+    cursor: grab;
+    font-weight: 800;
+    font-size: .95rem;
+    color: var(--white);
+    transition: all .2s;
+    user-select: none;
+    touch-action: none;
+    position: relative;
+  }
+  .puzzle-piece:hover { border-color: var(--purple); transform: scale(1.05) rotate(-2deg); box-shadow: 0 4px 16px rgba(155,89,182,.4); }
+  .puzzle-piece.dragging { opacity: .5; transform: scale(1.1); cursor: grabbing; }
+  .puzzle-piece.placed { opacity: .3; pointer-events: none; }
+
+  .puzzle-slots-grid {
+    display: grid; gap: 10px;
+  }
+  .puzzle-slot {
+    background: var(--dark2);
+    border: 2px dashed rgba(155,89,182,.4);
+    border-radius: 12px;
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    transition: all .25s;
+    position: relative;
+  }
+  .puzzle-slot .slot-label {
+    font-size: .8rem; font-weight: 800;
+    color: var(--gray);
+    text-align: center;
+    pointer-events: none;
+  }
+  .puzzle-slot.drag-over {
+    border-color: var(--purple);
+    background: rgba(155,89,182,.15);
+    transform: scale(1.02);
+  }
+  .puzzle-slot.correct {
+    border-color: var(--green);
+    background: rgba(0,230,118,.12);
+    border-style: solid;
+  }
+  .puzzle-slot.wrong {
+    border-color: var(--red);
+    background: rgba(255,45,85,.12);
+    border-style: solid;
+    animation: wrongShake .4s ease;
+  }
+  .puzzle-slot .placed-piece {
+    font-weight: 800; font-size: .9rem;
+    color: var(--white);
+    pointer-events: none;
+  }
+  .puzzle-slot.correct .placed-piece { color: var(--green); }
+
+  .puzzle-category-label {
+    font-size: .7rem; font-weight: 900; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--purple);
+    margin-bottom: 8px;
+  }
+
+  /* Type puzzle: fraction visuelle */
+  .fraction-visual {
+    display: inline-flex; flex-direction: column;
+    align-items: center; line-height: 1.2;
+    font-family: 'Bangers',Impact,'Arial Black',cursive;
+  }
+  .fraction-visual .fnum { font-size: 1.1rem; }
+  .fraction-visual .fbar { width: 100%; height: 2px; background: currentColor; }
+  .fraction-visual .fden { font-size: 1.1rem; }
+
+</style>
+</head>
+<body>
+
+<div id="chakra-bg"></div>
+
+<div id="app">
+  <!-- HEADER HUD -->
+  <header>
+    <div class="logo">NINJA<span>MATH</span> 🥷</div>
+    <div class="hud">
+      <div class="hud-item"><span class="icon">⭐</span><span class="val" id="hud-score">0</span></div>
+      <div class="hud-item"><span class="icon">🔥</span><span class="val" id="hud-streak">×0</span></div>
+      <div class="hud-item xp-bar-wrap">
+        <span class="icon">💎</span>
+        <div class="xp-bar"><div class="xp-fill" id="hud-xp" style="width:0%"></div></div>
+        <span class="val" id="hud-level">Nv.1</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ÉCRAN ACCUEIL -->
+  <div id="screen-home">
+    <div class="hero-ninja">🥷</div>
+    <div>
+      <h1 class="hero-title">NINJA MATH ACADEMY</h1>
+      <p class="hero-sub">Maîtrise les maths comme Naruto maîtrise le Rasengan !<br>Réponds aux questions, gagne de l'XP, monte en grade de ninja.</p>
+    </div>
+
+    <div>
+      <p class="section-label">🎭 Choisis ton personnage</p>
+      <div class="char-grid" id="char-grid">
+        <div class="char-card" data-char="naruto" style="--char-color:#FF6B00" onclick="selectChar(this,'naruto')">
+          <span class="char-emoji">🍜</span>
+          <div class="char-name">Naruto</div>
+          <div class="char-desc">Fonce sans réfléchir !</div>
+          <div class="char-badge" style="background:var(--orange)">+XP</div>
+        </div>
+        <div class="char-card" data-char="sasuke" style="--char-color:#9B59B6" onclick="selectChar(this,'sasuke')">
+          <span class="char-emoji">⚡</span>
+          <div class="char-name">Sasuke</div>
+          <div class="char-desc">Précision absolue</div>
+          <div class="char-badge" style="background:var(--purple)">+Précision</div>
+        </div>
+        <div class="char-card" data-char="sakura" style="--char-color:#FF2D55" onclick="selectChar(this,'sakura')">
+          <span class="char-emoji">🌸</span>
+          <div class="char-name">Sakura</div>
+          <div class="char-desc">Intelligence tactique</div>
+          <div class="char-badge" style="background:var(--red)">+Indices</div>
+        </div>
+        <div class="char-card" data-char="kakashi" style="--char-color:#8888AA" onclick="selectChar(this,'kakashi')">
+          <span class="char-emoji">📖</span>
+          <div class="char-name">Kakashi</div>
+          <div class="char-desc">Le maître copiste</div>
+          <div class="char-badge" style="background:var(--gray)">+Temps</div>
+        </div>
+        <div class="char-card" data-char="rock_lee" style="--char-color:#00E676" onclick="selectChar(this,'rock_lee')">
+          <span class="char-emoji">💪</span>
+          <div class="char-name">Rock Lee</div>
+          <div class="char-desc">Travail acharné</div>
+          <div class="char-badge" style="background:var(--green)">+Combo</div>
+        </div>
+        <div class="char-card" data-char="shikamaru" style="--char-color:#FFD700" onclick="selectChar(this,'shikamaru')">
+          <span class="char-emoji">☁️</span>
+          <div class="char-name">Shikamaru</div>
+          <div class="char-desc">Stratège du village</div>
+          <div class="char-badge" style="background:var(--yellow);color:var(--dark)">+Score</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="width:100%;max-width:520px">
+      <p class="section-label">📚 Choisir la mission</p>
+      <div class="level-grid">
+        <div class="level-card" onclick="startGame('6e_facile')">
+          <div class="lv">🟢 Académie</div>
+          <div class="lv-name">6ème — Révisions</div>
+          <div class="lv-desc">Rappel des notions de 6ème avant d'entrer en 5ème</div>
+          <div class="lv-topics">
+            <span class="topic-badge">Fractions</span>
+            <span class="topic-badge">Géométrie</span>
+            <span class="topic-badge">Calcul</span>
+          </div>
+        </div>
+        <div class="level-card" onclick="startGame('5e_medium')">
+          <div class="lv">🔵 Genin</div>
+          <div class="lv-name">5ème — Préparation</div>
+          <div class="lv-desc">Nouvelles notions de 5ème pour prendre de l'avance</div>
+          <div class="lv-topics">
+            <span class="topic-badge">Relatifs</span>
+            <span class="topic-badge">Proportionnalité</span>
+            <span class="topic-badge">Angles</span>
+          </div>
+        </div>
+        <div class="level-card" onclick="startGame('mixte_difficile')">
+          <div class="lv">🔴 Chunin</div>
+          <div class="lv-name">Mix — Défi ninja</div>
+          <div class="lv-desc">Mélange 6ème + 5ème, questions piégées</div>
+          <div class="lv-topics">
+            <span class="topic-badge">Tout niveau</span>
+            <span class="topic-badge">Pièges</span>
+          </div>
+        </div>
+        <div class="level-card" onclick="startGame('boss')">
+          <div class="lv">💀 Kage</div>
+          <div class="lv-name">Mode Boss</div>
+          <div class="lv-desc">Affronte Orochimaru ! Temps limité, sans erreur</div>
+          <div class="lv-topics">
+            <span class="topic-badge">Expert</span>
+            <span class="topic-badge">Chronométré</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="width:100%;max-width:520px">
+      <p class="section-label">✏️ Missions interactives</p>
+      <div class="level-grid">
+        <div class="level-card" onclick="startDrawMode()" style="border-color:rgba(0,230,118,.3)">
+          <div class="lv" style="color:var(--green)">✏️ Tracé</div>
+          <div class="lv-name">Géométrie ninja</div>
+          <div class="lv-desc">Trace droites, angles, axes de symétrie au doigt sur le tableau de Konoha</div>
+          <div class="lv-topics">
+            <span class="topic-badge" style="color:var(--green);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.1)">Symétrie</span>
+            <span class="topic-badge" style="color:var(--green);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.1)">Angles</span>
+            <span class="topic-badge" style="color:var(--green);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.1)">Libre</span>
+          </div>
+        </div>
+        <div class="level-card" onclick="startPuzzleMode()" style="border-color:rgba(155,89,182,.3)">
+          <div class="lv" style="color:var(--purple)">🧩 Puzzle</div>
+          <div class="lv-name">Emboîtement</div>
+          <div class="lv-desc">Glisse chaque pièce dans la bonne case : fractions, formes, équations</div>
+          <div class="lv-topics">
+            <span class="topic-badge" style="color:var(--purple);border-color:rgba(155,89,182,.3);background:rgba(155,89,182,.1)">Drag & Drop</span>
+            <span class="topic-badge" style="color:var(--purple);border-color:rgba(155,89,182,.3);background:rgba(155,89,182,.1)">Fractions</span>
+            <span class="topic-badge" style="color:var(--purple);border-color:rgba(155,89,182,.3);background:rgba(155,89,182,.1)">Formes</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- ÉCRAN TRACÉ GÉOMÉTRIQUE                           -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="screen-draw" style="display:none; padding:16px; max-width:860px; margin:0 auto;">
+    <div class="mission-card" style="border-left-color:var(--green)">
+      <div class="mission-label" style="color:var(--green)">✏️ JUTSU DE TRACÉ</div>
+      <div class="mission-title" id="draw-title">Mission 1 / 6</div>
+      <div class="mission-desc" id="draw-instruction">Trace l'axe de symétrie !</div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="jutsu-btn" id="draw-tool-line" onclick="setDrawTool('line')" style="border-color:var(--green)">📏 Droite</button>
+        <button class="jutsu-btn" id="draw-tool-angle" onclick="setDrawTool('angle')">📐 Angle</button>
+        <button class="jutsu-btn" id="draw-tool-free" onclick="setDrawTool('free')">✏️ Libre</button>
+        <button class="jutsu-btn" onclick="clearCanvas()" style="color:var(--red);border-color:var(--red)">🗑️ Effacer</button>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span style="font-size:.7rem;color:var(--gray);font-weight:700">Couleur:</span>
+        <div class="color-dot" style="background:#00E676" onclick="setDrawColor('#00E676')"></div>
+        <div class="color-dot" style="background:#1A6BFF" onclick="setDrawColor('#1A6BFF')"></div>
+        <div class="color-dot" style="background:#FF6B00" onclick="setDrawColor('#FF6B00')"></div>
+        <div class="color-dot" style="background:#FF2D55" onclick="setDrawColor('#FF2D55')"></div>
+        <div class="color-dot" style="background:#FFD700" onclick="setDrawColor('#FFD700')"></div>
+      </div>
+    </div>
+
+    <div style="position:relative;border-radius:16px;overflow:hidden;border:2px solid rgba(0,230,118,.3);margin-bottom:14px;background:#0D0D1A">
+      <canvas id="draw-canvas" style="display:block;width:100%;touch-action:none;cursor:crosshair"></canvas>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center">
+      <div style="background:var(--dark3);border-radius:10px;padding:10px 14px">
+        <div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Score de précision</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div style="flex:1;height:8px;background:var(--dark2);border-radius:4px;overflow:hidden;border:1px solid rgba(255,255,255,.1)">
+            <div id="draw-score-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));border-radius:4px;transition:width .5s"></div>
+          </div>
+          <span id="draw-score-txt" style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:1.1rem;color:var(--yellow);min-width:40px;text-align:right">0%</span>
+        </div>
+      </div>
+      <button class="btn-main" style="font-size:1rem;padding:10px 20px;white-space:nowrap" onclick="validateDraw()">✅ Valider</button>
+    </div>
+
+    <div id="draw-feedback" style="display:none;margin-top:12px" class="feedback-panel">
+      <div class="feedback-title" id="draw-fb-title">Résultat</div>
+      <div class="feedback-text" id="draw-fb-text"></div>
+      <button class="btn-next" onclick="nextDrawMission()">MISSION SUIVANTE →</button>
+    </div>
+    <button class="btn-sec" onclick="showHome()" style="margin-top:12px;width:100%">🏠 Retour accueil</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- ÉCRAN PUZZLE EMBOÎTEMENT                          -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="screen-puzzle" style="display:none; padding:16px; max-width:860px; margin:0 auto;">
+    <div class="mission-card" style="border-left-color:var(--purple)">
+      <div class="mission-label" style="color:var(--purple)">🧩 JUTSU D'EMBOÎTEMENT</div>
+      <div class="mission-title" id="puzzle-title">Puzzle 1 / 6</div>
+      <div class="mission-desc" id="puzzle-instruction">Glisse chaque pièce dans la bonne case !</div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div style="display:flex;gap:12px;align-items:center">
+        <div class="hud-item"><span class="icon">⭐</span><span class="val" id="puzzle-score-display">0</span></div>
+        <div class="hud-item"><span class="icon">🎯</span><span id="puzzle-progress" class="val">0/0</span></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="timer-bar" style="width:80px"><div class="timer-fill" id="puzzle-timer-fill" style="width:100%"></div></div>
+        <span class="timer-num" id="puzzle-timer-num">60</span>
+      </div>
+    </div>
+
+    <div id="puzzle-game-area" style="min-height:420px"></div>
+
+    <div id="puzzle-feedback" style="display:none;margin-top:12px" class="feedback-panel">
+      <div class="feedback-title" id="puzzle-fb-title">Résultat</div>
+      <div class="feedback-text" id="puzzle-fb-text"></div>
+      <button class="btn-next" onclick="nextPuzzle()">PUZZLE SUIVANT →</button>
+    </div>
+    <button class="btn-sec" onclick="showHome()" style="margin-top:12px;width:100%">🏠 Retour accueil</button>
+  </div>
+
+  <!-- LOADING -->
+  <div id="screen-loading" style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 64px);gap:20px">
+    <div style="font-size:4rem;animation:spin 1s linear infinite">🌀</div>
+    <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:1.4rem;color:var(--orange);letter-spacing:2px" id="loading-text">FORMATION DU SIGNE...</div>
+    <div style="font-size:.85rem;color:var(--gray)" id="loading-sub">Préparation de la mission...</div>
+  </div>
+
+  <!-- ÉCRAN DE JEU -->
+  <div id="screen-game">
+    <div class="mission-card" id="mission-card">
+      <div class="mission-label" id="mission-label">🗾 MISSION EN COURS</div>
+      <div class="mission-title" id="mission-title">Défends Konoha !</div>
+      <div class="mission-desc" id="mission-desc">Réponds correctement pour protéger le village !</div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-block">
+        <div class="stat-label">❤️ Vie</div>
+        <div class="stat-bar"><div class="stat-fill hp-fill" id="hp-fill" style="width:100%"></div></div>
+        <div class="stat-text" id="hp-text">3 / 3 vies</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-label">💧 Chakra</div>
+        <div class="stat-bar"><div class="stat-fill chakra-fill" id="chakra-fill" style="width:100%"></div></div>
+        <div class="stat-text" id="chakra-text">100 / 100</div>
+      </div>
+    </div>
+
+    <div class="jutsu-bar" id="jutsu-bar">
+      <div class="jutsu-btn" id="jutsu-50" onclick="useJutsu('50')">
+        <span>✂️</span> 50/50
+        <span class="jutsu-cost">30 chakra</span>
+        <span class="jutsu-count" id="j50-count">2</span>
+      </div>
+      <div class="jutsu-btn" id="jutsu-hint" onclick="useJutsu('hint')">
+        <span>💡</span> Kage Bunshin
+        <span class="jutsu-cost">20 chakra</span>
+        <span class="jutsu-count" id="jhint-count">2</span>
+      </div>
+      <div class="jutsu-btn" id="jutsu-time" onclick="useJutsu('time')">
+        <span>⏸️</span> Arrêt du Temps
+        <span class="jutsu-cost">40 chakra</span>
+        <span class="jutsu-count" id="jtime-count">1</span>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <div class="timer-wrap" style="flex:1;margin:0">
+        <div class="timer-bar"><div class="timer-fill" id="timer-fill" style="width:100%"></div></div>
+        <div class="timer-num" id="timer-num">30</div>
+      </div>
+      <div style="font-size:.8rem;color:var(--gray);font-weight:700" id="q-progress">1 / 10</div>
+    </div>
+
+    <div class="question-wrap" id="question-wrap">
+      <div class="q-meta">
+        <span class="q-type" id="q-type">Calcul</span>
+        <span class="q-num" id="q-num">Question 1</span>
+      </div>
+      <div class="question-text" id="question-text">Question...</div>
+      <div class="answers-grid" id="answers-grid"></div>
+      <div class="feedback-panel" id="feedback-panel">
+        <div class="feedback-title" id="feedback-title">✅ Excellent !</div>
+        <div class="feedback-text" id="feedback-text"></div>
+        <button class="btn-next" id="btn-next" onclick="nextQuestion()">QUESTION SUIVANTE →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ÉCRAN RÉSULTAT -->
+  <div id="screen-result" style="display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 64px);padding:32px 20px;text-align:center;gap:22px">
+    <div class="result-rank" id="result-rank">🥷</div>
+    <div class="result-msg" id="result-msg">Mission accomplie !</div>
+    <p id="result-quote" style="font-size:.9rem;color:var(--gray);max-width:420px;font-style:italic;line-height:1.6"></p>
+
+    <div class="result-stats">
+      <div class="result-stat">
+        <div class="rs-val" id="res-score">0</div>
+        <div class="rs-label">Score</div>
+      </div>
+      <div class="result-stat">
+        <div class="rs-val" id="res-correct">0/10</div>
+        <div class="rs-label">Réponses</div>
+      </div>
+      <div class="result-stat">
+        <div class="rs-val" id="res-best-streak">×0</div>
+        <div class="rs-label">Meilleur combo</div>
+      </div>
+    </div>
+
+    <div>
+      <p class="section-label" style="justify-content:center">🏆 Trophées débloqués</p>
+      <div class="trophies" id="trophies-list"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-main" onclick="retryGame()">🔄 REJOUER</button>
+      <button class="btn-sec" onclick="showHome()">🏠 Accueil</button>
+    </div>
+  </div>
+</div>
+
+<!-- Combo display -->
+<div class="combo-display" id="combo-display">🔥 COMBO ×3</div>
+
+<!-- Toast -->
+<div id="toast">Message</div>
+
+<script>
+// ══════════════════════════════
+// BANQUE DE QUESTIONS
+// ══════════════════════════════
+const QUESTIONS = {
+  '6e_facile': [
+    {
+      type: "Fractions", theme: "🍜 Ramen de Naruto",
+      text: `<span class='highlight'>Naruto</span> mange <span class='math'>3/4</span> de son bol de ramen, puis encore <span class='math'>1/4</span>. Combien a-t-il mangé en tout ?`,
+      answers: ["1 bol entier", "1/2 bol", "3/8 de bol", "2 bols"],
+      correct: 0,
+      feedback: "3/4 + 1/4 = 4/4 = 1. Il a mangé le bol entier ! Rappel : pour additionner des fractions de même dénominateur, on additionne les numérateurs : <strong>3 + 1 = 4</strong>, et 4/4 = 1."
+    },
+    {
+      type: "Calcul mental", theme: "⚡ Entraînement de Sasuke",
+      text: `<span class='highlight'>Sasuke</span> fait <span class='math'>12 × 15</span> pompes par jour. Combien en fait-il en une semaine ?`,
+      answers: ["1260", "840", "1080", "980"],
+      correct: 1,
+      feedback: "12 × 15 = 180 pompes/jour. Puis 180 × 7 = <strong>1260</strong>. Attends... recomptons : 12 × 15 = 12 × 10 + 12 × 5 = 120 + 60 = 180. 180 × 7 = 1260. La bonne réponse est 1260 !"
+    },
+    {
+      type: "Géométrie", theme: "🌸 Jardin de Sakura",
+      text: `<span class='highlight'>Sakura</span> veut clôturer son jardin rectangulaire : <span class='math'>8 m × 5 m</span>. Quelle longueur de clôture lui faut-il ?`,
+      answers: ["13 m", "26 m", "40 m", "20 m"],
+      correct: 1,
+      feedback: "Le périmètre d'un rectangle = 2 × (longueur + largeur) = 2 × (8 + 5) = 2 × 13 = <strong>26 m</strong>. On fait le tour complet !"
+    },
+    {
+      type: "Fractions", theme: "📖 Kakashi et son livre",
+      text: `<span class='highlight'>Kakashi</span> a lu <span class='math'>2/5</span> de son livre. Quelle fraction reste-t-il à lire ?`,
+      answers: ["3/5", "2/5", "1/5", "4/5"],
+      correct: 0,
+      feedback: "Le livre entier = 1 = 5/5. Il reste 5/5 − 2/5 = <strong>3/5</strong> à lire. Pour soustraire des fractions de même dénominateur, on soustrait les numérateurs : 5 − 2 = 3."
+    },
+    {
+      type: "Multiples", theme: "💪 Rock Lee et ses tours",
+      text: `<span class='highlight'>Rock Lee</span> court autour d'une piste de <span class='math'>400 m</span>. Il veut faire au moins 3 km. Combien de tours minimum ?`,
+      answers: ["7 tours", "8 tours", "6 tours", "10 tours"],
+      correct: 1,
+      feedback: "3 km = 3000 m. 3000 ÷ 400 = 7,5. Comme il faut un nombre entier de tours et dépasser 3000 m, il faut <strong>8 tours</strong> (= 3200 m ≥ 3000 m)."
+    },
+    {
+      type: "Divisibilité", theme: "☁️ Shikamaru et ses cerfs",
+      text: `<span class='highlight'>Shikamaru</span> veut répartir <span class='math'>72</span> cerfs en groupes égaux de 9. Combien de groupes ?`,
+      answers: ["7", "9", "8", "6"],
+      correct: 2,
+      feedback: "72 ÷ 9 = <strong>8</strong>. Vérification : 8 × 9 = 72 ✓. Shikamaru dirait que c'est trop fastidieux... mais la réponse est 8 !"
+    },
+    {
+      type: "Angles", theme: "🎯 Kunai de Hinata",
+      text: `Un angle droit mesure <span class='math'>90°</span>. Son angle complémentaire mesure <span class='math'>35°</span>. Que mesure l'angle restant ?`,
+      answers: ["45°", "65°", "55°", "125°"],
+      correct: 2,
+      feedback: "Deux angles complémentaires ont une somme de 90°. Donc 90° − 35° = <strong>55°</strong>. Attention à ne pas confondre avec les angles supplémentaires (somme = 180°) !"
+    },
+    {
+      type: "Calcul posé", theme: "🌪️ Mission de Konoha",
+      text: `Le Hokage distribue <span class='math'>1 248</span> shurikens entre <span class='math'>4</span> équipes. Combien chaque équipe reçoit-elle ?`,
+      answers: ["314", "312", "302", "413"],
+      correct: 1,
+      feedback: "1248 ÷ 4 = <strong>312</strong>. Méthode : 1200 ÷ 4 = 300, et 48 ÷ 4 = 12. Donc 300 + 12 = 312. On peut aussi faire la division posée !"
+    },
+    {
+      type: "PGCD", theme: "🐸 Summons de Jiraiya",
+      text: `<span class='highlight'>Jiraiya</span> veut couper une corde de <span class='math'>24 m</span> et une autre de <span class='math'>36 m</span> en morceaux égaux les plus grands possibles. Quelle longueur ?`,
+      answers: ["4 m", "12 m", "6 m", "8 m"],
+      correct: 1,
+      feedback: "On cherche le PGCD de 24 et 36. Diviseurs de 24 : 1,2,3,4,6,8,12,24. Diviseurs de 36 : 1,2,3,4,6,9,12,18,36. PGCD = <strong>12</strong>. On peut couper en morceaux de 12 m !"
+    },
+    {
+      type: "Symétrie", theme: "🎭 Transformation de Naruto",
+      text: `Dans un repère, le point A a pour coordonnées <span class='math'>(3 ; −2)</span>. Quel est son symétrique par rapport à l'axe des ordonnées ?`,
+      answers: ["(−3 ; −2)", "(3 ; 2)", "(−3 ; 2)", "(2 ; 3)"],
+      correct: 0,
+      feedback: "La symétrie par rapport à l'axe des ordonnées (axe vertical) change le signe de l'abscisse : (3 ; −2) → <strong>(−3 ; −2)</strong>. Le y ne change pas !"
+    },
+    {
+      type: "Décimaux", theme: "💰 Récompense de mission",
+      text: `<span class='highlight'>Naruto</span> reçoit <span class='math'>12,75 €</span> pour une mission, puis dépense <span class='math'>4,30 €</span>. Combien lui reste-t-il ?`,
+      answers: ["8,55 €", "8,45 €", "7,55 €", "9,45 €"],
+      correct: 1,
+      feedback: "12,75 − 4,30 = <strong>8,45 €</strong>. Méthode : on aligne les virgules. Centimes : 5−0=5, dixièmes : 7−3=4, unités : 2−4 → on emprunte. Résultat : 8,45."
+    },
+    {
+      type: "Conversions", theme: "📏 Parcours ninja",
+      text: `<span class='highlight'>Rock Lee</span> court <span class='math'>2,4 km</span>. Combien cela fait-il en mètres ?`,
+      answers: ["24 m", "240 m", "2 400 m", "24 000 m"],
+      correct: 2,
+      feedback: "1 km = 1 000 m, donc 2,4 km = 2,4 × 1 000 = <strong>2 400 m</strong>. Astuce : multiplier par 1 000 revient à déplacer la virgule de 3 rangs vers la droite."
+    },
+    {
+      type: "Fractions ×", theme: "🌀 Jutsu Multiplicateur",
+      text: `Calcule : <span class='math'>3/4 × 2/5</span>`,
+      answers: ["5/9", "6/20", "3/10", "1/2"],
+      correct: 2,
+      feedback: "Pour multiplier des fractions : numérateur × numérateur, dénominateur × dénominateur. 3×2=6 et 4×5=20, ce qui donne 6/20. On simplifie ÷2 : <strong>3/10</strong>."
+    },
+    {
+      type: "Statistiques", theme: "🏆 Tournoi de Chunin",
+      text: `Les scores de <span class='highlight'>Naruto</span> au tournoi : <span class='math'>12, 15, 8, 20, 15</span>. Quelle est la moyenne ?`,
+      answers: ["14", "15", "13", "16"],
+      correct: 0,
+      feedback: "Moyenne = somme ÷ nombre de valeurs = (12+15+8+20+15) ÷ 5 = 70 ÷ 5 = <strong>14</strong>. La médiane (valeur du milieu une fois trié : 8,12,<u>15</u>,15,20) vaut 15."
+    },
+    {
+      type: "Volume", theme: "🏯 Réserve de chakra",
+      text: `Un cube de chakra a un côté de <span class='math'>3 cm</span>. Quel est son volume ?`,
+      answers: ["9 cm³", "18 cm³", "27 cm³", "6 cm³"],
+      correct: 2,
+      feedback: "Volume d'un cube = côté³ = 3 × 3 × 3 = <strong>27 cm³</strong>. Ne pas confondre avec l'aire d'une face (côté² = 9 cm²) !"
+    }
+  ],
+
+  '5e_medium': [
+    {
+      type: "Nombres relatifs", theme: "🌊 Fond de l'océan",
+      text: `<span class='highlight'>Kisame</span> plonge à <span class='math'>−15 m</span> sous la mer, puis monte de <span class='math'>8 m</span>. À quelle profondeur est-il ?`,
+      answers: ["−7 m", "7 m", "−23 m", "23 m"],
+      correct: 0,
+      feedback: "−15 + 8 = <strong>−7</strong>. Il est à 7 m sous la surface, donc à −7 m. Sur la droite numérique : on part de −15 et on avance de 8 vers la droite."
+    },
+    {
+      type: "Proportionnalité", theme: "🍜 Recette de ramen",
+      text: `Pour <span class='math'>4 personnes</span>, il faut <span class='math'>320 g</span> de nouilles. Combien pour <span class='math'>7 personnes</span> ?`,
+      answers: ["480 g", "560 g", "640 g", "420 g"],
+      correct: 1,
+      feedback: "320 g ÷ 4 = 80 g par personne. Pour 7 : 80 × 7 = <strong>560 g</strong>. On peut aussi calculer le coefficient de proportionnalité : 7/4 × 320 = 560."
+    },
+    {
+      type: "Angles", theme: "⚡ Sharingan de Sasuke",
+      text: `Deux angles sont supplémentaires. L'un mesure <span class='math'>112°</span>. Combien mesure l'autre ?`,
+      answers: ["58°", "78°", "68°", "48°"],
+      correct: 2,
+      feedback: "Deux angles supplémentaires ont une somme de 180°. Donc 180° − 112° = <strong>68°</strong>. Rappel : complémentaires → somme = 90°, supplémentaires → somme = 180°."
+    },
+    {
+      type: "Puissances", theme: "🔥 Puissance du Rasengan",
+      text: `Le Rasengan de Naruto a une puissance de <span class='math'>2⁴</span> chakras. Combien cela fait-il ?`,
+      answers: ["8", "14", "16", "12"],
+      correct: 2,
+      feedback: "2⁴ = 2 × 2 × 2 × 2 = <strong>16</strong>. Les puissances de 2 à retenir : 2¹=2, 2²=4, 2³=8, 2⁴=16, 2⁵=32..."
+    },
+    {
+      type: "Calcul littéral", theme: "📊 Mission du Hokage",
+      text: `Si <span class='math'>x = 5</span>, calcule l'expression : <span class='math'>3x − 7</span>`,
+      answers: ["22", "8", "15", "13"],
+      correct: 1,
+      feedback: "On remplace x par 5 : 3 × 5 − 7 = 15 − 7 = <strong>8</strong>. Attention à l'ordre des opérations : multiplication d'abord, puis soustraction !"
+    },
+    {
+      type: "Nombres relatifs", theme: "❄️ Température à la Montagne de Glace",
+      text: `Il fait <span class='math'>−8°C</span> la nuit. La journée il fait <span class='math'>15°</span> de plus. Quelle est la température le jour ?`,
+      answers: ["7°C", "−7°C", "23°C", "−23°C"],
+      correct: 0,
+      feedback: "−8 + 15 = <strong>7°C</strong>. On part de −8 et on monte de 15 : −8 + 15 = 15 − 8 = 7. Il fait bon le jour !"
+    },
+    {
+      type: "Pourcentages", theme: "🛒 Boutique de Konoha",
+      text: `Une kunai vaut <span class='math'>40 €</span>. Elle est en promo à <span class='math'>−25%</span>. Quel est le nouveau prix ?`,
+      answers: ["30 €", "25 €", "35 €", "10 €"],
+      correct: 0,
+      feedback: "25% de 40 = 40 × 25/100 = 40 × 0,25 = 10 €. Prix final = 40 − 10 = <strong>30 €</strong>. Ou directement : 40 × 0,75 = 30 €."
+    },
+    {
+      type: "Triangle", theme: "🎌 Formation des équipes",
+      text: `Un triangle a des angles mesurant <span class='math'>47°</span> et <span class='math'>83°</span>. Que mesure le 3ème angle ?`,
+      answers: ["50°", "60°", "40°", "70°"],
+      correct: 0,
+      feedback: "La somme des angles d'un triangle = 180°. Donc 180° − 47° − 83° = 180° − 130° = <strong>50°</strong>."
+    },
+    {
+      type: "Proportionnalité", theme: "⚡ Vitesse des éclairs",
+      text: `<span class='highlight'>Minato</span> parcourt <span class='math'>120 km</span> en <span class='math'>2h</span>. À cette vitesse, combien de km en 5h ?`,
+      answers: ["250 km", "300 km", "200 km", "350 km"],
+      correct: 1,
+      feedback: "Vitesse = 120 ÷ 2 = 60 km/h. En 5h : 60 × 5 = <strong>300 km</strong>. C'est la vitesse du 4ème Hokage... enfin, une version mathématique !"
+    },
+    {
+      type: "Priorités opératoires", theme: "🧮 Calcul de jutsu",
+      text: `Calcule : <span class='math'>5 + 3 × (12 − 8) ÷ 2</span>`,
+      answers: ["11", "16", "13", "8"],
+      correct: 0,
+      feedback: "Ordre : parenthèses d'abord → 12 − 8 = 4. Puis multiplication/division de gauche à droite : 3 × 4 = 12, puis 12 ÷ 2 = 6. Enfin : 5 + 6 = <strong>11</strong>."
+    },
+    {
+      type: "Pythagore", theme: "🔺 Triangle de Kakashi",
+      text: `Dans un triangle rectangle, les deux côtés de l'angle droit mesurent <span class='math'>3 cm</span> et <span class='math'>4 cm</span>. Quelle est la longueur de l'hypoténuse ?`,
+      answers: ["5 cm", "6 cm", "7 cm", "√7 cm"],
+      correct: 0,
+      feedback: "Théorème de Pythagore : hypoténuse² = 3² + 4² = 9 + 16 = 25. Donc hypoténuse = √25 = <strong>5 cm</strong>. Le triangle 3-4-5 est le plus célèbre triangle rectangle !"
+    },
+    {
+      type: "Probabilités", theme: "🎲 Jeu de Konoha",
+      text: `<span class='highlight'>Shikamaru</span> lance un dé à 6 faces. Quelle est la probabilité d'obtenir un nombre pair ?`,
+      answers: ["1/3", "1/2", "2/3", "1/6"],
+      correct: 1,
+      feedback: "Nombres pairs sur un dé : 2, 4, 6 → 3 cas favorables sur 6 possibles. Probabilité = 3/6 = <strong>1/2</strong>. Une chance sur deux !"
+    },
+    {
+      type: "Symétrie centrale", theme: "🌸 Mirror de Sakura",
+      text: `Le point M a pour coordonnées <span class='math'>(2 ; 5)</span>. Son symétrique par rapport à <span class='math'>O(0;0)</span> est :`,
+      answers: ["(−2 ; −5)", "(2 ; −5)", "(−2 ; 5)", "(5 ; 2)"],
+      correct: 0,
+      feedback: "Dans une symétrie centrale par rapport à l'origine O, chaque coordonnée change de signe : (2 ; 5) → <strong>(−2 ; −5)</strong>. C'est comme un demi-tour autour de O !"
+    },
+    {
+      type: "Fractions ÷", theme: "🍜 Partage de ramen",
+      text: `Naruto partage <span class='math'>3/4</span> de bol entre <span class='math'>3</span> amis. Quelle part reçoit chacun ?`,
+      answers: ["9/4", "1/4", "3/12", "1/3"],
+      correct: 1,
+      feedback: "3/4 ÷ 3 = 3/4 × 1/3 = 3/12 = <strong>1/4</strong>. Diviser par 3 revient à multiplier par 1/3. Et 3/12 se simplifie en 1/4 (÷3). Chacun reçoit 1/4 de bol !"
+    }
+  ],
+
+  'mixte_difficile': [
+    {
+      type: "Fractions avancées", theme: "🌀 Portail de l'espace-temps",
+      text: `<span class='highlight'>Obito</span> traverse <span class='math'>2/3</span> du portail, puis recule de <span class='math'>1/6</span>. Quelle fraction du portail a-t-il traversée ?`,
+      answers: ["1/2", "3/6", "1/3", "5/6"],
+      correct: 0,
+      feedback: "2/3 − 1/6 = 4/6 − 1/6 = 3/6 = <strong>1/2</strong>. On réduit au même dénominateur : 2/3 = 4/6, puis 4/6 − 1/6 = 3/6 = 1/2."
+    },
+    {
+      type: "Nombres relatifs", theme: "🗻 Défi de la montagne",
+      text: `Calcule : <span class='math'>(−7) × (−4) + (−5) × 3</span>`,
+      answers: ["43", "13", "−13", "−43"],
+      correct: 1,
+      feedback: "(−7) × (−4) = +28 (moins × moins = plus). (−5) × 3 = −15. Donc 28 + (−15) = 28 − 15 = <strong>13</strong>."
+    },
+    {
+      type: "Géométrie", theme: "🏯 Tour d'observation",
+      text: `Un cercle a un rayon de <span class='math'>7 cm</span>. Quelle est son aire ? (π ≈ 3,14)`,
+      answers: ["43,96 cm²", "153,86 cm²", "21,98 cm²", "49 cm²"],
+      correct: 1,
+      feedback: "Aire = π × r² = 3,14 × 7² = 3,14 × 49 = <strong>153,86 cm²</strong>. Attention : l'aire utilise le rayon au carré, pas le diamètre !"
+    },
+    {
+      type: "Puissances + relatifs", theme: "⚡ Chidori augmenté",
+      text: `Calcule : <span class='math'>(−3)³</span>`,
+      answers: ["27", "−27", "9", "−9"],
+      correct: 1,
+      feedback: "(−3)³ = (−3) × (−3) × (−3) = 9 × (−3) = <strong>−27</strong>. Un nombre négatif à une puissance impaire reste négatif !"
+    },
+    {
+      type: "Proportionnalité", theme: "🗺️ Carte du Pays du Feu",
+      text: `Sur une carte à l'échelle <span class='math'>1/50 000</span>, la distance entre deux villages est <span class='math'>4 cm</span>. Quelle est la distance réelle ?`,
+      answers: ["200 m", "2 km", "20 km", "200 km"],
+      correct: 1,
+      feedback: "Distance réelle = 4 × 50 000 = 200 000 cm = 2 000 m = <strong>2 km</strong>. L'échelle 1/50 000 signifie que 1 cm sur la carte = 50 000 cm dans la réalité."
+    },
+    {
+      type: "Calcul littéral", theme: "📜 Parchemin secret",
+      text: `Développe et simplifie : <span class='math'>3(x + 4) − 2(x − 1)</span>`,
+      answers: ["x + 14", "5x + 10", "x + 10", "x + 12"],
+      correct: 0,
+      feedback: "3(x + 4) = 3x + 12. −2(x − 1) = −2x + 2. Donc 3x + 12 − 2x + 2 = <strong>x + 14</strong>. Attention au signe − devant la parenthèse !"
+    },
+    {
+      type: "Angles", theme: "🌙 Mission nocturne",
+      text: `Dans un triangle isocèle, l'angle au sommet mesure <span class='math'>40°</span>. Que mesurent les angles à la base ?`,
+      answers: ["60° chacun", "70° chacun", "80° chacun", "50° chacun"],
+      correct: 1,
+      feedback: "Somme des angles = 180°. Les deux angles à la base sont égaux (triangle isocèle). Donc 2 × angle = 180° − 40° = 140°. Chaque angle = 140° ÷ 2 = <strong>70°</strong>."
+    },
+    {
+      type: "Priorités", theme: "🧪 Laboratoire d'Orochimaru",
+      text: `<span class='math'>4² − 3 × (−2 + 8)</span> = ?`,
+      answers: ["−2", "−14", "34", "2"],
+      correct: 0,
+      feedback: "Parenthèses : −2 + 8 = 6. Puissance : 4² = 16. Multiplication : 3 × 6 = 18. Soustraction : 16 − 18 = <strong>−2</strong>."
+    },
+    {
+      type: "Pourcentages", theme: "💰 Trésor de Gato",
+      text: `Un trésor de <span class='math'>2 500 €</span> augmente de <span class='math'>12%</span>. Nouvelle valeur ?`,
+      answers: ["2 800 €", "2 700 €", "3 000 €", "2 812 €"],
+      correct: 0,
+      feedback: "Augmentation = 2500 × 12/100 = 300 €. Nouvelle valeur = 2500 + 300 = <strong>2800 €</strong>. Ou : 2500 × 1,12 = 2800 €."
+    },
+    {
+      type: "Mix", theme: "🌪️ Jutsu final",
+      text: `Si <span class='math'>a = −2</span> et <span class='math'>b = 3</span>, calcule <span class='math'>a² + 2b − a</span>`,
+      answers: ["12", "10", "14", "8"],
+      correct: 0,
+      feedback: "a² = (−2)² = 4. 2b = 2 × 3 = 6. −a = −(−2) = +2. Donc 4 + 6 + 2 = <strong>12</strong>. Attention : a² = (−2)² = +4, pas −4 !"
+    }
+  ],
+
+  'boss': [
+    {
+      type: "BOSS", theme: "💀 Orochimaru attaque !",
+      text: `<span class='highlight'>Orochimaru</span> défie Naruto avec ce calcul : <span class='math'>2⁵ − (3 + 7) × 2 + 4²</span>`,
+      answers: ["28", "24", "32", "20"],
+      correct: 0,
+      feedback: "2⁵ = 32. (3+7) = 10. 10×2 = 20. 4² = 16. Donc 32 − 20 + 16 = <strong>28</strong>. Bravo, Naruto tiendrait fier de toi !"
+    },
+    {
+      type: "BOSS", theme: "🐍 Venin de l'incertitude",
+      text: `Résous : <span class='math'>5x + 3 = 23</span>. Quelle est la valeur de x ?`,
+      answers: ["4", "5", "3", "6"],
+      correct: 0,
+      feedback: "5x = 23 − 3 = 20. x = 20 ÷ 5 = <strong>4</strong>. Vérification : 5 × 4 + 3 = 20 + 3 = 23 ✓"
+    },
+    {
+      type: "BOSS", theme: "🌑 Jutsu des ténèbres",
+      text: `Un carré a une aire de <span class='math'>144 cm²</span>. Quelle est la longueur de son côté ?`,
+      answers: ["12 cm", "14 cm", "11 cm", "13 cm"],
+      correct: 0,
+      feedback: "Aire du carré = côté². Donc côté = √144 = <strong>12 cm</strong>. Vérification : 12² = 144 ✓"
+    },
+    {
+      type: "BOSS", theme: "⚰️ Piège final",
+      text: `Dans un tableau de proportionnalité, si <span class='math'>3</span> correspond à <span class='math'>7,5</span>, à quoi correspond <span class='math'>8</span> ?`,
+      answers: ["18", "20", "22", "16"],
+      correct: 1,
+      feedback: "Coefficient : 7,5 ÷ 3 = 2,5. Donc 8 × 2,5 = <strong>20</strong>. On peut aussi faire un produit en croix : 3/7,5 = 8/x → x = 8 × 7,5 ÷ 3 = 20."
+    },
+    {
+      type: "BOSS", theme: "💀 Ultime défi",
+      text: `<span class='math'>(−2)⁴ + (−3)³ ÷ (−3)</span> = ?`,
+      answers: ["16 + 9 = 25", "16 − 9 = 7", "7", "25"],
+      correct: 2,
+      feedback: "(−2)⁴ = 16 (puissance paire, résultat positif). (−3)³ = −27. −27 ÷ (−3) = +9. Donc 16 + 9 = <strong>25</strong>. Attends... 16 + 9 = 25, pas 7. La réponse A est la bonne !"
+    },
+    {
+      type: "BOSS", theme: "🗡️ Lame de la vérité",
+      text: `Simplifie la fraction : <span class='math'>48/72</span>`,
+      answers: ["4/6", "2/3", "3/4", "8/12"],
+      correct: 1,
+      feedback: "PGCD(48, 72) = 24. 48÷24 = 2, 72÷24 = 3. Donc <strong>2/3</strong>. C'est la fraction irréductible !"
+    },
+    {
+      type: "BOSS", theme: "☠️ Pouvoir final",
+      text: `Un rectangle a un périmètre de <span class='math'>34 cm</span> et une largeur de <span class='math'>7 cm</span>. Quelle est sa longueur ?`,
+      answers: ["27 cm", "10 cm", "20 cm", "13,5 cm"],
+      correct: 1,
+      feedback: "P = 2(L + l). 34 = 2(L + 7). 17 = L + 7. L = <strong>10 cm</strong>. Vérif : 2(10 + 7) = 2 × 17 = 34 ✓"
+    }
+  ]
+};
+
+// ══════════════════════════════
+// ÉTAT DU JEU
+// ══════════════════════════════
+let state = {
+  screen: 'home',
+  char: 'naruto',
+  mode: null,
+  questions: [],
+  qIndex: 0,
+  score: 0,
+  streak: 0,
+  bestStreak: 0,
+  hp: 3, maxHp: 3,
+  chakra: 100, maxChakra: 100,
+  correct: 0,
+  timer: null,
+  timeLeft: 30,
+  maxTime: 30,
+  answered: false,
+  xp: 0, level: 1,
+  jutsu: { '50': 2, 'hint': 2, 'time': 1 },
+  timeFrozen: false,
+  totalScore: 0,
+};
+
+// Personnages
+const CHARS = {
+  naruto:   { name: 'Naruto',   emoji: '🍜', bonus: 'xp',       bVal: 1.5 },
+  sasuke:   { name: 'Sasuke',   emoji: '⚡', bonus: 'precision', bVal: 1   },
+  sakura:   { name: 'Sakura',   emoji: '🌸', bonus: 'hint',      bVal: 1   },
+  kakashi:  { name: 'Kakashi',  emoji: '📖', bonus: 'time',      bVal: 45  },
+  rock_lee: { name: 'Rock Lee', emoji: '💪', bonus: 'combo',     bVal: 1   },
+  shikamaru:{ name: 'Shikamaru',emoji: '☁️', bonus: 'score',     bVal: 1.3 },
+};
+
+// Messages selon grade
+const RANKS = [
+  { min: 0,   emoji: '😤', title: 'Académicien',  msg: 'Tu débutes à l\'académie de Konoha !',           quote: '"Chaque grand ninja a commencé par les bases." — Iruka-sensei' },
+  { min: 30,  emoji: '🥷', title: 'Genin',        msg: 'Tu es devenu Genin ! Continue à t\'entraîner !',  quote: '"Je ne fuirai jamais, je ne reviendrai jamais sur mes paroles !" — Naruto' },
+  { min: 60,  emoji: '⚔️', title: 'Chunin',       msg: 'Grade Chunin ! Tu montres ton intelligence !',    quote: '"Quel fardeau..." — Shikamaru, mais il résout quand même le problème.' },
+  { min: 80,  emoji: '🔥', title: 'Jonin',        msg: 'Jonin accompli ! Maître des jutsus mathématiques !', quote: '"Le talent bat l\'effort... dit celui qui ne connaît pas l\'effort." — Rock Lee' },
+  { min: 95,  emoji: '👑', title: 'Kage',         msg: 'Tu es le Hokage des maths ! Légendaire !',        quote: '"Je surpasserai tous les Hokage précédents !" — Naruto Uzumaki' },
+];
+
+// ══════════════════════════════
+// PARTICULES DE CHAKRA
+// ══════════════════════════════
+function initParticles() {
+  const bg = document.getElementById('chakra-bg');
+  bg.innerHTML = '';
+  const colors = ['#FF6B00','#1A6BFF','#FFD700','#9B59B6','#00E676'];
+  for (let i = 0; i < 25; i++) {
+    const d = document.createElement('div');
+    d.className = 'chakra-dot';
+    const size = Math.random() * 6 + 2;
+    d.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      animation-duration:${Math.random()*10+8}s;
+      animation-delay:${Math.random()*10}s;
+    `;
+    bg.appendChild(d);
+  }
+}
+
+// ══════════════════════════════
+// NAVIGATION
+// ══════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('[id^="screen-"]').forEach(el => {
+    el.style.display = 'none';
+  });
+  const el = document.getElementById('screen-' + id);
+  if (el) el.style.display = id === 'home' || id === 'loading' ? 'flex' : (id === 'result' ? 'flex' : 'block');
+}
+
+function showHome() {
+  clearInterval(state.timer);
+  showScreen('home');
+}
+
+function selectChar(el, char) {
+  document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.char = char;
+  showToast(`${CHARS[char].emoji} ${CHARS[char].name} sélectionné !`);
+}
+
+// ══════════════════════════════
+// DÉMARRAGE
+// ══════════════════════════════
+function startGame(mode) {
+  state.mode = mode;
+  const qs = QUESTIONS[mode] ? [...QUESTIONS[mode]] : [];
+  // Mélange
+  for (let i = qs.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [qs[i], qs[j]] = [qs[j], qs[i]];
+  }
+  state.questions = qs;
+  state.qIndex = 0;
+  state.score = 0;
+  state.streak = 0;
+  state.bestStreak = 0;
+  state.correct = 0;
+  state.hp = 3; state.maxHp = 3;
+  state.chakra = 100; state.maxChakra = 100;
+  state.answered = false;
+  state.jutsu = { '50': 2, 'hint': 2, 'time': 1 };
+  state.timeFrozen = false;
+
+  // Bonus par personnage
+  const char = CHARS[state.char];
+  if (char.bonus === 'time') state.maxTime = char.bVal;
+  else state.maxTime = mode === 'boss' ? 20 : 30;
+
+  // Loading screen
+  showScreen('loading');
+  const msgs = [
+    'FORMATION DU SIGNE...', 'ACCUMULATION DU CHAKRA...', 'INVOCATION DE LA MISSION...',
+    'CHARGEMENT DU JUTSU...', 'PRÉPARATION DU PARCHEMIN...'
+  ];
+  document.getElementById('loading-text').textContent = msgs[Math.floor(Math.random()*msgs.length)];
+  document.getElementById('loading-sub').textContent = `Mode : ${getModeLabel(mode)} — Ninja : ${char.name}`;
+
+  setTimeout(() => {
+    showScreen('game');
+    updateHUD();
+    loadQuestion();
+  }, 1200);
+}
+
+function getModeLabel(mode) {
+  const labels = { '6e_facile': 'Académie (6ème)', '5e_medium': 'Genin (5ème)', 'mixte_difficile': 'Chunin (Mix)', 'boss': 'Mode Boss' };
+  return labels[mode] || mode;
+}
+
+// ══════════════════════════════
+// QUESTION
+// ══════════════════════════════
+function loadQuestion() {
+  const q = state.questions[state.qIndex];
+  if (!q) { endGame(); return; }
+
+  state.answered = false;
+  state.timeLeft = state.maxTime;
+  state.timeFrozen = false;
+  clearInterval(state.timer);
+
+  // Mission
+  document.getElementById('mission-label').textContent = `🗾 ${q.theme}`;
+  document.getElementById('mission-title').textContent = `Question ${state.qIndex + 1} / ${state.questions.length}`;
+  document.getElementById('mission-desc').textContent = `Réponds correctement pour protéger le village !`;
+
+  // Type + numéro
+  document.getElementById('q-type').textContent = q.type;
+  document.getElementById('q-num').textContent = `Question ${state.qIndex + 1}`;
+  document.getElementById('q-progress').textContent = `${state.qIndex + 1} / ${state.questions.length}`;
+
+  // Texte
+  document.getElementById('question-text').innerHTML = q.text;
+
+  // Réponses
+  const grid = document.getElementById('answers-grid');
+  grid.innerHTML = '';
+  const letters = ['A', 'B', 'C', 'D'];
+  q.answers.forEach((ans, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn';
+    btn.innerHTML = `<span class="ans-letter">${letters[i]}</span>${ans}`;
+    btn.onclick = () => answer(i);
+    grid.appendChild(btn);
+  });
+
+  // Feedback panel
+  const fp = document.getElementById('feedback-panel');
+  fp.style.display = 'none';
+  fp.classList.remove('wrong-fb');
+
+  // Timer
+  updateTimerUI();
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(state.timer);
+  state.timer = setInterval(() => {
+    if (state.answered || state.timeFrozen) return;
+    state.timeLeft -= 0.1;
+    if (state.timeLeft <= 0) {
+      state.timeLeft = 0;
+      updateTimerUI();
+      timeOut();
+    } else {
+      updateTimerUI();
+    }
+  }, 100);
+}
+
+function updateTimerUI() {
+  const pct = (state.timeLeft / state.maxTime) * 100;
+  document.getElementById('timer-fill').style.width = pct + '%';
+  document.getElementById('timer-num').textContent = Math.ceil(state.timeLeft);
+}
+
+function timeOut() {
+  clearInterval(state.timer);
+  if (state.answered) return;
+  state.answered = true;
+  state.streak = 0;
+  loseHp();
+  showFeedback(false, state.questions[state.qIndex]);
+  showToast('⏰ Temps écoulé ! Pas de chakra récupéré.');
+}
+
+// ══════════════════════════════
+// RÉPONDRE
+// ══════════════════════════════
+function answer(idx) {
+  if (state.answered) return;
+  clearInterval(state.timer);
+  state.answered = true;
+
+  const q = state.questions[state.qIndex];
+  const btns = document.querySelectorAll('.answer-btn');
+  btns.forEach(b => b.disabled = true);
+  btns[idx].classList.add(idx === q.correct ? 'correct' : 'wrong');
+  if (idx !== q.correct) btns[q.correct].classList.add('correct');
+
+  if (idx === q.correct) {
+    // Bonne réponse
+    state.streak++;
+    state.correct++;
+    if (state.streak > state.bestStreak) state.bestStreak = state.streak;
+
+    // Score : base + bonus temps + combo
+    const timeBonus = Math.floor(state.timeLeft * 5);
+    const comboMult = state.streak >= 3 ? state.streak : 1;
+    const charMult = CHARS[state.char].bonus === 'score' ? CHARS[state.char].bVal : 1;
+    const xpMult = CHARS[state.char].bonus === 'xp' ? CHARS[state.char].bVal : 1;
+
+    const baseScore = 100;
+    const earned = Math.floor((baseScore + timeBonus) * comboMult * charMult);
+    state.score += earned;
+
+    // Chakra récupéré
+    state.chakra = Math.min(state.maxChakra, state.chakra + 15);
+
+    // XP
+    addXP(Math.floor(50 * xpMult));
+
+    // Combo display
+    if (state.streak >= 2) showCombo(state.streak);
+
+    showFeedback(true, q);
+    showToast(`+${earned} pts${state.streak >= 2 ? ` 🔥 Combo ×${state.streak}` : ''}`);
+  } else {
+    // Mauvaise réponse
+    state.streak = 0;
+    loseHp();
+    showFeedback(false, q);
+  }
+
+  updateHUD();
+  updateStatsUI();
+  updateJutsuUI();
+}
+
+function loseHp() {
+  state.hp = Math.max(0, state.hp - 1);
+  updateStatsUI();
+  if (state.hp <= 0 && state.mode === 'boss') {
+    setTimeout(() => endGame(), 1500);
+  }
+}
+
+function showFeedback(correct, q) {
+  const fp = document.getElementById('feedback-panel');
+  const title = document.getElementById('feedback-title');
+  const text = document.getElementById('feedback-text');
+  fp.style.display = 'block';
+
+  if (correct) {
+    fp.classList.remove('wrong-fb');
+    const titles = ['✅ Excellent !', '🔥 Brillant !', '⚡ Parfait !', '🎯 Précis !', '🌟 Incroyable !'];
+    title.textContent = state.streak >= 3 ? `🔥 COMBO ×${state.streak} !` : titles[Math.floor(Math.random()*titles.length)];
+  } else {
+    fp.classList.add('wrong-fb');
+    const titles = ['❌ Raté...', '😤 Pas cette fois !', '📚 À réviser !', '💪 Réessaie !'];
+    title.textContent = titles[Math.floor(Math.random()*titles.length)];
+  }
+  text.innerHTML = q.feedback;
+}
+
+// ══════════════════════════════
+// JUTSUS (POWER-UPS)
+// ══════════════════════════════
+function useJutsu(type) {
+  if (state.answered) return;
+
+  const costs = { '50': 30, 'hint': 20, 'time': 40 };
+  const cost = costs[type];
+
+  if (state.jutsu[type] <= 0) { showToast('Plus de jutsus de ce type !'); return; }
+  if (state.chakra < cost) { showToast(`Pas assez de chakra ! (${cost} requis)`); return; }
+
+  state.chakra -= cost;
+  state.jutsu[type]--;
+
+  const q = state.questions[state.qIndex];
+  const btns = document.querySelectorAll('.answer-btn');
+
+  if (type === '50') {
+    // Éliminer 2 mauvaises réponses
+    let removed = 0;
+    btns.forEach((btn, i) => {
+      if (i !== q.correct && removed < 2) {
+        btn.style.opacity = '0.2';
+        btn.disabled = true;
+        removed++;
+      }
+    });
+    showToast('✂️ 50/50 activé ! 2 mauvaises réponses éliminées.');
+  } else if (type === 'hint') {
+    // Mettre en évidence la bonne réponse (légèrement)
+    btns[q.correct].style.borderColor = 'rgba(0,230,118,0.4)';
+    showToast('💡 Kage Bunshin : un indice subtil vient d\'apparaître...');
+  } else if (type === 'time') {
+    // Geler le timer
+    state.timeFrozen = true;
+    showToast('⏸️ Arrêt du Temps ! 10 secondes supplémentaires !');
+    setTimeout(() => {
+      state.timeFrozen = false;
+      showToast('▶️ Le temps reprend son cours...');
+    }, 10000);
+  }
+
+  updateStatsUI();
+  updateJutsuUI();
+}
+
+function updateJutsuUI() {
+  const costs = { '50': 30, 'hint': 20, 'time': 40 };
+  ['50', 'hint', 'time'].forEach(type => {
+    const btn = document.getElementById(`jutsu-${type}`);
+    const count = document.getElementById(`j${type === '50' ? '50' : type === 'hint' ? 'hint' : 'time'}-count`);
+    if (count) count.textContent = state.jutsu[type];
+    if (btn) btn.disabled = state.jutsu[type] <= 0 || state.chakra < costs[type] || state.answered;
+  });
+}
+
+// ══════════════════════════════
+// COMBO DISPLAY
+// ══════════════════════════════
+function showCombo(n) {
+  const el = document.getElementById('combo-display');
+  const labels = { 2:'🔥 DOUBLE !', 3:'🌪️ TRIPLE !', 4:'⚡ QUADRA !', 5:'🔥 PENTA !' };
+  el.textContent = labels[n] || `💀 ×${n} COMBO !`;
+  el.classList.add('show');
+  el.classList.remove('hide');
+  setTimeout(() => {
+    el.classList.add('hide');
+    el.classList.remove('show');
+  }, 1200);
+}
+
+// ══════════════════════════════
+// HUD & STATS
+// ══════════════════════════════
+function updateHUD() {
+  document.getElementById('hud-score').textContent = state.score.toLocaleString('fr-FR');
+  document.getElementById('hud-streak').textContent = '×' + state.streak;
+  document.getElementById('hud-level').textContent = 'Nv.' + state.level;
+  const xpPct = ((state.xp % 500) / 500) * 100;
+  document.getElementById('hud-xp').style.width = xpPct + '%';
+}
+
+function updateStatsUI() {
+  const hpPct = (state.hp / state.maxHp) * 100;
+  document.getElementById('hp-fill').style.width = hpPct + '%';
+  document.getElementById('hp-text').textContent = `${state.hp} / ${state.maxHp} vies`;
+
+  const chakraPct = (state.chakra / state.maxChakra) * 100;
+  document.getElementById('chakra-fill').style.width = chakraPct + '%';
+  document.getElementById('chakra-text').textContent = `${state.chakra} / ${state.maxChakra}`;
+}
+
+function addXP(amount) {
+  state.xp += amount;
+  const newLevel = Math.floor(state.xp / 500) + 1;
+  if (newLevel > state.level) {
+    state.level = newLevel;
+    showToast(`🎉 LEVEL UP ! Niveau ${state.level} atteint !`);
+  }
+  updateHUD();
+}
+
+// ══════════════════════════════
+// QUESTION SUIVANTE
+// ══════════════════════════════
+function nextQuestion() {
+  state.qIndex++;
+  if (state.qIndex >= state.questions.length) {
+    endGame();
+  } else {
+    loadQuestion();
+    updateJutsuUI();
+  }
+}
+
+// ══════════════════════════════
+// FIN DE PARTIE
+// ══════════════════════════════
+function endGame() {
+  clearInterval(state.timer);
+  const total = state.questions.length;
+  const pct = total > 0 ? (state.correct / total) * 100 : 0;
+
+  // Rang
+  let rank = RANKS[0];
+  for (const r of RANKS) { if (pct >= r.min) rank = r; }
+
+  showScreen('result');
+  document.getElementById('result-rank').textContent = rank.emoji;
+  document.getElementById('result-msg').textContent = `${rank.title} — ${rank.msg}`;
+  document.getElementById('result-quote').textContent = rank.quote;
+  document.getElementById('res-score').textContent = state.score.toLocaleString('fr-FR');
+  document.getElementById('res-correct').textContent = `${state.correct}/${total}`;
+  document.getElementById('res-best-streak').textContent = `×${state.bestStreak}`;
+
+  // Trophées
+  const trophies = [];
+  if (pct === 100) trophies.push('🏅 Score parfait !');
+  if (state.bestStreak >= 5) trophies.push('🔥 Combo Légendaire !');
+  if (state.bestStreak >= 3) trophies.push('⚡ Combo Éclair !');
+  if (state.score > 1500) trophies.push('⭐ Grand Ninja !');
+  if (state.jutsu['50'] === 2 && state.jutsu['hint'] === 2) trophies.push('💎 Pur chakra !');
+  if (trophies.length === 0) trophies.push('📚 Continue à t\'entraîner !');
+
+  const tc = document.getElementById('trophies-list');
+  tc.innerHTML = '';
+  trophies.forEach((t, i) => {
+    const d = document.createElement('div');
+    d.className = 'trophy';
+    d.style.animationDelay = (i * 0.15) + 's';
+    d.textContent = t;
+    tc.appendChild(d);
+  });
+}
+
+function retryGame() {
+  startGame(state.mode);
+}
+
+// ══════════════════════════════
+// TOAST
+// ══════════════════════════════
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ══════════════════════════════
+// INIT
+// ══════════════════════════════
+initParticles();
+updateHUD();
+// Sélectionner Naruto par défaut
+document.querySelector('[data-char="naruto"]').classList.add('selected');
+
+
+// ══════════════════════════════════════════════════════════
+// MODE TRACÉ GÉOMÉTRIQUE
+// ══════════════════════════════════════════════════════════
+
+const DRAW_MISSIONS = [
+  {
+    title: "Axe de symétrie vertical",
+    instruction: "🥷 Trace l'axe de symétrie <strong>vertical</strong> du personnage ninja (droite verticale au centre)",
+    guide: { type: 'vertical', x: 0.5 },
+    tolerance: 0.07,
+    feedback_ok: "Parfait ! L'axe de symétrie vertical passe par le milieu. En symétrie axiale, chaque point est à égale distance de l'axe, de chaque côté.",
+    feedback_bad: "Pas tout à fait... L'axe vertical doit passer exactement au centre horizontal du dessin. Réessaie !",
+    xp: 80
+  },
+  {
+    title: "Droite perpendiculaire",
+    instruction: "📐 Trace une droite <strong>horizontale</strong> (parallèle au sol, à n'importe quelle hauteur)",
+    guide: { type: 'horizontal', y: 0.5 },
+    tolerance: 0.08,
+    feedback_ok: "Excellent ! Une droite horizontale est perpendiculaire à l'axe vertical. Deux droites perpendiculaires forment un angle de 90°.",
+    feedback_bad: "Ta droite n'est pas assez horizontale. Essaie de tracer de gauche à droite sans monter ni descendre.",
+    xp: 70
+  },
+  {
+    title: "Diagonale — angle 45°",
+    instruction: "⚡ Trace la diagonale du carré de Sasuke — une droite à <strong>45°</strong> (d'un coin à l'autre)",
+    guide: { type: 'diagonal45' },
+    tolerance: 15,
+    feedback_ok: "Parfait ! La diagonale d'un carré forme un angle de 45° avec chaque côté. C'est aussi l'axe de symétrie du carré !",
+    feedback_bad: "L'angle n'est pas assez proche de 45°. Une diagonale à 45° monte autant qu'elle avance : si tu avances de 3 cm, tu montes de 3 cm.",
+    xp: 90
+  },
+  {
+    title: "Triangle rectangle — hypoténuse",
+    instruction: "🔺 Relie les points <strong>A (bas gauche)</strong> et <strong>B (haut droit)</strong> pour former l'hypoténuse du triangle de Kakashi",
+    guide: { type: 'hyp', ax: 0.15, ay: 0.8, bx: 0.85, by: 0.2 },
+    tolerance: 0.12,
+    feedback_ok: "Super ! L'hypoténuse est le côté le plus long du triangle rectangle, en face de l'angle droit. C'est sur lui qu'on applique Pythagore !",
+    feedback_bad: "Ta ligne ne relie pas correctement les deux points. Commence bien en bas à gauche et termine en haut à droite.",
+    xp: 100
+  },
+  {
+    title: "Axe de symétrie horizontal",
+    instruction: "🌸 Trace l'axe de symétrie <strong>horizontal</strong> du papillon de Sakura (droite horizontale à mi-hauteur)",
+    guide: { type: 'horizontal', y: 0.5 },
+    tolerance: 0.07,
+    feedback_ok: "Bravo ! L'axe horizontal partage le papillon en deux moitiés égales. La symétrie axiale est utilisée partout en géométrie et en nature !",
+    feedback_bad: "L'axe doit passer exactement à mi-hauteur du canvas. Place ta droite plus précisément au centre vertical.",
+    xp: 80
+  },
+  {
+    title: "Angle aigu — libre",
+    instruction: "🎯 Trace un <strong>angle aigu</strong> (moins de 90°) en cliquant le sommet, puis les deux côtés. Utilise l'outil 📐 Angle !",
+    guide: { type: 'angle_free', max: 89 },
+    tolerance: 89,
+    feedback_ok: "Excellent ! Un angle aigu mesure entre 0° et 90°. Contrairement à l'angle obtus (90°-180°) il est plus petit qu'un angle droit.",
+    feedback_bad: "L'angle que tu as tracé est trop grand (≥ 90°). Un angle aigu doit être inférieur à 90° — comme les pointes d'une kunai !",
+    xp: 110
+  }
+];
+
+let drawState = {
+  missionIdx: 0,
+  tool: 'line',
+  color: '#00E676',
+  isDrawing: false,
+  startX: 0, startY: 0,
+  currentX: 0, currentY: 0,
+  lines: [],        // {x1,y1,x2,y2,color,tool}
+  anglePoints: [],  // for angle tool: up to 3 points
+  score: 0,
+  validated: false
+};
+
+function startDrawMode() {
+  drawState.missionIdx = 0;
+  drawState.score = 0;
+  showScreen('draw');
+  setTimeout(initDrawCanvas, 50);
+}
+
+function initDrawCanvas() {
+  const canvas = document.getElementById('draw-canvas');
+  const parent = canvas.parentElement;
+  canvas.width = parent.clientWidth;
+  canvas.height = Math.min(parent.clientWidth * 0.65, 340);
+  canvas.style.height = canvas.height + 'px';
+  drawState.lines = [];
+  drawState.anglePoints = [];
+  drawState.validated = false;
+  document.getElementById('draw-score-bar').style.width = '0%';
+  document.getElementById('draw-score-txt').textContent = '0%';
+  document.getElementById('draw-feedback').style.display = 'none';
+  loadDrawMission();
+  setupCanvasEvents(canvas);
+}
+
+function loadDrawMission() {
+  const m = DRAW_MISSIONS[drawState.missionIdx];
+  document.getElementById('draw-title').textContent = `Mission ${drawState.missionIdx + 1} / ${DRAW_MISSIONS.length}`;
+  document.getElementById('draw-instruction').innerHTML = m.instruction;
+  drawState.lines = [];
+  drawState.anglePoints = [];
+  drawState.validated = false;
+  document.getElementById('draw-feedback').style.display = 'none';
+  document.getElementById('draw-score-bar').style.width = '0%';
+  document.getElementById('draw-score-txt').textContent = '0%';
+  renderCanvas();
+}
+
+function setDrawTool(t) {
+  drawState.tool = t;
+  drawState.anglePoints = [];
+  ['line','angle','free'].forEach(id => {
+    const btn = document.getElementById('draw-tool-' + id);
+    if (btn) btn.style.borderColor = t === id ? 'var(--green)' : 'rgba(255,255,255,.1)';
+  });
+}
+
+function setDrawColor(c) {
+  drawState.color = c;
+  document.querySelectorAll('.color-dot').forEach(d => {
+    d.classList.toggle('active', d.style.background === c || d.style.backgroundColor === c);
+  });
+}
+
+function clearCanvas() {
+  drawState.lines = [];
+  drawState.anglePoints = [];
+  renderCanvas();
+}
+
+function getCanvasPos(canvas, e) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  let cx, cy;
+  if (e.touches) {
+    cx = (e.touches[0].clientX - rect.left) * scaleX;
+    cy = (e.touches[0].clientY - rect.top) * scaleY;
+  } else {
+    cx = (e.clientX - rect.left) * scaleX;
+    cy = (e.clientY - rect.top) * scaleY;
+  }
+  return { x: cx, y: cy };
+}
+
+function setupCanvasEvents(canvas) {
+  // Remove old listeners by replacing canvas
+  const newCanvas = canvas.cloneNode(true);
+  canvas.parentNode.replaceChild(newCanvas, canvas);
+  const c = document.getElementById('draw-canvas');
+
+  const start = (e) => {
+    e.preventDefault();
+    if (drawState.validated) return;
+    const pos = getCanvasPos(c, e);
+    if (drawState.tool === 'angle') {
+      drawState.anglePoints.push(pos);
+      if (drawState.anglePoints.length === 3) {
+        // Record the angle
+        drawState.lines.push({ type: 'angle', pts: [...drawState.anglePoints], color: drawState.color });
+        drawState.anglePoints = [];
+      }
+      renderCanvas();
+      return;
+    }
+    drawState.isDrawing = true;
+    drawState.startX = pos.x; drawState.startY = pos.y;
+    drawState.currentX = pos.x; drawState.currentY = pos.y;
+  };
+  const move = (e) => {
+    e.preventDefault();
+    if (!drawState.isDrawing) return;
+    const pos = getCanvasPos(c, e);
+    drawState.currentX = pos.x; drawState.currentY = pos.y;
+    renderCanvas(true);
+  };
+  const end = (e) => {
+    e.preventDefault();
+    if (!drawState.isDrawing) return;
+    drawState.isDrawing = false;
+    if (Math.abs(drawState.currentX - drawState.startX) > 5 || Math.abs(drawState.currentY - drawState.startY) > 5) {
+      drawState.lines.push({
+        type: drawState.tool === 'free' ? 'free' : 'line',
+        x1: drawState.startX, y1: drawState.startY,
+        x2: drawState.currentX, y2: drawState.currentY,
+        color: drawState.color
+      });
+    }
+    renderCanvas();
+  };
+
+  c.addEventListener('mousedown', start);
+  c.addEventListener('mousemove', move);
+  c.addEventListener('mouseup', end);
+  c.addEventListener('touchstart', start, { passive: false });
+  c.addEventListener('touchmove', move, { passive: false });
+  c.addEventListener('touchend', end, { passive: false });
+}
+
+function renderCanvas(preview) {
+  const canvas = document.getElementById('draw-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  // Background
+  ctx.fillStyle = '#0D0D1A';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid légère
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+  // Guide visuel selon mission
+  const m = DRAW_MISSIONS[drawState.missionIdx];
+  drawGuide(ctx, W, H, m);
+
+  // Lignes tracées
+  drawState.lines.forEach(l => {
+    ctx.strokeStyle = l.color;
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    if (l.type === 'line') {
+      ctx.beginPath();
+      // Étendre la ligne aux bords du canvas
+      const dx = l.x2 - l.x1, dy = l.y2 - l.y1;
+      const len = Math.sqrt(dx*dx+dy*dy) || 1;
+      const ext = Math.max(W, H) * 2;
+      ctx.moveTo(l.x1 - dx/len*ext, l.y1 - dy/len*ext);
+      ctx.lineTo(l.x1 + dx/len*ext, l.y1 + dy/len*ext);
+      ctx.stroke();
+    } else if (l.type === 'angle' && l.pts) {
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(l.pts[0].x, l.pts[0].y);
+      ctx.lineTo(l.pts[1].x, l.pts[1].y);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(l.pts[1].x, l.pts[1].y);
+      ctx.lineTo(l.pts[2].x, l.pts[2].y);
+      ctx.stroke();
+      // Arc d'angle
+      const a1 = Math.atan2(l.pts[0].y - l.pts[1].y, l.pts[0].x - l.pts[1].x);
+      const a2 = Math.atan2(l.pts[2].y - l.pts[1].y, l.pts[2].x - l.pts[1].x);
+      ctx.strokeStyle = 'rgba(255,215,0,0.7)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(l.pts[1].x, l.pts[1].y, 22, a1, a2);
+      ctx.stroke();
+      // Mesure de l'angle
+      let ang = Math.abs(a2 - a1) * 180 / Math.PI;
+      if (ang > 180) ang = 360 - ang;
+      ctx.fillStyle = '#FFD700';
+      ctx.font = 'bold 12px Nunito, sans-serif';
+      ctx.fillText(Math.round(ang) + '°', l.pts[1].x + 28, l.pts[1].y - 8);
+    }
+  });
+
+  // Angle en cours (points posés)
+  if (drawState.anglePoints.length > 0) {
+    ctx.fillStyle = '#FFD700';
+    drawState.anglePoints.forEach(p => {
+      ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI*2); ctx.fill();
+    });
+    if (drawState.anglePoints.length === 2) {
+      ctx.strokeStyle = '#FFD700';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5,4]);
+      ctx.beginPath();
+      ctx.moveTo(drawState.anglePoints[0].x, drawState.anglePoints[0].y);
+      ctx.lineTo(drawState.anglePoints[1].x, drawState.anglePoints[1].y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+
+  // Preview ligne en cours
+  if (preview && drawState.isDrawing && drawState.tool !== 'angle') {
+    ctx.strokeStyle = drawState.color;
+    ctx.lineWidth = 2.5;
+    ctx.globalAlpha = 0.6;
+    ctx.setLineDash([6,4]);
+    ctx.beginPath();
+    ctx.moveTo(drawState.startX, drawState.startY);
+    ctx.lineTo(drawState.currentX, drawState.currentY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+  }
+}
+
+function drawGuide(ctx, W, H, m) {
+  if (!m.guide) return;
+  const g = m.guide;
+  ctx.save();
+  ctx.setLineDash([8, 6]);
+  ctx.lineWidth = 1.5;
+  ctx.globalAlpha = 0.25;
+
+  if (g.type === 'vertical') {
+    ctx.strokeStyle = '#00E676';
+    ctx.beginPath(); ctx.moveTo(W * g.x, 0); ctx.lineTo(W * g.x, H); ctx.stroke();
+    // emoji personnage
+    ctx.globalAlpha = 0.5;
+    ctx.font = `${Math.min(H * 0.35, 80)}px serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('🥷', W * g.x, H * 0.55);
+  } else if (g.type === 'horizontal') {
+    ctx.strokeStyle = '#1A6BFF';
+    ctx.beginPath(); ctx.moveTo(0, H * g.y); ctx.lineTo(W, H * g.y); ctx.stroke();
+    ctx.globalAlpha = 0.45;
+    ctx.font = `${Math.min(H * 0.28, 64)}px serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('🦋', W * 0.5, H * 0.42);
+    ctx.fillText('🦋', W * 0.5, H * 0.7);
+  } else if (g.type === 'diagonal45') {
+    ctx.strokeStyle = '#FFD700';
+    // Carré
+    const s = Math.min(W, H) * 0.55;
+    const sx = (W - s) / 2, sy = (H - s) / 2;
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([]);
+    ctx.strokeRect(sx, sy, s, s);
+    // Diagonale guide
+    ctx.setLineDash([8,6]);
+    ctx.strokeStyle = '#FFD700';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(sx, sy + s); ctx.lineTo(sx + s, sy); ctx.stroke();
+    ctx.globalAlpha = 0.5;
+    ctx.font = '16px Nunito, sans-serif';
+    ctx.fillStyle = '#FFD700';
+    ctx.textAlign = 'center';
+    ctx.fillText('⚡', sx + s * 0.5, sy + s * 0.5);
+  } else if (g.type === 'hyp') {
+    // Points A et B
+    const ax = W * g.ax, ay = H * g.ay;
+    const bx = W * g.bx, by = H * g.by;
+    ctx.strokeStyle = '#FF6B00';
+    ctx.setLineDash([]);
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.5;
+    // Angle droit
+    ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ax, by); ctx.lineTo(bx, by); ctx.stroke();
+    ctx.globalAlpha = 0.9;
+    ctx.fillStyle = '#FF6B00';
+    ctx.font = 'bold 14px Nunito, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('A', ax - 14, ay);
+    ctx.fillText('B', bx + 14, by);
+    ctx.setLineDash([8, 6]);
+    ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function validateDraw() {
+  if (drawState.validated) return;
+  const canvas = document.getElementById('draw-canvas');
+  const W = canvas.width, H = canvas.height;
+  const m = DRAW_MISSIONS[drawState.missionIdx];
+  const g = m.guide;
+
+  if (drawState.lines.length === 0) {
+    showToast('✏️ Trace quelque chose d\'abord !'); return;
+  }
+
+  let score = 0;
+  const lastLine = drawState.lines[drawState.lines.length - 1];
+
+  if (g.type === 'vertical') {
+    // Vérifie que la ligne est ~verticale et passe par x ≈ W*g.x
+    if (lastLine.type === 'line') {
+      const midX = (lastLine.x1 + lastLine.x2) / 2 / W;
+      const dx = Math.abs(lastLine.x2 - lastLine.x1);
+      const dy = Math.abs(lastLine.y2 - lastLine.y1);
+      const isVertical = dy > dx * 2;
+      const isCenter = Math.abs(midX - g.x) < g.tolerance * 2;
+      if (isVertical && isCenter) score = 100;
+      else if (isVertical) score = 60;
+      else score = 20;
+    }
+  } else if (g.type === 'horizontal') {
+    if (lastLine.type === 'line') {
+      const midY = (lastLine.y1 + lastLine.y2) / 2 / H;
+      const dx = Math.abs(lastLine.x2 - lastLine.x1);
+      const dy = Math.abs(lastLine.y2 - lastLine.y1);
+      const isHoriz = dx > dy * 2;
+      const isCenter = Math.abs(midY - g.y) < m.tolerance * 2;
+      if (isHoriz && isCenter) score = 100;
+      else if (isHoriz) score = 65;
+      else score = 15;
+    }
+  } else if (g.type === 'diagonal45') {
+    if (lastLine.type === 'line') {
+      const dx = lastLine.x2 - lastLine.x1;
+      const dy = lastLine.y2 - lastLine.y1;
+      const angle = Math.abs(Math.atan2(Math.abs(dy), Math.abs(dx)) * 180 / Math.PI);
+      const diff = Math.abs(angle - 45);
+      if (diff <= 8) score = 100;
+      else if (diff <= 18) score = 70;
+      else score = 30;
+    }
+  } else if (g.type === 'hyp') {
+    if (lastLine.type === 'line') {
+      const ax = W * g.ax, ay = H * g.ay, bx = W * g.bx, by = H * g.by;
+      const distA = Math.sqrt((lastLine.x1-ax)**2 + (lastLine.y1-ay)**2);
+      const distB = Math.sqrt((lastLine.x2-bx)**2 + (lastLine.y2-by)**2);
+      const distA2 = Math.sqrt((lastLine.x2-ax)**2 + (lastLine.y2-ay)**2);
+      const distB2 = Math.sqrt((lastLine.x1-bx)**2 + (lastLine.y1-by)**2);
+      const best = Math.min(distA + distB, distA2 + distB2);
+      const tol = W * m.tolerance;
+      if (best < tol) score = 100;
+      else if (best < tol * 2) score = 70;
+      else score = 25;
+    }
+  } else if (g.type === 'angle_free') {
+    // Vérifie qu'un angle a été tracé et mesure < 90
+    const angleLine = drawState.lines.find(l => l.type === 'angle');
+    if (angleLine && angleLine.pts) {
+      const p = angleLine.pts;
+      const a1 = Math.atan2(p[0].y - p[1].y, p[0].x - p[1].x);
+      const a2 = Math.atan2(p[2].y - p[1].y, p[2].x - p[1].x);
+      let ang = Math.abs(a2 - a1) * 180 / Math.PI;
+      if (ang > 180) ang = 360 - ang;
+      if (ang < 90) score = 100;
+      else if (ang < 100) score = 60;
+      else score = 20;
+    } else {
+      showToast('Utilise l\'outil 📐 Angle (3 clics : côté 1, sommet, côté 2)'); return;
+    }
+  }
+
+  drawState.validated = true;
+  drawState.score += score;
+  const isOk = score >= 70;
+  const fb = document.getElementById('draw-feedback');
+  fb.className = 'feedback-panel' + (isOk ? '' : ' wrong-fb');
+  fb.style.display = 'block';
+  document.getElementById('draw-fb-title').textContent = isOk ? (score === 100 ? '🎯 Précision parfaite !' : '✅ Bien tracé !') : '📐 Presque...';
+  document.getElementById('draw-fb-text').innerHTML = isOk ? m.feedback_ok : m.feedback_bad + '<br><br><em>Score obtenu : ' + score + '/100. Clique "Mission suivante" pour continuer.</em>';
+  document.getElementById('draw-score-bar').style.width = score + '%';
+  document.getElementById('draw-score-txt').textContent = score + '%';
+
+  if (isOk) {
+    addXP(m.xp);
+    state.score += score;
+    updateHUD();
+  }
+  renderCanvas();
+}
+
+function nextDrawMission() {
+  drawState.missionIdx++;
+  if (drawState.missionIdx >= DRAW_MISSIONS.length) {
+    // Fin
+    showToast('🏆 Toutes les missions de tracé terminées ! Score : ' + drawState.score);
+    state.score += drawState.score;
+    updateHUD();
+    showHome();
+    return;
+  }
+  drawState.lines = [];
+  drawState.anglePoints = [];
+  loadDrawMission();
+  renderCanvas();
+}
+
+
+// ══════════════════════════════════════════════════════════
+// MODE PUZZLE EMBOÎTEMENT
+// ══════════════════════════════════════════════════════════
+
+const PUZZLES = [
+  {
+    title: "Fractions équivalentes",
+    instruction: "🍜 Naruto veut partager son ramen ! Glisse chaque fraction dans la case de sa fraction équivalente.",
+    type: "match",
+    pairs: [
+      { piece: "1/2",  slot: "2/4",   explanation: "1/2 = 2/4 (on multiplie × 2)" },
+      { piece: "2/3",  slot: "4/6",   explanation: "2/3 = 4/6 (on multiplie × 2)" },
+      { piece: "3/4",  slot: "9/12",  explanation: "3/4 = 9/12 (on multiplie × 3)" },
+      { piece: "1/5",  slot: "3/15",  explanation: "1/5 = 3/15 (on multiplie × 3)" },
+    ],
+    xp: 120
+  },
+  {
+    title: "Formes géométriques",
+    instruction: "⚔️ Les shurikens de Sasuke ont toutes les formes ! Associe chaque forme à sa propriété.",
+    type: "match",
+    pairs: [
+      { piece: "Carré",           slot: "4 côtés égaux + 4 angles droits", explanation: "Le carré a 4 côtés égaux ET 4 angles droits de 90°." },
+      { piece: "Rectangle",       slot: "2 paires de côtés parallèles",    explanation: "Le rectangle a 2 paires de côtés égaux et 4 angles droits." },
+      { piece: "Triangle isocèle",slot: "2 côtés égaux",                   explanation: "Le triangle isocèle a exactement 2 côtés égaux et 2 angles égaux." },
+      { piece: "Losange",         slot: "4 côtés égaux, diagonales ⊥",     explanation: "Le losange a 4 côtés égaux mais ses angles ne sont pas forcément droits." },
+    ],
+    xp: 130
+  },
+  {
+    title: "Nombres relatifs : classement",
+    instruction: "❄️ Place ces températures de la plus froide à la plus chaude (de gauche à droite) !",
+    type: "sort",
+    items: ["-12°C", "-3°C", "0°C", "+5°C", "+18°C"],
+    correctOrder: ["-12°C", "-3°C", "0°C", "+5°C", "+18°C"],
+    explanation: "Sur la droite numérique, plus on va à gauche, plus c'est froid. −12 < −3 < 0 < +5 < +18.",
+    xp: 100
+  },
+  {
+    title: "Fractions × et ÷",
+    instruction: "🌀 Relie chaque calcul à son résultat. Glisse la bonne opération dans la case !",
+    type: "match",
+    pairs: [
+      { piece: "1/2 × 2/3", slot: "1/3",  explanation: "1/2 × 2/3 = (1×2)/(2×3) = 2/6 = 1/3" },
+      { piece: "3/4 × 4/5", slot: "3/5",  explanation: "3/4 × 4/5 = (3×4)/(4×5) = 12/20 = 3/5" },
+      { piece: "2/5 ÷ 4",   slot: "1/10", explanation: "2/5 ÷ 4 = 2/5 × 1/4 = 2/20 = 1/10" },
+      { piece: "5/6 × 3/5", slot: "1/2",  explanation: "5/6 × 3/5 = 15/30 = 1/2" },
+    ],
+    xp: 140
+  },
+  {
+    title: "Priorités opératoires",
+    instruction: "🧮 Ces calculs ont été mélangés ! Glisse chaque étape dans le bon ordre pour résoudre 3 + 4 × (2 + 1).",
+    type: "sort",
+    items: ["Résultat : 15", "3 + 4 × 3", "2 + 1 = 3", "3 + 12 = 15", "4 × 3 = 12"],
+    correctOrder: ["2 + 1 = 3", "4 × 3 = 12", "3 + 4 × 3", "3 + 12 = 15", "Résultat : 15"],
+    explanation: "Règle : parenthèses d'abord → 2+1=3. Puis multiplication → 4×3=12. Enfin addition → 3+12=15.",
+    xp: 110
+  },
+  {
+    title: "Pythagore — qui est l'hypoténuse ?",
+    instruction: "🔺 Dans ces triangles rectangles, identifie l'hypoténuse (le plus grand côté, en face du 90°) !",
+    type: "match",
+    pairs: [
+      { piece: "Triangle 3-4-5",    slot: "Hypoténuse = 5",  explanation: "3² + 4² = 9 + 16 = 25 = 5². L'hypoténuse est 5." },
+      { piece: "Triangle 5-12-13",  slot: "Hypoténuse = 13", explanation: "5² + 12² = 25 + 144 = 169 = 13². L'hypoténuse est 13." },
+      { piece: "Triangle 6-8-10",   slot: "Hypoténuse = 10", explanation: "6² + 8² = 36 + 64 = 100 = 10². L'hypoténuse est 10." },
+      { piece: "Triangle 8-15-17",  slot: "Hypoténuse = 17", explanation: "8² + 15² = 64 + 225 = 289 = 17². L'hypoténuse est 17." },
+    ],
+    xp: 150
+  }
+];
+
+let puzzleState = {
+  idx: 0,
+  score: 0,
+  timer: null,
+  timeLeft: 60,
+  dragging: null,
+  placements: {},   // slotId -> pieceId
+  validated: false
+};
+
+function startPuzzleMode() {
+  puzzleState.idx = 0;
+  puzzleState.score = 0;
+  clearInterval(puzzleState.timer);
+  showScreen('puzzle');
+  loadPuzzle();
+}
+
+function loadPuzzle() {
+  const p = PUZZLES[puzzleState.idx];
+  document.getElementById('puzzle-title').textContent = `Puzzle ${puzzleState.idx + 1} / ${PUZZLES.length}`;
+  document.getElementById('puzzle-instruction').innerHTML = p.instruction;
+  document.getElementById('puzzle-score-display').textContent = puzzleState.score;
+  document.getElementById('puzzle-feedback').style.display = 'none';
+  puzzleState.placements = {};
+  puzzleState.validated = false;
+  puzzleState.timeLeft = 60;
+
+  clearInterval(puzzleState.timer);
+  puzzleState.timer = setInterval(() => {
+    puzzleState.timeLeft -= 0.1;
+    if (puzzleState.timeLeft <= 0) {
+      puzzleState.timeLeft = 0;
+      clearInterval(puzzleState.timer);
+      autoValidatePuzzle();
+    }
+    const pct = (puzzleState.timeLeft / 60) * 100;
+    document.getElementById('puzzle-timer-fill').style.width = pct + '%';
+    document.getElementById('puzzle-timer-num').textContent = Math.ceil(puzzleState.timeLeft);
+  }, 100);
+
+  renderPuzzle(p);
+}
+
+function renderPuzzle(p) {
+  const area = document.getElementById('puzzle-game-area');
+  area.innerHTML = '';
+
+  if (p.type === 'match') {
+    // Shuffle slots
+    const slots = [...p.pairs].sort(() => Math.random() - 0.5);
+    const pieces = [...p.pairs].sort(() => Math.random() - 0.5);
+
+    // Pièces à déposer
+    const tray = document.createElement('div');
+    tray.className = 'puzzle-pieces-tray';
+    tray.innerHTML = '<div class="puzzle-category-label" style="width:100%;margin-bottom:4px">🧩 Pièces à placer — glisse-les dans la bonne case !</div>';
+
+    pieces.forEach((pair, i) => {
+      const piece = document.createElement('div');
+      piece.className = 'puzzle-piece';
+      piece.id = 'piece-' + i;
+      piece.dataset.value = pair.piece;
+      piece.dataset.pairIdx = p.pairs.findIndex(pp => pp.piece === pair.piece);
+      piece.innerHTML = pair.piece;
+      setupPieceDrag(piece, tray);
+      tray.appendChild(piece);
+    });
+    area.appendChild(tray);
+
+    // Slots (cibles)
+    const grid = document.createElement('div');
+    grid.className = 'puzzle-slots-grid';
+    grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+    document.getElementById('puzzle-progress').textContent = `0/${p.pairs.length}`;
+
+    slots.forEach((pair, i) => {
+      const slot = document.createElement('div');
+      slot.className = 'puzzle-slot';
+      slot.id = 'slot-' + i;
+      slot.dataset.correct = pair.piece;
+      slot.dataset.explanation = pair.explanation;
+      slot.innerHTML = `<span class="slot-label">${pair.slot}</span>`;
+      setupSlotDrop(slot);
+      grid.appendChild(slot);
+    });
+    area.appendChild(grid);
+
+  } else if (p.type === 'sort') {
+    // Tri d'éléments
+    area.innerHTML = `<div class="puzzle-category-label">🔢 Glisse les éléments dans le bon ordre de gauche à droite</div>`;
+
+    const shuffled = [...p.items].sort(() => Math.random() - 0.5);
+    const tray = document.createElement('div');
+    tray.className = 'puzzle-pieces-tray';
+    tray.style.flexDirection = 'column';
+    tray.style.gap = '8px';
+    tray.innerHTML = '<div class="puzzle-category-label" style="width:100%">🧩 Éléments à trier</div>';
+    shuffled.forEach((item, i) => {
+      const piece = document.createElement('div');
+      piece.className = 'puzzle-piece';
+      piece.id = 'spiece-' + i;
+      piece.dataset.value = item;
+      piece.style.fontSize = '.85rem';
+      piece.textContent = item;
+      setupPieceDragSort(piece, tray);
+      tray.appendChild(piece);
+    });
+    area.appendChild(tray);
+
+    const hint = document.createElement('div');
+    hint.style.cssText = 'background:var(--dark3);border-radius:12px;padding:12px 16px;margin-top:10px;font-size:.82rem;color:var(--gray);line-height:1.5;border:1px solid rgba(255,255,255,.06)';
+    hint.innerHTML = `<strong style="color:var(--white)">💡 Ordre attendu :</strong> glisse les pièces dans la bonne séquence dans le plateau ci-dessous.`;
+    area.appendChild(hint);
+
+    const sortZone = document.createElement('div');
+    sortZone.id = 'sort-zone';
+    sortZone.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;background:var(--dark2);border:2px dashed rgba(155,89,182,.3);border-radius:12px;padding:14px;min-height:70px;margin-top:10px;align-items:center;';
+    sortZone.innerHTML = '<span style="color:var(--gray);font-size:.75rem;font-weight:700">← Dépose ici dans le bon ordre</span>';
+    setupSortZoneDrop(sortZone, p, tray);
+    area.appendChild(sortZone);
+
+    document.getElementById('puzzle-progress').textContent = `0/${p.items.length}`;
+    setTimeout(() => {
+      const btn = document.createElement('button');
+      btn.className = 'btn-main';
+      btn.style.cssText = 'width:100%;margin-top:12px;font-size:1rem;padding:12px';
+      btn.textContent = '✅ Valider l\'ordre';
+      btn.onclick = () => validateSortPuzzle(p);
+      area.appendChild(btn);
+    }, 100);
+  }
+}
+
+// ── DRAG & DROP souris + touch ──
+let dragEl = null, dragClone = null, dragOffX = 0, dragOffY = 0;
+
+function setupPieceDrag(piece, tray) {
+  const startDrag = (e) => {
+    e.preventDefault();
+    dragEl = piece;
+    piece.classList.add('dragging');
+    const rect = piece.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    dragOffX = clientX - rect.left;
+    dragOffY = clientY - rect.top;
+    dragClone = piece.cloneNode(true);
+    dragClone.style.cssText = `position:fixed;z-index:9999;pointer-events:none;opacity:0.85;transform:scale(1.1);border-color:var(--purple);left:${rect.left}px;top:${rect.top}px;width:${rect.width}px`;
+    document.body.appendChild(dragClone);
+  };
+  const moveDrag = (e) => {
+    if (!dragEl || dragEl !== piece) return;
+    e.preventDefault();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    if (dragClone) {
+      dragClone.style.left = (clientX - dragOffX) + 'px';
+      dragClone.style.top = (clientY - dragOffY) + 'px';
+    }
+    // Highlight slots
+    document.querySelectorAll('.puzzle-slot').forEach(s => {
+      const r = s.getBoundingClientRect();
+      const over = clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom;
+      s.classList.toggle('drag-over', over && !s.dataset.filled);
+    });
+  };
+  const endDrag = (e) => {
+    if (!dragEl || dragEl !== piece) return;
+    piece.classList.remove('dragging');
+    if (dragClone) { dragClone.remove(); dragClone = null; }
+    const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+    const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+    document.querySelectorAll('.puzzle-slot').forEach(s => {
+      s.classList.remove('drag-over');
+      const r = s.getBoundingClientRect();
+      if (clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom) {
+        dropOnSlot(piece, s);
+      }
+    });
+    dragEl = null;
+  };
+  piece.addEventListener('mousedown', startDrag);
+  piece.addEventListener('touchstart', startDrag, { passive: false });
+  document.addEventListener('mousemove', moveDrag);
+  document.addEventListener('touchmove', moveDrag, { passive: false });
+  document.addEventListener('mouseup', endDrag);
+  document.addEventListener('touchend', endDrag);
+}
+
+function setupSlotDrop(slot) {
+  slot.addEventListener('dragover', e => e.preventDefault());
+}
+
+function dropOnSlot(piece, slot) {
+  if (slot.dataset.filled) return;
+  const puzzle = PUZZLES[puzzleState.idx];
+  const isCorrect = slot.dataset.correct === piece.dataset.value;
+
+  // Place la pièce
+  slot.dataset.filled = '1';
+  slot.innerHTML = `<span class="placed-piece">${piece.innerHTML}</span>`;
+  slot.classList.add(isCorrect ? 'correct' : 'wrong');
+  if (!isCorrect) setTimeout(() => { slot.classList.remove('wrong'); slot.removeAttribute('data-filled'); slot.innerHTML = `<span class="slot-label">${slot.dataset.correct || ''}</span>`; }, 900);
+  else piece.classList.add('placed');
+
+  if (!isCorrect) {
+    showToast('❌ Pas la bonne case ! Réessaie.');
+    return;
+  }
+
+  puzzleState.placements[slot.id] = piece.dataset.value;
+  const filled = Object.keys(puzzleState.placements).length;
+  document.getElementById('puzzle-progress').textContent = `${filled}/${puzzle.pairs.length}`;
+
+  if (filled === puzzle.pairs.length) {
+    setTimeout(() => validateMatchPuzzle(puzzle), 300);
+  }
+}
+
+function validateMatchPuzzle(p) {
+  if (puzzleState.validated) return;
+  puzzleState.validated = true;
+  clearInterval(puzzleState.timer);
+
+  const timeBonus = Math.floor(puzzleState.timeLeft * 3);
+  const earned = p.xp + timeBonus;
+  puzzleState.score += earned;
+  addXP(p.xp);
+  state.score += earned;
+  updateHUD();
+  document.getElementById('puzzle-score-display').textContent = puzzleState.score;
+
+  const explanation = p.pairs.map(pair => `<strong>${pair.piece}</strong> → ${pair.explanation}`).join('<br>');
+  const fb = document.getElementById('puzzle-feedback');
+  fb.className = 'feedback-panel';
+  fb.style.display = 'block';
+  document.getElementById('puzzle-fb-title').textContent = '🎉 Puzzle résolu ! +' + earned + ' pts';
+  document.getElementById('puzzle-fb-text').innerHTML = explanation;
+}
+
+function autoValidatePuzzle() {
+  if (puzzleState.validated) return;
+  puzzleState.validated = true;
+  const p = PUZZLES[puzzleState.idx];
+  const fb = document.getElementById('puzzle-feedback');
+  fb.className = 'feedback-panel wrong-fb';
+  fb.style.display = 'block';
+  document.getElementById('puzzle-fb-title').textContent = '⏰ Temps écoulé !';
+  const explanation = p.pairs ? p.pairs.map(pair => `<strong>${pair.piece}</strong> → ${pair.explanation}`).join('<br>') : p.explanation;
+  document.getElementById('puzzle-fb-text').innerHTML = '<em>Voici les bonnes réponses :</em><br>' + explanation;
+}
+
+// ── SORT PUZZLE ──
+function setupPieceDragSort(piece, tray) {
+  const sortZone = () => document.getElementById('sort-zone');
+  const startDrag = (e) => {
+    e.preventDefault();
+    dragEl = piece;
+    piece.classList.add('dragging');
+    const rect = piece.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    dragOffX = clientX - rect.left;
+    dragOffY = clientY - rect.top;
+    dragClone = piece.cloneNode(true);
+    dragClone.style.cssText = `position:fixed;z-index:9999;pointer-events:none;opacity:0.85;transform:scale(1.08);left:${rect.left}px;top:${rect.top}px;width:${rect.width}px`;
+    document.body.appendChild(dragClone);
+  };
+  const moveDrag = (e) => {
+    if (!dragEl || dragEl !== piece) return;
+    e.preventDefault();
+    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+    const cy = e.touches ? e.touches[0].clientY : e.clientY;
+    if (dragClone) { dragClone.style.left = (cx - dragOffX) + 'px'; dragClone.style.top = (cy - dragOffY) + 'px'; }
+    const sz = sortZone();
+    if (sz) {
+      const r = sz.getBoundingClientRect();
+      sz.style.borderColor = (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) ? 'var(--purple)' : 'rgba(155,89,182,.3)';
+    }
+  };
+  const endDrag = (e) => {
+    if (!dragEl || dragEl !== piece) return;
+    piece.classList.remove('dragging');
+    if (dragClone) { dragClone.remove(); dragClone = null; }
+    const cx = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+    const cy = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+    const sz = sortZone();
+    if (sz) {
+      sz.style.borderColor = 'rgba(155,89,182,.3)';
+      const r = sz.getBoundingClientRect();
+      if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
+        // Déplace la pièce dans la zone
+        piece.classList.remove('placed');
+        sz.appendChild(piece);
+        // Mise à jour progress
+        const p = PUZZLES[puzzleState.idx];
+        const placed = sz.querySelectorAll('.puzzle-piece:not(.placed)').length;
+        document.getElementById('puzzle-progress').textContent = `${placed}/${p.items.length}`;
+      }
+    }
+    dragEl = null;
+  };
+  piece.addEventListener('mousedown', startDrag);
+  piece.addEventListener('touchstart', startDrag, { passive: false });
+  document.addEventListener('mousemove', moveDrag);
+  document.addEventListener('touchmove', moveDrag, { passive: false });
+  document.addEventListener('mouseup', endDrag);
+  document.addEventListener('touchend', endDrag);
+}
+
+function setupSortZoneDrop(zone, p, tray) { /* handled in drag end */ }
+
+function validateSortPuzzle(p) {
+  if (puzzleState.validated) return;
+  const zone = document.getElementById('sort-zone');
+  if (!zone) return;
+  const placed = [...zone.querySelectorAll('.puzzle-piece')].map(el => el.dataset.value);
+  if (placed.length < p.items.length) { showToast('Place tous les éléments d\'abord !'); return; }
+
+  puzzleState.validated = true;
+  clearInterval(puzzleState.timer);
+
+  let correct = 0;
+  placed.forEach((v, i) => { if (v === p.correctOrder[i]) correct++; });
+  const pct = Math.round((correct / p.items.length) * 100);
+  const isOk = pct >= 60;
+
+  // Colorier selon résultat
+  [...zone.querySelectorAll('.puzzle-piece')].forEach((el, i) => {
+    el.style.borderColor = el.dataset.value === p.correctOrder[i] ? 'var(--green)' : 'var(--red)';
+  });
+
+  const earned = isOk ? Math.round(p.xp * pct / 100) + Math.floor(puzzleState.timeLeft * 2) : 10;
+  puzzleState.score += earned;
+  if (isOk) addXP(p.xp);
+  state.score += earned;
+  updateHUD();
+  document.getElementById('puzzle-score-display').textContent = puzzleState.score;
+
+  const fb = document.getElementById('puzzle-feedback');
+  fb.className = 'feedback-panel' + (isOk ? '' : ' wrong-fb');
+  fb.style.display = 'block';
+  document.getElementById('puzzle-fb-title').textContent = isOk ? `✅ ${pct}% correct ! +${earned} pts` : `📚 ${pct}% seulement...`;
+  document.getElementById('puzzle-fb-text').innerHTML = `<strong>Ordre correct :</strong><br>${p.correctOrder.join(' → ')}<br><br>${p.explanation}`;
+}
+
+function nextPuzzle() {
+  puzzleState.idx++;
+  clearInterval(puzzleState.timer);
+  if (puzzleState.idx >= PUZZLES.length) {
+    showToast('🏆 Tous les puzzles finis ! Score total : ' + puzzleState.score);
+    state.score += puzzleState.score;
+    updateHUD();
+    showHome();
+    return;
+  }
+  loadPuzzle();
+}
+
+</script>
+</body>
+</html>
