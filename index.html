@@ -16,6 +16,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+
 <!-- Favicon SVG inline (zéro fichier supplémentaire) -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230D0D1A'/%3E%3Ctext x='50' y='72' font-size='64' text-anchor='middle' font-family='Apple Color Emoji,Segoe UI Emoji,sans-serif'%3E%F0%9F%A5%B7%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%23FF6B00'/%3E%3Ctext x='90' y='130' font-size='110' text-anchor='middle' font-family='Apple Color Emoji,Segoe UI Emoji,sans-serif'%3E%F0%9F%A5%B7%3C/text%3E%3C/svg%3E">
@@ -26,8 +29,8 @@
 <meta property="og:title" content="Anime Math Academy 🥷 — Maths 6e & 5e en mode anime">
 <meta property="og:description" content="Révise les maths de 6e et 5e dans 6 univers anime (Naruto, One Piece, Dragon Ball, My Hero, Demon Slayer, Pokémon). QCM, puzzles, tracés et automatismes DNB 2027. 100% gratuit, hors-ligne, sans inscription.">
 <meta property="og:locale" content="fr_FR">
-<meta property="og:image" content="https://acs-data.github.io/ninja-math-games/og-image.svg">
-<meta property="og:image:type" content="image/svg+xml">
+<meta property="og:image" content="https://acs-data.github.io/ninja-math-games/og-image.png">
+<meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Anime Math Academy — logo ninja sur fond sombre orange">
@@ -36,7 +39,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Anime Math Academy 🥷 — Maths 6e & 5e en mode anime">
 <meta name="twitter:description" content="Le jeu de maths qui transforme la révision en aventure ninja. 6 univers, 9 modes, programmes 6e/5e officiels.">
-<meta name="twitter:image" content="https://acs-data.github.io/ninja-math-games/og-image.svg">
+<meta name="twitter:image" content="https://acs-data.github.io/ninja-math-games/og-image.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -973,6 +976,98 @@
   }
   .btn-control:hover { border-color: var(--orange); transform: translateY(-1px); }
 
+  /* ── MODE VRAI / FAUX SPEED ── */
+  .tf-card {
+    background: var(--dark2);
+    border: 2px solid rgba(255,255,255,.08);
+    border-radius: 18px;
+    padding: 36px 24px;
+    text-align: center;
+    margin-bottom: 18px;
+    box-shadow: 0 8px 28px rgba(0,0,0,.4);
+    transition: all .3s;
+  }
+  .tf-card.correct { border-color: var(--green); background: rgba(0,230,118,.08); }
+  .tf-card.wrong { border-color: var(--red); background: rgba(255,85,119,.08); animation: wrongShake .4s; }
+  .tf-statement {
+    font-family: 'Bangers', Impact, 'Arial Black', cursive;
+    font-size: clamp(1.4rem, 5vw, 2.4rem);
+    color: var(--white);
+    line-height: 1.3;
+    letter-spacing: 1px;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+  .tf-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .tf-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 22px 12px;
+    border: 3px solid;
+    border-radius: 16px;
+    font-family: 'Bangers', Impact, 'Arial Black', cursive;
+    cursor: pointer;
+    transition: all .15s;
+    min-height: 100px;
+    background: var(--dark3);
+  }
+  .tf-btn:hover:not(:disabled) { transform: translateY(-3px) scale(1.02); }
+  .tf-btn:disabled { opacity: .55; cursor: not-allowed; }
+  .tf-true { border-color: var(--green); color: var(--green); }
+  .tf-true:hover:not(:disabled) { background: rgba(0,230,118,.15); box-shadow: 0 8px 24px rgba(0,230,118,.4); }
+  .tf-false { border-color: var(--red); color: var(--red); }
+  .tf-false:hover:not(:disabled) { background: rgba(255,85,119,.15); box-shadow: 0 8px 24px rgba(255,85,119,.4); }
+  .tf-letter {
+    font-size: 2.6rem;
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+  .tf-label {
+    font-size: 1.1rem;
+    letter-spacing: 3px;
+    color: var(--white);
+  }
+
+  /* ── MODE HISTOIRE INTERACTIVE ── */
+  .story-scene {
+    background: linear-gradient(135deg, var(--dark2), var(--dark3));
+    border: 2px solid rgba(255,215,0,.25);
+    border-radius: 18px;
+    padding: 22px 20px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .story-scene::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 100% 0%, rgba(255,215,0,.12), transparent 70%);
+    pointer-events: none;
+  }
+  .story-decor {
+    font-size: 3.4rem;
+    text-align: center;
+    margin-bottom: 8px;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,.6));
+  }
+  .story-narrative {
+    color: var(--white);
+    font-size: 1rem;
+    line-height: 1.6;
+    text-align: center;
+    overflow-wrap: break-word;
+  }
+  .story-narrative em { color: var(--yellow); font-style: normal; font-weight: 800; }
+  .story-narrative strong { color: var(--orange); }
+
   /* Réglages rapides sur l'accueil */
   .home-actions {
     display: flex;
@@ -1075,6 +1170,9 @@
       <button type="button" class="btn-control home-action-btn" id="save-toggle-btn" onclick="toggleSave()" aria-label="Activer ou désactiver la sauvegarde locale">
         <span aria-hidden="true" id="save-toggle-icon">💾</span> <span id="save-toggle-label">Sauvegarde : OFF</span>
       </button>
+      <button type="button" class="btn-control home-action-btn" id="install-pwa-btn" onclick="installPWA()" aria-label="Installer l'application sur cet appareil" style="display:none">
+        <span aria-hidden="true">📲</span> Installer l'app
+      </button>
     </div>
 
     <div style="width:100%;max-width:560px">
@@ -1132,6 +1230,15 @@
             <span class="topic-badge">Chronométré</span>
           </div>
         </div>
+        <div class="level-card" onclick="startGame('libre')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startGame('libre');}" role="button" tabindex="0" style="border-color:rgba(0,230,118,.3)">
+          <div class="lv" style="color:var(--green)">🧘 Zen</div>
+          <div class="lv-name">Entraînement libre</div>
+          <div class="lv-desc">Sans timer, sans vies perdues. Apprends à ton rythme.</div>
+          <div class="lv-topics">
+            <span class="topic-badge" style="color:var(--green);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.1)">Sans pression</span>
+            <span class="topic-badge" style="color:var(--green);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.1)">Mix 6e + 5e</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1156,6 +1263,24 @@
             <span class="topic-badge" style="color:var(--purple);border-color:rgba(155,89,182,.3);background:rgba(155,89,182,.1)">Drag & Drop</span>
             <span class="topic-badge" style="color:var(--purple);border-color:rgba(155,89,182,.3);background:rgba(155,89,182,.1)">Fractions</span>
             <span class="topic-badge" style="color:var(--purple);border-color:rgba(155,89,182,.3);background:rgba(155,89,182,.1)">Formes</span>
+          </div>
+        </div>
+        <div class="level-card" onclick="startTrueFalse()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startTrueFalse();}" role="button" tabindex="0" style="border-color:rgba(26,107,255,.3)">
+          <div class="lv" style="color:var(--blue)">⚡ Speed</div>
+          <div class="lv-name">Vrai / Faux Rapide</div>
+          <div class="lv-desc">20 affirmations math, 7 sec chacune. Vrai ou faux ? Tape vite !</div>
+          <div class="lv-topics">
+            <span class="topic-badge" style="color:var(--blue);border-color:rgba(26,107,255,.3);background:rgba(26,107,255,.1)">Réflexes</span>
+            <span class="topic-badge" style="color:var(--blue);border-color:rgba(26,107,255,.3);background:rgba(26,107,255,.1)">Binaire</span>
+          </div>
+        </div>
+        <div class="level-card" onclick="startStoryMode()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startStoryMode();}" role="button" tabindex="0" style="border-color:rgba(255,215,0,.3)">
+          <div class="lv" style="color:var(--yellow)">📖 Histoire</div>
+          <div class="lv-name">Aventure narrative</div>
+          <div class="lv-desc">Plonge dans une histoire anime et résous les énigmes étape par étape</div>
+          <div class="lv-topics">
+            <span class="topic-badge" style="color:var(--yellow);border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.1)">Multi-étapes</span>
+            <span class="topic-badge" style="color:var(--yellow);border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.1)">Récit</span>
           </div>
         </div>
       </div>
@@ -1518,6 +1643,152 @@
       <button class="btn-sec" onclick="showHome()">🏠 Accueil</button>
     </div>
   </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- ÉCRAN VRAI / FAUX SPEED                            -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="screen-tf" style="display:none;padding:16px;max-width:680px;margin:0 auto">
+    <div class="game-controls" role="toolbar" aria-label="Contrôles Vrai/Faux">
+      <button type="button" class="btn-control" onclick="quitTrueFalse()" aria-label="Quitter le mode Vrai/Faux">
+        <span aria-hidden="true">🏠</span> Accueil
+      </button>
+    </div>
+    <div class="mission-card" style="border-left-color:var(--blue)">
+      <div class="mission-label" style="color:var(--blue)">⚡ VRAI / FAUX SPEED</div>
+      <div class="mission-title" id="tf-progress">Affirmation 1 / 20</div>
+      <div class="mission-desc">Lis l'affirmation et tape <strong>Vrai</strong> (V) ou <strong>Faux</strong> (F) le plus vite possible !</div>
+    </div>
+
+    <!-- Stats -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
+      <div class="stat-block" style="padding:10px 12px">
+        <div class="stat-label">⭐ Points</div>
+        <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:1.3rem;color:var(--yellow)" id="tf-score">0</div>
+      </div>
+      <div class="stat-block" style="padding:10px 12px">
+        <div class="stat-label">✅ Justes</div>
+        <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:1.3rem;color:var(--green)" id="tf-correct">0</div>
+      </div>
+      <div class="stat-block" style="padding:10px 12px">
+        <div class="stat-label">🔥 Combo</div>
+        <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:1.3rem;color:var(--orange)" id="tf-streak">0</div>
+      </div>
+    </div>
+
+    <!-- Timer -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <div class="timer-bar" style="flex:1;height:8px"><div class="timer-fill" id="tf-timer-fill" style="width:100%;background:var(--blue)"></div></div>
+      <div class="timer-num" id="tf-timer-num">7</div>
+    </div>
+
+    <!-- Affirmation -->
+    <div class="tf-card" id="tf-card">
+      <div style="font-size:.78rem;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:var(--gray);margin-bottom:14px">Affirmation</div>
+      <div class="tf-statement" id="tf-statement">5 + 3 = 8</div>
+    </div>
+
+    <!-- Boutons V / F -->
+    <div class="tf-buttons">
+      <button type="button" class="tf-btn tf-true" onclick="answerTf(true)" aria-label="Vrai" id="tf-btn-true">
+        <span class="tf-letter" aria-hidden="true">V</span>
+        <span class="tf-label">VRAI</span>
+      </button>
+      <button type="button" class="tf-btn tf-false" onclick="answerTf(false)" aria-label="Faux" id="tf-btn-false">
+        <span class="tf-letter" aria-hidden="true">F</span>
+        <span class="tf-label">FAUX</span>
+      </button>
+    </div>
+
+    <!-- Feedback -->
+    <div id="tf-feedback" style="display:none;margin-top:14px;padding:14px 16px;border-radius:12px;font-size:.9rem;line-height:1.5"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- ÉCRAN VRAI / FAUX — RÉSULTAT                       -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="screen-tf-result" style="display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 64px);padding:32px 20px;text-align:center;gap:22px">
+    <div style="font-size:4rem" id="tf-result-emoji">⚡</div>
+    <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:clamp(1.8rem,6vw,2.8rem);color:var(--blue);letter-spacing:2px;text-shadow:3px 3px 0 var(--dark2)" id="tf-result-msg">SPEED TERMINÉ !</div>
+    <p id="tf-result-comment" style="font-size:.9rem;color:var(--gray);max-width:420px;line-height:1.6"></p>
+    <div class="result-stats">
+      <div class="result-stat">
+        <div class="rs-val" id="tf-res-correct">0/20</div>
+        <div class="rs-label">Affirmations justes</div>
+      </div>
+      <div class="result-stat">
+        <div class="rs-val" id="tf-res-score">0</div>
+        <div class="rs-label">Points</div>
+      </div>
+      <div class="result-stat">
+        <div class="rs-val" id="tf-res-streak">×0</div>
+        <div class="rs-label">Meilleur combo</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-main" onclick="startTrueFalse()">🔄 REJOUER</button>
+      <button class="btn-sec" onclick="showHome()">🏠 Accueil</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- ÉCRAN HISTOIRE INTERACTIVE                          -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="screen-story" style="display:none;padding:16px;max-width:760px;margin:0 auto">
+    <div class="game-controls" role="toolbar" aria-label="Contrôles Histoire">
+      <button type="button" class="btn-control" onclick="quitStoryMode()" aria-label="Quitter le mode Histoire">
+        <span aria-hidden="true">🏠</span> Accueil
+      </button>
+    </div>
+    <div class="mission-card" style="border-left-color:var(--yellow)">
+      <div class="mission-label" style="color:var(--yellow)">📖 AVENTURE NARRATIVE</div>
+      <div class="mission-title" id="story-title">Chargement…</div>
+      <div class="mission-desc" id="story-progress">Étape 1 / 4</div>
+    </div>
+
+    <!-- Décor de l'histoire -->
+    <div class="story-scene" id="story-scene">
+      <div class="story-decor" id="story-decor" aria-hidden="true">🌸</div>
+      <div class="story-narrative" id="story-narrative">…</div>
+    </div>
+
+    <!-- Question de l'étape -->
+    <div class="question-wrap" style="padding:18px 16px">
+      <div class="q-meta">
+        <span class="q-type" style="background:rgba(255,215,0,.15);color:var(--yellow);border-color:rgba(255,215,0,.3)" id="story-type">Calcul</span>
+        <span class="q-num" id="story-q-num">Étape 1</span>
+      </div>
+      <div class="question-text" id="story-question">…</div>
+      <div class="answers-grid" id="story-answers"></div>
+      <div class="feedback-panel" id="story-feedback">
+        <div class="feedback-title" id="story-feedback-title">✅ Excellent !</div>
+        <div class="feedback-text" id="story-feedback-text"></div>
+        <button class="btn-next" onclick="nextStoryStep()" id="story-next-btn">PROCHAINE ÉTAPE →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- ÉCRAN HISTOIRE — RÉSULTAT                          -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="screen-story-result" style="display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 64px);padding:32px 20px;text-align:center;gap:22px">
+    <div style="font-size:4rem" id="story-result-emoji">📖</div>
+    <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:clamp(1.8rem,6vw,2.8rem);color:var(--yellow);letter-spacing:2px;text-shadow:3px 3px 0 var(--dark2)" id="story-result-title">AVENTURE TERMINÉE !</div>
+    <p id="story-result-msg" style="font-size:1rem;color:var(--white);max-width:480px;line-height:1.6"></p>
+    <div class="result-stats">
+      <div class="result-stat">
+        <div class="rs-val" id="story-res-correct">0/4</div>
+        <div class="rs-label">Étapes réussies</div>
+      </div>
+      <div class="result-stat">
+        <div class="rs-val" id="story-res-score">0</div>
+        <div class="rs-label">Points</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-main" onclick="startStoryMode()">📖 NOUVELLE HISTOIRE</button>
+      <button class="btn-sec" onclick="showHome()">🏠 Accueil</button>
+    </div>
+  </div>
 </div>
 
 </main>
@@ -1710,7 +1981,113 @@ const QUESTIONS = {
       answers: ["9 cm³", "18 cm³", "27 cm³", "6 cm³"],
       correct: 2,
       feedback: "Volume d'un cube = côté³ = 3 × 3 × 3 = <strong>27 cm³</strong>. Ne pas confondre avec l'aire d'une face (côté² = 9 cm²) !"
+    }    ,
+    {
+      type: "Décimaux", theme: "🏯 Mesures de Konoha",
+      text: `Range ces décimaux du plus petit au plus grand : <span class='math'>3,5 — 3,15 — 3,51 — 3,05</span>.`,
+      answers: ["3,05 < 3,15 < 3,5 < 3,51", "3,5 < 3,51 < 3,05 < 3,15", "3,15 < 3,05 < 3,5 < 3,51", "3,05 < 3,5 < 3,15 < 3,51"],
+      correct: 0,
+      feedback: "On compare partie entière puis chiffre par chiffre. 3,05 < 3,15 < 3,50 < 3,51. Astuce : aligner les virgules et ajouter des zéros : 3,05 / 3,15 / 3,50 / 3,51. <strong>3,5 = 3,50</strong> (ajouter un zéro à droite ne change rien)."
+    },
+    {
+      type: "Décimaux", theme: "🍜 Comptes de Naruto",
+      text: `<span class='highlight'>Naruto</span> a payé <span class='math'>4,70 ryos</span> hier et <span class='math'>2,85 ryos</span> aujourd'hui. Combien au total ?`,
+      answers: ["7,55 ryos", "6,55 ryos", "7,15 ryos", "6,95 ryos"],
+      correct: 0,
+      feedback: "On aligne les virgules : 4,70 + 2,85 = <strong>7,55</strong>. On additionne les centièmes (0+5=5), dixièmes (7+8=15 → 5 retenue 1), unités (4+2+1=7)."
+    },
+    {
+      type: "Fractions équivalentes", theme: "📖 Parchemin de Kakashi",
+      text: `<span class='highlight'>Kakashi</span> lit <span class='math'>4/6</span> d'un parchemin. Quelle fraction est équivalente ?`,
+      answers: ["2/3", "3/4", "4/8", "8/10"],
+      correct: 0,
+      feedback: "On simplifie : 4/6 = (4÷2)/(6÷2) = <strong>2/3</strong>. Deux fractions sont équivalentes si on peut passer de l'une à l'autre en multipliant ou divisant haut et bas par le même nombre."
+    },
+    {
+      type: "PGCD", theme: "☁️ Stratégie de Shikamaru",
+      text: `<span class='highlight'>Shikamaru</span> doit ranger 18 kunais et 12 shurikens en piles identiques (même nombre dans chaque pile). Quelle est la plus grande pile possible ?`,
+      answers: ["6", "4", "3", "2"],
+      correct: 0,
+      feedback: "On cherche le PGCD(18, 12). Diviseurs de 18 : 1, 2, 3, 6, 9, 18. De 12 : 1, 2, 3, 4, 6, 12. Le plus grand commun = <strong>6</strong>. Il y aura 3 piles de kunais et 2 piles de shurikens."
+    },
+    {
+      type: "Symétrie axiale", theme: "🎯 Cible d'entraînement",
+      text: `Combien d'axes de symétrie possède un rectangle (qui n'est pas un carré) ?`,
+      answers: ["2", "1", "4", "0"],
+      correct: 0,
+      feedback: "Un rectangle a <strong>2 axes</strong> de symétrie : un vertical et un horizontal passant par les milieux des côtés opposés. Le carré en a 4, le losange en a 2 (les diagonales). En 6e, on travaille uniquement la symétrie axiale (la centrale est en 5e)."
+    },
+    {
+      type: "Angles", theme: "⚡ Calcul de Sasuke",
+      text: `Deux angles sont complémentaires. L'un mesure <span class='math'>37°</span>. Combien mesure l'autre ?`,
+      answers: ["53°", "63°", "143°", "47°"],
+      correct: 0,
+      feedback: "Deux angles complémentaires ont une somme de 90°. Donc l'autre = 90° − 37° = <strong>53°</strong>. À ne pas confondre : supplémentaires = 180°."
+    },
+    {
+      type: "Aires", theme: "🌸 Triangle de Sakura",
+      text: `Un triangle rectangle a des côtés de l'angle droit de <span class='math'>6 cm</span> et <span class='math'>8 cm</span>. Quelle est son aire ?`,
+      answers: ["24 cm²", "48 cm²", "14 cm²", "28 cm²"],
+      correct: 0,
+      feedback: "Aire d'un triangle rectangle = (base × hauteur) ÷ 2. Ici base et hauteur sont les côtés de l'angle droit : (6 × 8) ÷ 2 = 48 ÷ 2 = <strong>24 cm²</strong>."
+    },
+    {
+      type: "Volumes", theme: "📦 Pavé à Konoha",
+      text: `Un pavé droit mesure <span class='math'>4 cm × 3 cm × 5 cm</span>. Quel est son volume ?`,
+      answers: ["60 cm³", "12 cm³", "120 cm³", "47 cm³"],
+      correct: 0,
+      feedback: "Volume du pavé droit = Longueur × largeur × hauteur = 4 × 3 × 5 = <strong>60 cm³</strong>. Attention aux unités : on multiplie 3 longueurs, donc l'unité est cm × cm × cm = cm³."
+    },
+    {
+      type: "Moyenne", theme: "📊 Notes de Naruto",
+      text: `<span class='highlight'>Naruto</span> a eu : <span class='math'>12, 15, 18, 13, 17</span>. Quelle est sa moyenne ?`,
+      answers: ["15", "14", "16", "17"],
+      correct: 0,
+      feedback: "Moyenne = somme ÷ nombre de notes = (12 + 15 + 18 + 13 + 17) ÷ 5 = 75 ÷ 5 = <strong>15</strong>."
+    },
+    {
+      type: "Probabilités", theme: "🎲 Dé de Tsunade",
+      text: `On lance un dé à 6 faces équilibré. Quelle est la probabilité d'obtenir un nombre pair ?`,
+      answers: ["3/6 = 1/2", "1/6", "2/6 = 1/3", "4/6 = 2/3"],
+      correct: 0,
+      feedback: "Les nombres pairs sur un dé à 6 faces : 2, 4, 6. Soit 3 issues favorables sur 6 possibles. P = 3/6 = <strong>1/2</strong> = 50%. Au programme 2025 de 6e : initiation aux probabilités."
+    },
+    {
+      type: "Proportionnalité", theme: "🍜 Bols de ramen",
+      text: `3 bols de ramen coûtent <span class='math'>15 ryos</span>. Combien coûtent 8 bols ?`,
+      answers: ["40 ryos", "45 ryos", "24 ryos", "35 ryos"],
+      correct: 0,
+      feedback: "1 bol = 15 ÷ 3 = 5 ryos. 8 bols = 5 × 8 = <strong>40 ryos</strong>. Méthode du produit en croix : (15 × 8) ÷ 3 = 120 ÷ 3 = 40."
+    },
+    {
+      type: "Pré-algèbre", theme: "💪 Énigme de Rock Lee",
+      text: `<span class='highlight'>Rock Lee</span> dit : « Le double d'un nombre, augmenté de 3, donne 17. » Quel est ce nombre ?`,
+      answers: ["7", "10", "8", "14"],
+      correct: 0,
+      feedback: "Si on note ce nombre n, on cherche : 2n + 3 = 17. Donc 2n = 14, donc n = <strong>7</strong>. Vérification : 2 × 7 + 3 = 17 ✓. En 6e on raisonne avec des mots, pas encore avec des lettres."
+    },
+    {
+      type: "Calcul mental", theme: "🌪️ Vitesse de Minato",
+      text: `<span class='highlight'>Minato</span> calcule : <span class='math'>25 × 4 × 27</span>. Quel est le résultat ?`,
+      answers: ["2700", "1080", "2070", "2700,5"],
+      correct: 0,
+      feedback: "Astuce : 25 × 4 = 100. Donc 25 × 4 × 27 = 100 × 27 = <strong>2700</strong>. Toujours chercher les regroupements astucieux !"
+    },
+    {
+      type: "Division", theme: "🎌 Mission de Hokage",
+      text: `Quel est le quotient et le reste de la division de <span class='math'>47</span> par <span class='math'>6</span> ?`,
+      answers: ["q=7, r=5", "q=6, r=5", "q=7, r=4", "q=8, r=−1"],
+      correct: 0,
+      feedback: "6 × 7 = 42 et 6 × 8 = 48 > 47. Donc 47 = 6 × 7 + 5. Quotient = <strong>7</strong>, reste = <strong>5</strong>. Vérification : 0 ≤ reste (5) < diviseur (6) ✓."
+    },
+    {
+      type: "Périmètre cercle", theme: "🎯 Cible circulaire",
+      text: `Un cercle a un rayon de <span class='math'>5 cm</span>. Quel est son périmètre (on prend π ≈ 3,14) ?`,
+      answers: ["31,4 cm", "15,7 cm", "78,5 cm", "10 cm"],
+      correct: 0,
+      feedback: "Périmètre du cercle = 2 × π × rayon = 2 × 3,14 × 5 = 6,28 × 5 = <strong>31,4 cm</strong>. (Ou π × diamètre = 3,14 × 10 = 31,4 cm)."
     }
+
   ],
 
   '5e_medium': [
@@ -1811,7 +2188,92 @@ const QUESTIONS = {
       answers: ["9/4", "1/4", "3/12", "1/3"],
       correct: 1,
       feedback: "3/4 ÷ 3 = 3/4 × 1/3 = 3/12 = <strong>1/4</strong>. Diviser par 3 revient à multiplier par 1/3. Et 3/12 se simplifie en 1/4 (÷3). Chacun reçoit 1/4 de bol !"
+    }    ,
+    {
+      type: "Relatifs ×", theme: "❄️ Glace de Haku",
+      text: `<span class='highlight'>Haku</span> calcule : <span class='math'>(−3) × (−4)</span>. Quel est le résultat ?`,
+      answers: ["12", "−12", "−7", "7"],
+      correct: 0,
+      feedback: "Règle des signes : moins par moins = plus. Donc (−3) × (−4) = <strong>+12</strong>. Astuce mnémo : « L'ennemi de mon ennemi est mon ami »."
+    },
+    {
+      type: "Fractions ×", theme: "🍜 Recette de Naruto",
+      text: `<span class='highlight'>Naruto</span> mange les <span class='math'>2/3</span> de <span class='math'>3/5</span> de son bol. Quelle fraction mange-t-il ?`,
+      answers: ["2/5", "6/15", "5/8", "1/2"],
+      correct: 0,
+      feedback: "Pour multiplier des fractions : numérateur × numérateur, dénominateur × dénominateur. 2/3 × 3/5 = (2×3)/(3×5) = 6/15 = <strong>2/5</strong> (simplification par 3)."
+    },
+    {
+      type: "Fractions ÷", theme: "📖 Division de Kakashi",
+      text: `<span class='highlight'>Kakashi</span> calcule : <span class='math'>4/5 ÷ 2/3</span>. Que vaut cette division ?`,
+      answers: ["12/10 = 6/5", "8/15", "2/5", "5/4"],
+      correct: 0,
+      feedback: "Diviser par une fraction = multiplier par son inverse. 4/5 ÷ 2/3 = 4/5 × 3/2 = 12/10 = <strong>6/5</strong>. Astuce : « ÷ devient ×, on retourne la 2e »."
+    },
+    {
+      type: "Puissances", theme: "💥 Force de Sasuke",
+      text: `<span class='highlight'>Sasuke</span> accumule du chakra : <span class='math'>2^5</span> unités. Combien cela fait ?`,
+      answers: ["32", "10", "25", "16"],
+      correct: 0,
+      feedback: "2⁵ = 2 × 2 × 2 × 2 × 2 = 4 × 2 × 2 × 2 = 8 × 2 × 2 = 16 × 2 = <strong>32</strong>. Attention : 2⁵ ≠ 2 × 5 = 10 et ≠ 5² = 25."
+    },
+    {
+      type: "Puissances de 10", theme: "🌀 Million de Shikamaru",
+      text: `Combien vaut <span class='math'>10^4</span> ?`,
+      answers: ["10 000", "1 000", "100 000", "4 000"],
+      correct: 0,
+      feedback: "10⁴ = 10 × 10 × 10 × 10 = <strong>10 000</strong>. Règle : 10ⁿ = 1 suivi de n zéros. Donc 10⁴ = 1 + 4 zéros = 10 000."
+    },
+    {
+      type: "Priorités", theme: "⚡ Calcul rapide",
+      text: `Calcule : <span class='math'>3 + 4 × 5</span>.`,
+      answers: ["23", "35", "27", "20"],
+      correct: 0,
+      feedback: "Règle des priorités : multiplication AVANT addition. 4 × 5 = 20 d'abord, puis 3 + 20 = <strong>23</strong>. Sans parenthèses, on ne fait JAMAIS de gauche à droite avec + et ×."
+    },
+    {
+      type: "Calcul littéral", theme: "🎯 Mission de substitution",
+      text: `Si <span class='math'>x = 4</span>, que vaut l'expression <span class='math'>2x + 3</span> ?`,
+      answers: ["11", "10", "14", "9"],
+      correct: 0,
+      feedback: "On remplace x par 4 : 2 × 4 + 3 = 8 + 3 = <strong>11</strong>. Le « 2x » signifie « 2 fois x », pas « 24 » !"
+    },
+    {
+      type: "Développement", theme: "🌪️ Multiplication de Minato",
+      text: `Développe l'expression : <span class='math'>3(x + 2)</span>.`,
+      answers: ["3x + 6", "3x + 2", "x + 6", "5x"],
+      correct: 0,
+      feedback: "Distributivité : 3(x + 2) = 3 × x + 3 × 2 = <strong>3x + 6</strong>. On multiplie le 3 par CHAQUE terme dans la parenthèse, pas seulement le premier !"
+    },
+    {
+      type: "Équations", theme: "🐸 Énigme de Jiraiya",
+      text: `Résous : <span class='math'>x + 5 = 12</span>. Que vaut x ?`,
+      answers: ["7", "17", "5", "60"],
+      correct: 0,
+      feedback: "Pour isoler x, on soustrait 5 des deux côtés : x = 12 − 5 = <strong>7</strong>. Vérification : 7 + 5 = 12 ✓. Nouveauté du programme 2026 : équations du 1er degré simples en 5e."
+    },
+    {
+      type: "Angles triangle", theme: "🔺 Triangle de Kunai",
+      text: `Dans un triangle, deux angles mesurent <span class='math'>60°</span> et <span class='math'>70°</span>. Combien mesure le troisième ?`,
+      answers: ["50°", "60°", "130°", "40°"],
+      correct: 0,
+      feedback: "La somme des angles d'un triangle est toujours 180°. Donc 3e angle = 180° − 60° − 70° = <strong>50°</strong>. Astuce : 60 + 70 = 130, donc 180 − 130 = 50."
+    },
+    {
+      type: "Pourcentages", theme: "📊 Sondage de Tsunade",
+      text: `Quels est <span class='math'>20%</span> de <span class='math'>80</span> ?`,
+      answers: ["16", "20", "4", "60"],
+      correct: 0,
+      feedback: "20% = 20/100 = 0,2. Donc 20% de 80 = 0,2 × 80 = <strong>16</strong>. Astuce mentale : 10% de 80 = 8, donc 20% = 2 × 8 = 16."
+    },
+    {
+      type: "Vitesse", theme: "💨 Course de Rock Lee",
+      text: `<span class='highlight'>Rock Lee</span> court <span class='math'>60 km</span> en <span class='math'>2 h</span>. Quelle est sa vitesse moyenne ?`,
+      answers: ["30 km/h", "120 km/h", "62 km/h", "58 km/h"],
+      correct: 0,
+      feedback: "Vitesse = distance ÷ temps = 60 ÷ 2 = <strong>30 km/h</strong>. La proportionnalité distance/temps donne la vitesse. Vérification : en 2 h à 30 km/h on parcourt 60 km ✓."
     }
+
   ],
 
   'mixte_difficile': [
@@ -1884,7 +2346,78 @@ const QUESTIONS = {
       answers: ["12", "10", "14", "8"],
       correct: 0,
       feedback: "a² = (−2)² = 4. 2b = 2 × 3 = 6. −a = −(−2) = +2. Donc 4 + 6 + 2 = <strong>12</strong>. Attention : a² = (−2)² = +4, pas −4 !"
+    }    ,
+    {
+      type: "Conversion", theme: "⏱️ Temps de Naruto",
+      text: `<span class='highlight'>Naruto</span> s'entraîne <span class='math'>2,5 h</span>. Combien de minutes ?`,
+      answers: ["150 min", "250 min", "120 min", "130 min"],
+      correct: 0,
+      feedback: "1 h = 60 min. Donc 2,5 h = 2 × 60 + 0,5 × 60 = 120 + 30 = <strong>150 min</strong>. Ou 2,5 × 60 = 150."
+    },
+    {
+      type: "Probabilités", theme: "🎴 Tirage de cartes",
+      text: `On tire une carte au hasard d'un jeu de 52 cartes. Quelle est la probabilité d'obtenir un as ?`,
+      answers: ["4/52 = 1/13", "1/4", "4/13", "1/52"],
+      correct: 0,
+      feedback: "Il y a 4 as (un par couleur) sur 52 cartes. P(as) = 4/52 = <strong>1/13</strong> ≈ 7,7%. Vérification : 4 × 13 = 52 ✓."
+    },
+    {
+      type: "Fractions +", theme: "🍜 Bols de Naruto",
+      text: `<span class='highlight'>Naruto</span> mange <span class='math'>1/2</span> bol puis <span class='math'>1/3</span>. Combien en tout ?`,
+      answers: ["5/6", "2/5", "1/5", "2/6"],
+      correct: 0,
+      feedback: "Dénominateur commun de 2 et 3 : 6. Donc 1/2 = 3/6 et 1/3 = 2/6. Somme = 3/6 + 2/6 = <strong>5/6</strong>. À retenir : on ne peut additionner que des fractions de même dénominateur."
+    },
+    {
+      type: "Puissances ×", theme: "💥 Énergie Chakra",
+      text: `Calcule : <span class='math'>2^3 × 2^2</span>.`,
+      answers: ["32 (= 2^5)", "16", "12", "64 (= 2^6)"],
+      correct: 0,
+      feedback: "Règle : aⁿ × aᵐ = aⁿ⁺ᵐ (on additionne les exposants). 2³ × 2² = 2⁵ = <strong>32</strong>. Vérification : 8 × 4 = 32 ✓."
+    },
+    {
+      type: "Pourcentages", theme: "📊 Réduction au village",
+      text: `Un kunai coûte <span class='math'>20 ryos</span>. On fait une réduction de <span class='math'>15%</span>. Nouveau prix ?`,
+      answers: ["17 ryos", "5 ryos", "15 ryos", "18 ryos"],
+      correct: 0,
+      feedback: "15% de 20 = 0,15 × 20 = 3 ryos de réduction. Nouveau prix = 20 − 3 = <strong>17 ryos</strong>. Astuce : payer 85% de 20 = 0,85 × 20 = 17."
+    },
+    {
+      type: "Équations", theme: "📜 Énigme d'Iruka",
+      text: `Résous : <span class='math'>3x − 5 = 7</span>. Que vaut x ?`,
+      answers: ["4", "2", "12", "7"],
+      correct: 0,
+      feedback: "On ajoute 5 des deux côtés : 3x = 12. Puis on divise par 3 : x = <strong>4</strong>. Vérification : 3 × 4 − 5 = 12 − 5 = 7 ✓."
+    },
+    {
+      type: "Échelles", theme: "🗺️ Plan de Konoha",
+      text: `Sur un plan à l'échelle <span class='math'>1/100</span>, une distance mesure <span class='math'>5 cm</span>. Quelle est la distance réelle ?`,
+      answers: ["5 m", "50 cm", "500 m", "5 km"],
+      correct: 0,
+      feedback: "Échelle 1/100 signifie : 1 cm sur le plan = 100 cm en vrai. Donc 5 cm = 500 cm = <strong>5 m</strong>. Toujours simplifier l'unité finale."
+    },
+    {
+      type: "Factorisation", theme: "✂️ Découpe de Kisame",
+      text: `Factorise : <span class='math'>6x + 9</span>.`,
+      answers: ["3(2x + 3)", "3(2x + 9)", "6(x + 3)", "3x + 9"],
+      correct: 0,
+      feedback: "On cherche le facteur commun à 6x et 9. PGCD(6, 9) = 3. Donc 6x + 9 = 3 × 2x + 3 × 3 = <strong>3(2x + 3)</strong>. Vérification : on développe 3(2x + 3) = 6x + 9 ✓."
+    },
+    {
+      type: "Fréquence", theme: "📈 Stats de Shikamaru",
+      text: `Sur 25 lancers d'un kunai, <span class='highlight'>Shikamaru</span> a réussi 8 fois. Quelle est la fréquence de réussite (en %) ?`,
+      answers: ["32 %", "8 %", "25 %", "40 %"],
+      correct: 0,
+      feedback: "Fréquence = effectif ÷ total = 8 ÷ 25 = 0,32 = <strong>32 %</strong>. Pour convertir en % : multiplier par 100."
+    },
+    {
+      type: "Calcul littéral", theme: "🎯 Substitution de Minato",
+      text: `Si <span class='math'>a = −2</span> et <span class='math'>b = 3</span>, que vaut <span class='math'>a² + 2b</span> ?`,
+      answers: ["10", "−2", "1", "8"],
+      correct: 0,
+      feedback: "On remplace : a² = (−2)² = +4 (moins par moins). 2b = 2 × 3 = 6. Donc a² + 2b = 4 + 6 = <strong>10</strong>. Piège : (−2)² ≠ −4 !"
     }
+
   ],
 
   'boss': [
@@ -1936,7 +2469,43 @@ const QUESTIONS = {
       answers: ["27 cm", "10 cm", "20 cm", "13,5 cm"],
       correct: 1,
       feedback: "P = 2(L + l). 34 = 2(L + 7). 17 = L + 7. L = <strong>10 cm</strong>. Vérif : 2(10 + 7) = 2 × 17 = 34 ✓"
+    }    ,
+    {
+      type: "Priorités", theme: "💀 Calcul d'Orochimaru",
+      text: `<span class='highlight'>Orochimaru</span> défie : <span class='math'>(3 + 5) × 2 − 4²</span>. Résultat ?`,
+      answers: ["0", "20", "−4", "16"],
+      correct: 0,
+      feedback: "Priorités : 1) parenthèses (3+5=8), 2) puissances (4²=16), 3) multiplications (8×2=16), 4) additions/soustractions (16−16=0). Résultat : <strong>0</strong>."
+    },
+    {
+      type: "Fraction d'un nombre", theme: "💀 Trésor maudit",
+      text: `<span class='highlight'>Orochimaru</span> garde <span class='math'>3/8</span> d'un trésor de <span class='math'>240 ryos</span>. Combien prend-il ?`,
+      answers: ["90 ryos", "80 ryos", "60 ryos", "120 ryos"],
+      correct: 0,
+      feedback: "3/8 de 240 = (3 × 240) ÷ 8 = 720 ÷ 8 = <strong>90 ryos</strong>. Astuce : 240 ÷ 8 = 30 (1/8), puis 30 × 3 = 90 (3/8)."
+    },
+    {
+      type: "Vitesse moyenne", theme: "💀 Course poursuite",
+      text: `<span class='highlight'>Orochimaru</span> fait l'aller <span class='math'>60 km</span> à <span class='math'>60 km/h</span>, le retour à <span class='math'>30 km/h</span>. Vitesse moyenne ?`,
+      answers: ["40 km/h", "45 km/h", "50 km/h", "30 km/h"],
+      correct: 0,
+      feedback: "Temps aller = 1 h. Temps retour = 60 ÷ 30 = 2 h. Distance totale = 120 km, temps total = 3 h. Vitesse moyenne = 120 ÷ 3 = <strong>40 km/h</strong>. Piège : ce n'est PAS la moyenne arithmétique (60+30)/2 = 45."
+    },
+    {
+      type: "Équations parenthèses", theme: "💀 Sceau magique",
+      text: `Résous : <span class='math'>2(x + 3) = 14</span>. Que vaut x ?`,
+      answers: ["4", "8", "11", "7"],
+      correct: 0,
+      feedback: "Méthode 1 : développer 2x + 6 = 14, donc 2x = 8, donc x = <strong>4</strong>. Méthode 2 : diviser par 2 : x + 3 = 7, donc x = 4. Vérification : 2(4+3) = 14 ✓."
+    },
+    {
+      type: "Probabilités composées", theme: "💀 Pari du serpent",
+      text: `On lance 2 dés équilibrés. Quelle est la probabilité d'obtenir un double 6 ?`,
+      answers: ["1/36", "2/12 = 1/6", "1/12", "1/6"],
+      correct: 0,
+      feedback: "P(6 sur dé 1) = 1/6. P(6 sur dé 2) = 1/6. Les lancers sont indépendants donc P(double 6) = 1/6 × 1/6 = <strong>1/36</strong>. Sur 36 résultats possibles (6×6), un seul est (6,6)."
     }
+
   ]
 };
 
@@ -2137,7 +2706,7 @@ function showScreen(id) {
   const el = document.getElementById('screen-' + id);
   if (!el) return;
   // Écrans utilisant flex column
-  const flexScreens = ['home', 'loading', 'result', 'auto-menu', 'auto-result'];
+  const flexScreens = ['home', 'loading', 'result', 'auto-menu', 'auto-result', 'tf-result', 'story-result'];
   el.style.display = flexScreens.includes(id) ? 'flex' : 'block';
 }
 
@@ -2380,9 +2949,26 @@ function adaptQuestionToUniverse(q, universe) {
 
 function startGame(mode) {
   state.mode = mode;
-  const rawQs = QUESTIONS[mode] ? [...QUESTIONS[mode]] : [];
+  state.freeMode = (mode === 'libre');
+  // Mode libre : pool de questions issu de tous les niveaux
+  let rawQs;
+  if (state.freeMode) {
+    const all = [
+      ...(QUESTIONS['6e_facile'] || []),
+      ...(QUESTIONS['5e_medium'] || []),
+      ...(QUESTIONS['mixte_difficile'] || [])
+    ];
+    // Échantillon de 20 questions au max
+    for (let i = all.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [all[i], all[j]] = [all[j], all[i]];
+    }
+    rawQs = all.slice(0, 20);
+  } else {
+    rawQs = QUESTIONS[mode] ? [...QUESTIONS[mode]] : [];
+  }
   const qs = rawQs.map(q => adaptQuestionToUniverse(q, currentUniverse));
-  // Mélange
+  // Mélange final
   for (let i = qs.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [qs[i], qs[j]] = [qs[j], qs[i]];
@@ -2393,7 +2979,9 @@ function startGame(mode) {
   state.streak = 0;
   state.bestStreak = 0;
   state.correct = 0;
-  state.hp = 3; state.maxHp = 3;
+  // En mode libre : vies "infinies" (visuellement on les cache)
+  state.hp = state.freeMode ? 999 : 3;
+  state.maxHp = state.freeMode ? 999 : 3;
   state.chakra = 100; state.maxChakra = 100;
   state.answered = false;
   state.jutsu = { '50': 2, 'hint': 2, 'time': 1 };
@@ -2406,7 +2994,8 @@ function startGame(mode) {
 
   // Bonus par personnage
   const char = CHARS[state.char];
-  if (char.bonus === 'time') state.maxTime = char.bVal;
+  if (state.freeMode) state.maxTime = 9999;    // pas de timer
+  else if (char.bonus === 'time') state.maxTime = char.bVal;
   else state.maxTime = mode === 'boss' ? 20 : 30;
 
   // Loading screen
@@ -2426,7 +3015,7 @@ function startGame(mode) {
 }
 
 function getModeLabel(mode) {
-  const labels = { '6e_facile': 'Académie (6ème)', '5e_medium': 'Genin (5ème)', 'mixte_difficile': 'Chunin (Mix)', 'boss': 'Mode Boss' };
+  const labels = { '6e_facile': 'Académie (6ème)', '5e_medium': 'Genin (5ème)', 'mixte_difficile': 'Chunin (Mix)', 'boss': 'Mode Boss', 'libre': 'Entraînement libre' };
   return labels[mode] || mode;
 }
 
@@ -2481,6 +3070,12 @@ function loadQuestion() {
 
 function startTimer() {
   clearInterval(state.timer);
+  // Mode entraînement libre : pas de timer
+  if (state.freeMode) {
+    state.timeLeft = state.maxTime;
+    updateTimerUI();
+    return;
+  }
   state.timer = setInterval(() => {
     if (state.answered || state.timeFrozen) return;
     state.timeLeft -= 0.1;
@@ -2495,6 +3090,12 @@ function startTimer() {
 }
 
 function updateTimerUI() {
+  if (state.freeMode) {
+    // Affichage neutre en mode entraînement libre
+    document.getElementById('timer-fill').style.width = '100%';
+    document.getElementById('timer-num').textContent = '∞';
+    return;
+  }
   const pct = (state.timeLeft / state.maxTime) * 100;
   document.getElementById('timer-fill').style.width = pct + '%';
   document.getElementById('timer-num').textContent = Math.ceil(state.timeLeft);
@@ -2574,6 +3175,8 @@ function answer(idx) {
 }
 
 function loseHp() {
+  // Mode entraînement libre : pas de perte de vies, on apprend sans pression
+  if (state.freeMode) return;
   state.hp = Math.max(0, state.hp - 1);
   updateStatsUI();
   if (state.hp <= 0 && state.mode === 'boss') {
@@ -2683,9 +3286,14 @@ function updateHUD() {
 }
 
 function updateStatsUI() {
-  const hpPct = (state.hp / state.maxHp) * 100;
-  document.getElementById('hp-fill').style.width = hpPct + '%';
-  document.getElementById('hp-text').textContent = `${state.hp} / ${state.maxHp} vies`;
+  if (state.freeMode) {
+    document.getElementById('hp-fill').style.width = '100%';
+    document.getElementById('hp-text').textContent = '∞ Entraînement libre';
+  } else {
+    const hpPct = (state.hp / state.maxHp) * 100;
+    document.getElementById('hp-fill').style.width = hpPct + '%';
+    document.getElementById('hp-text').textContent = `${state.hp} / ${state.maxHp} vies`;
+  }
 
   const chakraPct = (state.chakra / state.maxChakra) * 100;
   document.getElementById('chakra-fill').style.width = chakraPct + '%';
@@ -4386,6 +4994,10 @@ showScreen = function(id) {
     'auto-menu': 'Menu mode automatismes',
     'auto': 'Épreuve d\'automatismes en cours',
     'auto-result': 'Résultats de l\'épreuve d\'automatismes',
+    'tf': 'Mode Vrai ou Faux Speed',
+    'tf-result': 'Résultats Vrai ou Faux',
+    'story': 'Mode Histoire interactive',
+    'story-result': 'Résultats de l\'histoire',
     'loading': 'Chargement'
   };
   if (announcements[id]) announceToScreenReader(announcements[id]);
@@ -4611,6 +5223,597 @@ addXP = function(amount) {
   _origAddXP(amount);
   saveProgress();
 };
+
+// ═══════════════════════════════════════════════════════════
+// MODE VRAI / FAUX SPEED
+// ═══════════════════════════════════════════════════════════
+// Format des affirmations : { text, isTrue, explain }
+// 30 affirmations mix 6e / 5e, à respecter strictement aux programmes officiels.
+const TRUEFALSE_STATEMENTS = [
+  // 6e — Décimaux, fractions, calcul
+  { text: "5 + 3 = 8", isTrue: true, explain: "Évidemment : 5 + 3 = 8." },
+  { text: "0,3 > 0,29", isTrue: true, explain: "0,3 = 0,30 et 0,30 > 0,29. Astuce : ajouter des zéros à droite ne change rien." },
+  { text: "1/2 = 0,2", isTrue: false, explain: "Faux ! 1/2 = 0,5. 0,2 = 1/5 ou 2/10." },
+  { text: "3/4 + 1/4 = 1", isTrue: true, explain: "Même dénominateur : on additionne les numérateurs : 3+1=4, 4/4=1." },
+  { text: "2/5 = 4/10", isTrue: true, explain: "On multiplie haut et bas par 2 : 2×2/5×2 = 4/10. Fractions équivalentes." },
+  { text: "Le périmètre d'un carré de côté 5 cm est 20 cm", isTrue: true, explain: "P = 4 × côté = 4 × 5 = 20 cm." },
+  { text: "L'aire d'un rectangle 4×6 est 10 cm²", isTrue: false, explain: "Faux : aire = longueur × largeur = 4 × 6 = 24 cm². 4+6=10 c'est le demi-périmètre." },
+  { text: "Un cube de côté 2 cm a un volume de 8 cm³", isTrue: true, explain: "V = côté³ = 2 × 2 × 2 = 8 cm³." },
+  { text: "180° est un angle plat", isTrue: true, explain: "180° = demi-tour = angle plat. 90° = droit, 360° = tour complet." },
+  { text: "Un triangle équilatéral a 3 axes de symétrie", isTrue: true, explain: "Oui : un axe par sommet, passant par le milieu du côté opposé." },
+  { text: "Le double de 25 est 50", isTrue: true, explain: "Double = × 2. 25 × 2 = 50." },
+  { text: "La moitié de 100 est 25", isTrue: false, explain: "Faux : la moitié de 100 = 50. 25 c'est le quart." },
+  { text: "25 × 4 = 100", isTrue: true, explain: "Calcul mental classique : 25 × 4 = 100." },
+  { text: "47 est un nombre premier", isTrue: true, explain: "47 n'est divisible que par 1 et lui-même. C'est un nombre premier." },
+  { text: "12 est un multiple de 5", isTrue: false, explain: "Faux : 12 = 2 × 6 = 3 × 4. Les multiples de 5 finissent par 0 ou 5." },
+  // 5e — relatifs, fractions, équations
+  { text: "(−3) + (−5) = −8", isTrue: true, explain: "Même signe : on additionne et on garde le signe. −3 + −5 = −8." },
+  { text: "(−4) × (−2) = −8", isTrue: false, explain: "Faux : moins par moins = plus. (−4) × (−2) = +8." },
+  { text: "1/2 × 1/2 = 1/4", isTrue: true, explain: "Numérateurs × numérateurs, dénominateurs × dénominateurs : 1×1/2×2 = 1/4." },
+  { text: "1/2 + 1/3 = 2/5", isTrue: false, explain: "Piège ! On NE peut PAS additionner numérateur et dénominateur séparément. 1/2 + 1/3 = 3/6 + 2/6 = 5/6." },
+  { text: "2³ = 6", isTrue: false, explain: "Faux : 2³ = 2 × 2 × 2 = 8. C'est 2 × 3 qui vaut 6." },
+  { text: "10⁵ = 100 000", isTrue: true, explain: "10ⁿ = 1 suivi de n zéros. 10⁵ = 100 000." },
+  { text: "Dans 2 + 3 × 4, le résultat est 14", isTrue: true, explain: "Priorité × avant + : 3 × 4 = 12, puis 2 + 12 = 14." },
+  { text: "Si x + 3 = 10 alors x = 7", isTrue: true, explain: "On soustrait 3 des deux côtés : x = 10 − 3 = 7." },
+  { text: "3(x + 2) = 3x + 2", isTrue: false, explain: "Faux ! On distribue le 3 sur CHAQUE terme : 3(x + 2) = 3x + 6." },
+  { text: "La somme des angles d'un triangle est 180°", isTrue: true, explain: "Toujours, pour tout triangle. Propriété fondamentale." },
+  { text: "50% de 60 vaut 30", isTrue: true, explain: "50% = la moitié. Moitié de 60 = 30." },
+  { text: "10% de 200 vaut 25", isTrue: false, explain: "Faux : 10% de 200 = 0,1 × 200 = 20 (et non 25)." },
+  { text: "Une vitesse de 60 km/h, c'est 1 km par minute", isTrue: true, explain: "60 km/h ÷ 60 min = 1 km/min. Conversion utile." },
+  { text: "Si on lance un dé à 6 faces, P(obtenir 7) = 0", isTrue: true, explain: "Aucune face ne porte le chiffre 7 : événement impossible, probabilité = 0." },
+  { text: "Un carré est un rectangle", isTrue: true, explain: "Oui ! Un carré est un cas particulier de rectangle (avec L = ℓ). Vocabulaire géométrique de 6e." }
+];
+
+let tfState = {
+  qIdx: 0,
+  score: 0,
+  correct: 0,
+  streak: 0,
+  bestStreak: 0,
+  timer: null,
+  timeLeft: 7,
+  questions: [],
+  answered: false
+};
+
+function startTrueFalse() {
+  // Mélange et prend 20 affirmations
+  const pool = [...TRUEFALSE_STATEMENTS];
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  tfState = {
+    qIdx: 0, score: 0, correct: 0, streak: 0, bestStreak: 0,
+    timer: null, timeLeft: 7, questions: pool.slice(0, 20), answered: false
+  };
+  showScreen('tf');
+  loadTfQuestion();
+}
+
+function loadTfQuestion() {
+  const q = tfState.questions[tfState.qIdx];
+  if (!q) { endTrueFalse(); return; }
+  tfState.answered = false;
+  tfState.timeLeft = 7;
+
+  document.getElementById('tf-progress').textContent = `Affirmation ${tfState.qIdx + 1} / ${tfState.questions.length}`;
+  document.getElementById('tf-statement').textContent = q.text;
+  document.getElementById('tf-feedback').style.display = 'none';
+  document.getElementById('tf-card').classList.remove('correct', 'wrong');
+  document.getElementById('tf-btn-true').disabled = false;
+  document.getElementById('tf-btn-false').disabled = false;
+  document.getElementById('tf-score').textContent = tfState.score;
+  document.getElementById('tf-correct').textContent = tfState.correct;
+  document.getElementById('tf-streak').textContent = tfState.streak;
+  updateTfTimerUI();
+
+  clearInterval(tfState.timer);
+  tfState.timer = setInterval(() => {
+    if (tfState.answered) return;
+    tfState.timeLeft -= 0.1;
+    if (tfState.timeLeft <= 0) {
+      tfState.timeLeft = 0;
+      updateTfTimerUI();
+      answerTf(null); // Time out
+    } else {
+      updateTfTimerUI();
+    }
+  }, 100);
+}
+
+function updateTfTimerUI() {
+  const pct = (tfState.timeLeft / 7) * 100;
+  document.getElementById('tf-timer-fill').style.width = pct + '%';
+  document.getElementById('tf-timer-num').textContent = Math.max(0, Math.ceil(tfState.timeLeft));
+}
+
+function answerTf(userAnswer) {
+  if (tfState.answered) return;
+  tfState.answered = true;
+  clearInterval(tfState.timer);
+
+  const q = tfState.questions[tfState.qIdx];
+  const card = document.getElementById('tf-card');
+  const ok = userAnswer === q.isTrue;
+  const timedOut = userAnswer === null;
+
+  document.getElementById('tf-btn-true').disabled = true;
+  document.getElementById('tf-btn-false').disabled = true;
+
+  if (ok) {
+    tfState.correct++;
+    tfState.streak++;
+    if (tfState.streak > tfState.bestStreak) tfState.bestStreak = tfState.streak;
+    const timeBonus = Math.floor(tfState.timeLeft * 8);
+    const comboMult = tfState.streak >= 3 ? Math.min(tfState.streak, 5) : 1;
+    const earned = (50 + timeBonus) * comboMult;
+    tfState.score += earned;
+    card.classList.add('correct');
+    showFeedbackTf(true, q.explain, earned);
+    addXP(20);
+    announceToScreenReader(`Correct ! ${q.explain}`);
+  } else {
+    tfState.streak = 0;
+    card.classList.add('wrong');
+    const msg = timedOut
+      ? `⏰ Temps écoulé. La bonne réponse était : ${q.isTrue ? 'VRAI' : 'FAUX'}. ${q.explain}`
+      : `Mauvaise réponse. C'était ${q.isTrue ? 'VRAI' : 'FAUX'}. ${q.explain}`;
+    showFeedbackTf(false, msg, 0);
+    announceToScreenReader(msg);
+  }
+
+  document.getElementById('tf-score').textContent = tfState.score;
+  document.getElementById('tf-correct').textContent = tfState.correct;
+  document.getElementById('tf-streak').textContent = tfState.streak;
+  state.score += ok ? 50 : 0;
+  updateHUD();
+
+  // Passe automatiquement à la suivante après un délai
+  setTimeout(() => {
+    tfState.qIdx++;
+    if (tfState.qIdx >= tfState.questions.length) endTrueFalse();
+    else loadTfQuestion();
+  }, ok ? 1100 : 2400);
+}
+
+function showFeedbackTf(ok, msg, earned) {
+  const fb = document.getElementById('tf-feedback');
+  fb.style.display = 'block';
+  if (ok) {
+    fb.style.background = 'rgba(0,230,118,.12)';
+    fb.style.border = '2px solid var(--green)';
+    fb.style.color = 'var(--white)';
+    fb.innerHTML = `<strong style="color:var(--green)">✅ Correct ! +${earned} pts</strong><br>${msg}`;
+  } else {
+    fb.style.background = 'rgba(255,85,119,.12)';
+    fb.style.border = '2px solid var(--red)';
+    fb.style.color = 'var(--white)';
+    fb.innerHTML = `<strong style="color:var(--red)">❌ Raté.</strong> ${msg}`;
+  }
+}
+
+function endTrueFalse() {
+  clearInterval(tfState.timer);
+  showScreen('tf-result');
+  const pct = (tfState.correct / tfState.questions.length) * 100;
+  let emoji, msg, comment;
+  if (pct >= 90) { emoji = '🏆'; msg = 'NINJA SUPRÊME !'; comment = 'Tes réflexes sont dignes du Sharingan !'; }
+  else if (pct >= 75) { emoji = '⚡'; msg = 'EXCELLENT'; comment = 'Très bonne maîtrise, rapide et précis.'; }
+  else if (pct >= 60) { emoji = '🥷'; msg = 'BON GENIN'; comment = 'Tu progresses, continue !'; }
+  else if (pct >= 40) { emoji = '📚'; msg = 'À CONSOLIDER'; comment = 'Reviens travailler les notions de base.'; }
+  else { emoji = '💪'; msg = 'ENTRAÎNEMENT'; comment = "Pas de panique, c'est en pratiquant qu'on progresse !"; }
+  document.getElementById('tf-result-emoji').textContent = emoji;
+  document.getElementById('tf-result-msg').textContent = msg;
+  document.getElementById('tf-result-comment').textContent = comment;
+  document.getElementById('tf-res-correct').textContent = `${tfState.correct}/${tfState.questions.length}`;
+  document.getElementById('tf-res-score').textContent = tfState.score.toLocaleString('fr-FR');
+  document.getElementById('tf-res-streak').textContent = `×${tfState.bestStreak}`;
+  if (pct >= 0.6) addXP(80);
+  if (pct >= 0.9) addXP(150);
+}
+
+function quitTrueFalse() {
+  clearInterval(tfState.timer);
+  showHome();
+}
+
+// Raccourcis clavier V/F en mode TF
+document.addEventListener('keydown', (e) => {
+  const tfVisible = document.getElementById('screen-tf') &&
+                    document.getElementById('screen-tf').style.display !== 'none';
+  if (!tfVisible || tfState.answered) return;
+  if (e.key === 'v' || e.key === 'V' || e.key === '1') { e.preventDefault(); answerTf(true); }
+  else if (e.key === 'f' || e.key === 'F' || e.key === '2') { e.preventDefault(); answerTf(false); }
+});
+
+// ═══════════════════════════════════════════════════════════
+// MODE HISTOIRE INTERACTIVE (multi-étapes narratives)
+// ═══════════════════════════════════════════════════════════
+const STORY_MISSIONS = [
+  {
+    title: "🍜 La grande commande de ramen",
+    decor: "🍜",
+    intro: "<em>Naruto</em> doit organiser un banquet au village de <em>Konoha</em>. Il a un budget précis et doit le gérer comme un vrai <strong>Hokage</strong>. Suis-le étape par étape !",
+    steps: [
+      {
+        narrative: "<em>Naruto</em> commande 12 bols de ramen à 5 ryos pièce. Combien dépense-t-il ?",
+        question: "Calcule le coût total :",
+        type: "Calcul",
+        answers: ["60 ryos", "17 ryos", "120 ryos", "30 ryos"],
+        correct: 0,
+        feedback: "12 × 5 = <strong>60 ryos</strong>. La multiplication représente une répétition : 5 + 5 + 5... (12 fois)."
+      },
+      {
+        narrative: "Sur 60 ryos, <em>Kakashi</em> paie la moitié. Combien <em>Naruto</em> doit-il sortir de sa poche ?",
+        question: "Combien Naruto paie-t-il ?",
+        type: "Fractions",
+        answers: ["30 ryos", "45 ryos", "20 ryos", "15 ryos"],
+        correct: 0,
+        feedback: "La moitié de 60 = 60 ÷ 2 = <strong>30 ryos</strong>. C'est aussi 1/2 × 60 = 30."
+      },
+      {
+        narrative: "Avant de partir, <em>Naruto</em> doit partager équitablement les 12 bols entre lui-même, <em>Sasuke</em>, <em>Sakura</em> et <em>Kakashi</em>.",
+        question: "Combien de bols pour chacun ?",
+        type: "Division",
+        answers: ["3 bols", "4 bols", "2 bols", "6 bols"],
+        correct: 0,
+        feedback: "12 ÷ 4 = <strong>3 bols</strong> chacun. Distribution équitable = division."
+      },
+      {
+        narrative: "Au final, <em>Naruto</em> reçoit un bonus de <em>Tsunade</em> : 20% des 60 ryos initiaux remboursés.",
+        question: "Quel est le montant du bonus (en ryos) ?",
+        type: "Pourcentage",
+        answers: ["12 ryos", "20 ryos", "6 ryos", "30 ryos"],
+        correct: 0,
+        feedback: "20% de 60 = 0,2 × 60 = <strong>12 ryos</strong>. Astuce : 10% de 60 = 6, donc 20% = 12."
+      }
+    ]
+  },
+  {
+    title: "🌸 Le jardin de Sakura",
+    decor: "🌸",
+    intro: "<em>Sakura</em> reçoit un terrain rectangulaire pour planter ses cerisiers à <em>Konoha</em>. Aide-la à le mesurer et à l'aménager avec rigueur géométrique !",
+    steps: [
+      {
+        narrative: "Le terrain de <em>Sakura</em> mesure 12 m de long et 8 m de large.",
+        question: "Quel est son périmètre ?",
+        type: "Périmètre",
+        answers: ["40 m", "96 m", "20 m", "48 m"],
+        correct: 0,
+        feedback: "Périmètre = 2 × (L + l) = 2 × (12 + 8) = 2 × 20 = <strong>40 m</strong>. C'est la longueur de la clôture."
+      },
+      {
+        narrative: "<em>Sakura</em> veut connaître la surface totale pour commander son herbe.",
+        question: "Quelle est l'aire du terrain ?",
+        type: "Aire",
+        answers: ["96 m²", "40 m²", "20 m²", "192 m²"],
+        correct: 0,
+        feedback: "Aire d'un rectangle = L × l = 12 × 8 = <strong>96 m²</strong>. L'unité est en m² (mètres carrés)."
+      },
+      {
+        narrative: "<em>Sakura</em> divise son terrain en 8 parcelles identiques.",
+        question: "Quelle aire fait chaque parcelle ?",
+        type: "Division",
+        answers: ["12 m²", "8 m²", "15 m²", "10 m²"],
+        correct: 0,
+        feedback: "96 ÷ 8 = <strong>12 m²</strong> par parcelle. Chaque parcelle est un rectangle de surface égale."
+      },
+      {
+        narrative: "Elle plante un cerisier au centre de chaque parcelle. Si 3/4 des cerisiers fleurissent au printemps...",
+        question: "Combien de cerisiers en fleur ?",
+        type: "Fractions",
+        answers: ["6 cerisiers", "4 cerisiers", "2 cerisiers", "8 cerisiers"],
+        correct: 0,
+        feedback: "3/4 de 8 = (3 × 8) ÷ 4 = 24 ÷ 4 = <strong>6 cerisiers</strong>. Astuce : 1/4 de 8 = 2, donc 3/4 = 6."
+      }
+    ]
+  },
+  {
+    title: "⚡ L'entraînement de Sasuke",
+    decor: "⚡",
+    intro: "<em>Sasuke</em> s'entraîne intensément pour maîtriser une nouvelle technique. Aide-le à calculer ses performances grâce aux nombres relatifs et aux pourcentages.",
+    steps: [
+      {
+        narrative: "<em>Sasuke</em> commence son entraînement à une altitude de +200 m sur la montagne. Il descend de 350 m dans une vallée.",
+        question: "À quelle altitude se trouve-t-il maintenant ?",
+        type: "Relatifs",
+        answers: ["−150 m", "150 m", "550 m", "−550 m"],
+        correct: 0,
+        feedback: "200 − 350 = <strong>−150 m</strong>. Il est 150 m sous le niveau de la mer. Sur la droite numérique : partir de 200, reculer de 350."
+      },
+      {
+        narrative: "Il remonte de 80 m pour rejoindre <em>Kakashi</em>.",
+        question: "Nouvelle altitude ?",
+        type: "Relatifs",
+        answers: ["−70 m", "70 m", "230 m", "−230 m"],
+        correct: 0,
+        feedback: "−150 + 80 = <strong>−70 m</strong>. Il est toujours sous le niveau zéro, mais s'en rapproche."
+      },
+      {
+        narrative: "Pendant la séance, <em>Sasuke</em> tente 25 fois sa technique secrète et réussit 15 fois.",
+        question: "Quel est son pourcentage de réussite ?",
+        type: "Pourcentage",
+        answers: ["60 %", "40 %", "15 %", "75 %"],
+        correct: 0,
+        feedback: "15/25 = 0,6 = <strong>60%</strong>. Pour passer en %, on multiplie par 100. Ou : 15/25 = 60/100 = 60%."
+      },
+      {
+        narrative: "Pour progresser, <em>Sasuke</em> doit augmenter ce taux de 50% relatif. Quel nouveau pourcentage de réussite vise-t-il ?",
+        question: "Cible visée :",
+        type: "Pourcentage",
+        answers: ["90 %", "110 %", "70 %", "80 %"],
+        correct: 0,
+        feedback: "60% augmenté de 50% (en relatif) = 60% + 50% × 60% = 60% + 30% = <strong>90%</strong>. C'est une augmentation de 30 points, et non de 50."
+      }
+    ]
+  },
+  {
+    title: "🐸 Le défi de Jiraiya",
+    decor: "🐸",
+    intro: "<em>Jiraiya</em> teste son disciple <em>Naruto</em> avec une série d'énigmes algébriques. Saura-t-il prouver qu'il maîtrise les équations ?",
+    steps: [
+      {
+        narrative: "<em>Jiraiya</em> écrit : « Je pense à un nombre. Si tu lui ajoutes 7, tu obtiens 23. »",
+        question: "Quel est ce nombre ?",
+        type: "Équation",
+        answers: ["16", "30", "10", "9"],
+        correct: 0,
+        feedback: "On cherche x tel que x + 7 = 23. Donc x = 23 − 7 = <strong>16</strong>. Vérification : 16 + 7 = 23 ✓."
+      },
+      {
+        narrative: "« Maintenant, prends ce nombre, multiplie-le par 3, puis enlève 8. »",
+        question: "Combien obtiens-tu ?",
+        type: "Calcul",
+        answers: ["40", "48", "32", "56"],
+        correct: 0,
+        feedback: "16 × 3 − 8 = 48 − 8 = <strong>40</strong>. On respecte les priorités : multiplication AVANT soustraction."
+      },
+      {
+        narrative: "« Si 2x + 5 = 25, je veux que tu trouves x. »",
+        question: "Que vaut x ?",
+        type: "Équation",
+        answers: ["10", "15", "20", "30"],
+        correct: 0,
+        feedback: "2x + 5 = 25 → 2x = 20 → x = <strong>10</strong>. On retire 5 puis on divise par 2."
+      },
+      {
+        narrative: "« Dernière épreuve : développe 4(x + 3) et donne le résultat. »",
+        question: "Expression développée :",
+        type: "Calcul littéral",
+        answers: ["4x + 12", "4x + 3", "x + 12", "16x"],
+        correct: 0,
+        feedback: "Distributivité : 4(x + 3) = 4 × x + 4 × 3 = <strong>4x + 12</strong>. On multiplie 4 par CHAQUE terme."
+      }
+    ]
+  },
+  {
+    title: "💀 Le défi d'Orochimaru",
+    decor: "💀",
+    intro: "<em>Orochimaru</em> a piégé <em>Naruto</em> dans un labyrinthe rempli d'énigmes. Pour s'en échapper, il doit résoudre une série de problèmes mêlant proportionnalité, vitesse et puissances.",
+    steps: [
+      {
+        narrative: "<em>Naruto</em> court à 12 km/h. Combien de mètres parcourt-il en 5 minutes ?",
+        question: "Distance parcourue :",
+        type: "Vitesse",
+        answers: ["1000 m", "60 m", "100 m", "600 m"],
+        correct: 0,
+        feedback: "12 km/h = 12 000 m en 60 min = 200 m/min. En 5 min : 5 × 200 = <strong>1000 m</strong>."
+      },
+      {
+        narrative: "Dans le couloir suivant, <em>Naruto</em> doit franchir 2⁴ portes magiques.",
+        question: "Combien de portes ?",
+        type: "Puissances",
+        answers: ["16 portes", "8 portes", "24 portes", "2 portes"],
+        correct: 0,
+        feedback: "2⁴ = 2 × 2 × 2 × 2 = <strong>16</strong>. Attention à ne pas confondre avec 2 × 4 = 8."
+      },
+      {
+        narrative: "<em>Orochimaru</em> lance 3 dés équilibrés à 6 faces. Combien de résultats possibles au total ?",
+        question: "Nombre de résultats :",
+        type: "Probabilités",
+        answers: ["216", "18", "36", "108"],
+        correct: 0,
+        feedback: "6 × 6 × 6 = 6³ = <strong>216</strong> résultats possibles. Chaque dé est indépendant. C'est le principe multiplicatif."
+      },
+      {
+        narrative: "Dernière épreuve : <em>Naruto</em> doit calculer (−5) × (−4) + (−3) × 2.",
+        question: "Résultat :",
+        type: "Relatifs",
+        answers: ["14", "26", "−26", "−14"],
+        correct: 0,
+        feedback: "Priorités : (−5)×(−4) = +20 (moins × moins). (−3)×2 = −6. Somme : 20 + (−6) = <strong>14</strong>."
+      }
+    ]
+  }
+];
+
+let storyState = {
+  missionIdx: 0,
+  stepIdx: 0,
+  score: 0,
+  correct: 0,
+  answered: false
+};
+
+function startStoryMode() {
+  // Choisit une histoire au hasard
+  storyState = {
+    missionIdx: Math.floor(Math.random() * STORY_MISSIONS.length),
+    stepIdx: 0, score: 0, correct: 0, answered: false
+  };
+  showScreen('story');
+  const mission = STORY_MISSIONS[storyState.missionIdx];
+  // Affiche l'intro brièvement puis charge la 1re étape
+  document.getElementById('story-title').textContent = mission.title;
+  document.getElementById('story-decor').textContent = mission.decor;
+  document.getElementById('story-narrative').innerHTML = mission.intro;
+  document.getElementById('story-progress').textContent = `Aventure ${storyState.missionIdx + 1} / ${STORY_MISSIONS.length}`;
+  // Cache la question pour que l'utilisateur lise d'abord l'intro
+  document.getElementById('story-question').textContent = '';
+  document.getElementById('story-answers').innerHTML = '';
+  document.getElementById('story-type').textContent = 'Préparation';
+  document.getElementById('story-q-num').textContent = 'Intro';
+  document.getElementById('story-feedback').style.display = 'block';
+  document.getElementById('story-feedback-title').textContent = '📖 Commence l\'aventure';
+  document.getElementById('story-feedback-text').textContent = 'Lis le contexte ci-dessus puis clique pour démarrer.';
+  document.getElementById('story-next-btn').textContent = '🚀 COMMENCER →';
+}
+
+function loadStoryStep() {
+  const mission = STORY_MISSIONS[storyState.missionIdx];
+  const step = mission.steps[storyState.stepIdx];
+  if (!step) { endStoryMode(); return; }
+  storyState.answered = false;
+  document.getElementById('story-title').textContent = mission.title;
+  document.getElementById('story-decor').textContent = mission.decor;
+  document.getElementById('story-narrative').innerHTML = step.narrative;
+  document.getElementById('story-progress').textContent = `Étape ${storyState.stepIdx + 1} / ${mission.steps.length}`;
+  document.getElementById('story-question').innerHTML = step.question;
+  document.getElementById('story-type').textContent = step.type;
+  document.getElementById('story-q-num').textContent = `Étape ${storyState.stepIdx + 1}`;
+
+  const grid = document.getElementById('story-answers');
+  grid.innerHTML = '';
+  const letters = ['A', 'B', 'C', 'D'];
+  step.answers.forEach((ans, i) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'answer-btn';
+    btn.innerHTML = `<span class="ans-letter">${letters[i]}</span>${ans}`;
+    btn.onclick = () => answerStoryStep(i);
+    grid.appendChild(btn);
+  });
+  document.getElementById('story-feedback').style.display = 'none';
+  document.getElementById('story-feedback').classList.remove('wrong-fb');
+}
+
+function answerStoryStep(idx) {
+  if (storyState.answered) return;
+  storyState.answered = true;
+  const mission = STORY_MISSIONS[storyState.missionIdx];
+  const step = mission.steps[storyState.stepIdx];
+  const btns = document.querySelectorAll('#story-answers .answer-btn');
+  btns.forEach(b => b.disabled = true);
+  const ok = idx === step.correct;
+  btns[idx].classList.add(ok ? 'correct' : 'wrong');
+  if (!ok) btns[step.correct].classList.add('correct');
+
+  const fb = document.getElementById('story-feedback');
+  const fbTitle = document.getElementById('story-feedback-title');
+  const fbText = document.getElementById('story-feedback-text');
+  fb.style.display = 'block';
+  if (ok) {
+    storyState.correct++;
+    storyState.score += 200;
+    fb.classList.remove('wrong-fb');
+    fbTitle.textContent = '✅ Bien joué ninja !';
+    addXP(40);
+    announceToScreenReader(`Correct ! ${stripHtml(step.feedback)}`);
+  } else {
+    fb.classList.add('wrong-fb');
+    fbTitle.textContent = '❌ Pas tout à fait...';
+    const correctText = step.answers[step.correct];
+    announceToScreenReader(`Faux. La bonne réponse était ${correctText}. ${stripHtml(step.feedback)}`);
+  }
+  fbText.innerHTML = step.feedback;
+  document.getElementById('story-next-btn').textContent = (storyState.stepIdx + 1 >= mission.steps.length) ? '🏆 VOIR LE RÉSULTAT →' : 'PROCHAINE ÉTAPE →';
+  state.score += ok ? 100 : 0;
+  updateHUD();
+}
+
+function nextStoryStep() {
+  // Premier clic depuis l'intro : on charge la 1re étape
+  if (!storyState.answered && storyState.stepIdx === 0 && document.getElementById('story-feedback-title').textContent.includes('Commence')) {
+    loadStoryStep();
+    return;
+  }
+  storyState.stepIdx++;
+  loadStoryStep();
+}
+
+function endStoryMode() {
+  showScreen('story-result');
+  const mission = STORY_MISSIONS[storyState.missionIdx];
+  const total = mission.steps.length;
+  const pct = (storyState.correct / total) * 100;
+  let emoji, title, msg;
+  if (pct === 100) { emoji = '🏆'; title = 'HISTOIRE PARFAITE !'; msg = `Tu as résolu toutes les énigmes de « ${mission.title} » sans aucune erreur. Tu maîtrises vraiment ces notions !`; }
+  else if (pct >= 75) { emoji = '⭐'; title = 'EXCELLENTE AVENTURE'; msg = `Très bonne fin d'aventure pour « ${mission.title} » ! Quelques étapes à revoir mais l'essentiel est là.`; }
+  else if (pct >= 50) { emoji = '🥷'; title = 'AVENTURE TERMINÉE'; msg = `Tu as terminé « ${mission.title} ». Reviens t'entraîner pour réussir toutes les étapes la prochaine fois !`; }
+  else { emoji = '💪'; title = 'À RETENTER'; msg = `« ${mission.title} » est difficile. Travaille les notions et reviens !`; }
+  document.getElementById('story-result-emoji').textContent = emoji;
+  document.getElementById('story-result-title').textContent = title;
+  document.getElementById('story-result-msg').textContent = msg;
+  document.getElementById('story-res-correct').textContent = `${storyState.correct}/${total}`;
+  document.getElementById('story-res-score').textContent = storyState.score;
+  if (pct >= 75) addXP(100);
+  if (pct === 100) addXP(200);
+}
+
+function quitStoryMode() {
+  showHome();
+}
+
+// ═══════════════════════════════════════════════════════════
+// PWA — Service Worker + Install prompt
+// ═══════════════════════════════════════════════════════════
+let deferredInstallPrompt = null;
+
+// Capture du beforeinstallprompt (Chrome/Edge/Android)
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const btn = document.getElementById('install-pwa-btn');
+  if (btn) btn.style.display = '';
+});
+
+// iOS Safari ne supporte pas beforeinstallprompt, on affiche le bouton si pas déjà installé
+(function showInstallButtonOnIOS() {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  if (isIOS && !isStandalone) {
+    setTimeout(() => {
+      const btn = document.getElementById('install-pwa-btn');
+      if (btn) btn.style.display = '';
+    }, 500);
+  }
+})();
+
+window.addEventListener('appinstalled', () => {
+  const btn = document.getElementById('install-pwa-btn');
+  if (btn) btn.style.display = 'none';
+  deferredInstallPrompt = null;
+  showToast('🎉 App installée ! Lance-la depuis ton écran d\'accueil.');
+});
+
+function installPWA() {
+  if (!deferredInstallPrompt) {
+    // iOS Safari ne fournit pas l'API, on guide l'utilisateur
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (isIOS) {
+      showToast('📲 Sur iPhone : appuie sur Partager puis "Sur l\'écran d\'accueil"');
+    } else {
+      showToast('Installation déjà effectuée ou non disponible sur ce navigateur.');
+    }
+    return;
+  }
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.then(() => {
+    deferredInstallPrompt = null;
+    const btn = document.getElementById('install-pwa-btn');
+    if (btn) btn.style.display = 'none';
+  });
+}
+
+// Enregistrement du service worker (offline-first)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {
+      // Échec silencieux (file:// ou autres) — l'app fonctionne quand même
+    });
+  });
+}
 
 // ── Initialisation différée : restaure la sauvegarde et affiche le tutoriel ──
 (function initExtensions() {

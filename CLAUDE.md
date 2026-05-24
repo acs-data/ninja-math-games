@@ -25,6 +25,12 @@
 /
 ├── index.html              ← Fichier principal (à modifier)
 ├── index.backup*.html      ← Sauvegardes manuelles éventuelles (NE PAS MODIFIER)
+├── manifest.json           ← Manifest PWA (icônes, nom, theme, scope)
+├── sw.js                   ← Service Worker (cache-first, offline-ready)
+├── icon-192.png            ← Icône PWA Android (générée depuis SVG)
+├── icon-512.png            ← Icône PWA haute résolution
+├── og-image.png            ← Image OpenGraph 1200×630 (PNG pour Facebook/WhatsApp)
+├── og-image.svg            ← Source vectorielle de l'image OG (pour régénérer)
 ├── README.md               ← Documentation publique
 └── CLAUDE.md               ← Ce fichier
 ```
@@ -55,17 +61,20 @@ Le fichier monolithique est découpé conceptuellement en 4 zones :
 
 ## 2. Modes de jeu (vue d’ensemble)
 
-|Mode                  |Écran          |Fonction d’entrée             |Banque de données                      |Caractéristiques                        |
-|----------------------|---------------|------------------------------|---------------------------------------|----------------------------------------|
-|**QCM Académie (6e)** |`screen-game`  |`startGame('6e_facile')`      |`QUESTIONS['6e_facile']` (15 questions)|4 réponses, timer 30s, vies, jutsus     |
-|**QCM Genin (5e)**    |`screen-game`  |`startGame('5e_medium')`      |`QUESTIONS['5e_medium']` (14 questions)|Idem 6e                                 |
-|**QCM Chunin Mix**    |`screen-game`  |`startGame('mixte_difficile')`|`QUESTIONS['mixte_difficile']` (10)    |Idem                                    |
-|**QCM Boss (Kage)**   |`screen-game`  |`startGame('boss')`           |`QUESTIONS['boss']` (7 questions)      |Timer 20s, **pas de répétition espacée**|
-|**Tracé géométrique** |`screen-draw`  |`startDrawMode()`             |`DRAW_MISSIONS` (6 missions)           |Canvas, mouse + touch, validation auto  |
-|**Puzzle emboîtement**|`screen-puzzle`|`startPuzzleMode()`           |`PUZZLES` (6 puzzles)                  |Drag & drop, type `match` ou `sort`     |
-|**Automatismes 6e**   |`screen-auto`  |`startAutoMode('auto_6e')`    |`AUTO_GENERATORS` (21 générateurs)     |20 questions/20 min, saisie clavier     |
-|**Automatismes 5e**   |`screen-auto`  |`startAutoMode('auto_5e')`    |Idem                                   |Format DNB 2027                         |
-|**Automatismes Mix**  |`screen-auto`  |`startAutoMode('auto_mix')`   |Idem                                   |Réplique épreuve DNB                    |
+|Mode                    |Écran            |Fonction d’entrée             |Banque de données                      |Caractéristiques                        |
+|------------------------|-----------------|------------------------------|---------------------------------------|----------------------------------------|
+|**QCM Académie (6e)**   |`screen-game`    |`startGame('6e_facile')`      |`QUESTIONS['6e_facile']` (30 questions)|4 réponses, timer 30s, vies, jutsus     |
+|**QCM Genin (5e)**      |`screen-game`    |`startGame('5e_medium')`      |`QUESTIONS['5e_medium']` (26 questions)|Idem 6e                                 |
+|**QCM Chunin Mix**      |`screen-game`    |`startGame('mixte_difficile')`|`QUESTIONS['mixte_difficile']` (20)    |Idem                                    |
+|**QCM Boss (Kage)**     |`screen-game`    |`startGame('boss')`           |`QUESTIONS['boss']` (12 questions)     |Timer 20s, **pas de répétition espacée**|
+|**QCM Entraînement libre**|`screen-game`  |`startGame('libre')`          |Pool des 3 banques (échantillon de 20) |**Sans timer, sans HP** — `state.freeMode=true`|
+|**Tracé géométrique**   |`screen-draw`    |`startDrawMode()`             |`DRAW_MISSIONS` (6 missions)           |Canvas, mouse + touch, validation auto  |
+|**Puzzle emboîtement**  |`screen-puzzle`  |`startPuzzleMode()`           |`PUZZLES` (6 puzzles)                  |Drag & drop, type `match` ou `sort`     |
+|**Vrai / Faux Speed**   |`screen-tf`      |`startTrueFalse()`            |`TRUEFALSE_STATEMENTS` (30 affirmations)|7s par affirmation, V/F binaire, raccourcis V/F au clavier|
+|**Histoire interactive**|`screen-story`   |`startStoryMode()`            |`STORY_MISSIONS` (5 aventures × 4 étapes)|Récit narratif multi-étapes, QCM par sous-question|
+|**Automatismes 6e**     |`screen-auto`    |`startAutoMode('auto_6e')`    |`AUTO_GENERATORS` (21 générateurs)     |20 questions/20 min, saisie clavier     |
+|**Automatismes 5e**     |`screen-auto`    |`startAutoMode('auto_5e')`    |Idem                                   |Format DNB 2027                         |
+|**Automatismes Mix**    |`screen-auto`    |`startAutoMode('auto_mix')`   |Idem                                   |Réplique épreuve DNB                    |
 
 -----
 
