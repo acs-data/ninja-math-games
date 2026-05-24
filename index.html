@@ -719,6 +719,70 @@
   .fraction-visual .fbar { width: 100%; height: 2px; background: currentColor; }
   .fraction-visual .fden { font-size: 1.1rem; }
 
+
+  /* ── SÉLECTEUR D'UNIVERS ── */
+  .universe-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .universe-card {
+    background: var(--dark3);
+    border: 2px solid rgba(255,255,255,.08);
+    border-radius: 14px;
+    padding: 12px 8px;
+    cursor: pointer;
+    text-align: center;
+    transition: all .25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .universe-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 0%, var(--uni-color, var(--orange)) 0%, transparent 70%);
+    opacity: 0; transition: opacity .25s;
+  }
+  .universe-card:hover::before, .universe-card.selected::before { opacity: .2; }
+  .universe-card:hover, .universe-card.selected {
+    border-color: var(--uni-color, var(--orange));
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,.4);
+  }
+  .universe-card.selected {
+    border-width: 3px;
+    box-shadow: 0 0 24px var(--uni-color, var(--orange));
+  }
+  .universe-emoji { font-size: 1.7rem; display: block; margin-bottom: 2px; }
+  .universe-name {
+    font-family: 'Bangers',Impact,'Arial Black',cursive;
+    font-size: .85rem;
+    letter-spacing: 1px;
+    color: var(--white);
+    line-height: 1.1;
+  }
+  .universe-desc {
+    font-size: .65rem; color: var(--gray);
+    margin-top: 2px;
+    line-height: 1.3;
+  }
+
+  @media(max-width:480px) {
+    .universe-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* Animation de transition lors du changement d'univers */
+  .char-grid.changing {
+    opacity: 0; transform: scale(.95);
+    transition: all .2s ease;
+  }
+  .char-grid.entering {
+    animation: gridFadeIn .35s ease both;
+  }
+  @keyframes gridFadeIn {
+    from { opacity: 0; transform: translateY(10px) scale(.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
 </style>
 </head>
 <body>
@@ -728,7 +792,7 @@
 <div id="app">
   <!-- HEADER HUD -->
   <header>
-    <div class="logo">NINJA<span>MATH</span> 🥷</div>
+    <div class="logo" id="main-logo">MATH<span>QUEST</span> 🎮</div>
     <div class="hud">
       <div class="hud-item"><span class="icon">⭐</span><span class="val" id="hud-score">0</span></div>
       <div class="hud-item"><span class="icon">🔥</span><span class="val" id="hud-streak">×0</span></div>
@@ -744,49 +808,21 @@
   <div id="screen-home">
     <div class="hero-ninja">🥷</div>
     <div>
-      <h1 class="hero-title">NINJA MATH ACADEMY</h1>
-      <p class="hero-sub">Maîtrise les maths comme Naruto maîtrise le Rasengan !<br>Réponds aux questions, gagne de l'XP, monte en grade de ninja.</p>
+      <h1 class="hero-title" id="hero-title">ANIME MATH ACADEMY</h1>
+      <p class="hero-sub">Maîtrise les maths comme ton héros maîtrise ses pouvoirs !<br>Choisis ton univers, réponds aux questions, gagne de l'XP et monte en grade.</p>
     </div>
 
-    <div>
-      <p class="section-label">🎭 Choisis ton personnage</p>
+    <div style="width:100%;max-width:560px">
+      <p class="section-label">🌍 Choisis ton univers</p>
+      <div class="universe-grid" id="universe-grid">
+        <!-- Généré dynamiquement -->
+      </div>
+    </div>
+
+    <div style="width:100%;max-width:560px">
+      <p class="section-label" id="char-section-label">🎭 Choisis ton personnage</p>
       <div class="char-grid" id="char-grid">
-        <div class="char-card" data-char="naruto" style="--char-color:#FF6B00" onclick="selectChar(this,'naruto')">
-          <span class="char-emoji">🍜</span>
-          <div class="char-name">Naruto</div>
-          <div class="char-desc">Fonce sans réfléchir !</div>
-          <div class="char-badge" style="background:var(--orange)">+XP</div>
-        </div>
-        <div class="char-card" data-char="sasuke" style="--char-color:#9B59B6" onclick="selectChar(this,'sasuke')">
-          <span class="char-emoji">⚡</span>
-          <div class="char-name">Sasuke</div>
-          <div class="char-desc">Précision absolue</div>
-          <div class="char-badge" style="background:var(--purple)">+Précision</div>
-        </div>
-        <div class="char-card" data-char="sakura" style="--char-color:#FF2D55" onclick="selectChar(this,'sakura')">
-          <span class="char-emoji">🌸</span>
-          <div class="char-name">Sakura</div>
-          <div class="char-desc">Intelligence tactique</div>
-          <div class="char-badge" style="background:var(--red)">+Indices</div>
-        </div>
-        <div class="char-card" data-char="kakashi" style="--char-color:#8888AA" onclick="selectChar(this,'kakashi')">
-          <span class="char-emoji">📖</span>
-          <div class="char-name">Kakashi</div>
-          <div class="char-desc">Le maître copiste</div>
-          <div class="char-badge" style="background:var(--gray)">+Temps</div>
-        </div>
-        <div class="char-card" data-char="rock_lee" style="--char-color:#00E676" onclick="selectChar(this,'rock_lee')">
-          <span class="char-emoji">💪</span>
-          <div class="char-name">Rock Lee</div>
-          <div class="char-desc">Travail acharné</div>
-          <div class="char-badge" style="background:var(--green)">+Combo</div>
-        </div>
-        <div class="char-card" data-char="shikamaru" style="--char-color:#FFD700" onclick="selectChar(this,'shikamaru')">
-          <span class="char-emoji">☁️</span>
-          <div class="char-name">Shikamaru</div>
-          <div class="char-desc">Stratège du village</div>
-          <div class="char-badge" style="background:var(--yellow);color:var(--dark)">+Score</div>
-        </div>
+        <!-- Généré dynamiquement -->
       </div>
     </div>
 
@@ -815,7 +851,7 @@
         </div>
         <div class="level-card" onclick="startGame('mixte_difficile')">
           <div class="lv">🔴 Chunin</div>
-          <div class="lv-name">Mix — Défi ninja</div>
+          <div class="lv-name">Mix — Défi épique</div>
           <div class="lv-desc">Mélange 6ème + 5ème, questions piégées</div>
           <div class="lv-topics">
             <span class="topic-badge">Tout niveau</span>
@@ -839,8 +875,8 @@
       <div class="level-grid">
         <div class="level-card" onclick="startDrawMode()" style="border-color:rgba(0,230,118,.3)">
           <div class="lv" style="color:var(--green)">✏️ Tracé</div>
-          <div class="lv-name">Géométrie ninja</div>
-          <div class="lv-desc">Trace droites, angles, axes de symétrie au doigt sur le tableau de Konoha</div>
+          <div class="lv-name">Géométrie épique</div>
+          <div class="lv-desc">Trace droites, angles et axes de symétrie au doigt</div>
           <div class="lv-topics">
             <span class="topic-badge" style="color:var(--green);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.1)">Symétrie</span>
             <span class="topic-badge" style="color:var(--green);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.1)">Angles</span>
@@ -855,6 +891,25 @@
             <span class="topic-badge" style="color:var(--purple);border-color:rgba(155,89,182,.3);background:rgba(155,89,182,.1)">Drag & Drop</span>
             <span class="topic-badge" style="color:var(--purple);border-color:rgba(155,89,182,.3);background:rgba(155,89,182,.1)">Fractions</span>
             <span class="topic-badge" style="color:var(--purple);border-color:rgba(155,89,182,.3);background:rgba(155,89,182,.1)">Formes</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="width:100%;max-width:520px">
+      <p class="section-label">⚡ Entraînement DNB 2027</p>
+      <div class="level-grid" style="grid-template-columns:1fr">
+        <div class="level-card" onclick="showAutoMenu()" style="border-color:rgba(255,215,0,.4);background:linear-gradient(135deg,var(--dark3),rgba(255,215,0,.05))">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+            <div class="lv" style="color:var(--yellow)">⚡ AUTOMATISMES</div>
+            <span style="font-size:.62rem;font-weight:900;background:var(--yellow);color:var(--dark);padding:3px 8px;border-radius:8px">NOUVEAU DNB</span>
+          </div>
+          <div class="lv-name">Mode "Choc des Savoirs"</div>
+          <div class="lv-desc">20 calculs en 20 min, sans calculatrice. Format exact de la nouvelle épreuve d'automatismes du DNB 2027 (6 pts sur 40).</div>
+          <div class="lv-topics">
+            <span class="topic-badge" style="color:var(--yellow);border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.08)">Calcul mental</span>
+            <span class="topic-badge" style="color:var(--yellow);border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.08)">Fluidité</span>
+            <span class="topic-badge" style="color:var(--yellow);border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.08)">Sans pause</span>
           </div>
         </div>
       </div>
@@ -944,6 +999,143 @@
     <button class="btn-sec" onclick="showHome()" style="margin-top:12px;width:100%">🏠 Retour accueil</button>
   </div>
 
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- ÉCRAN AUTOMATISMES — Menu                         -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="screen-auto-menu" style="display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 64px);padding:24px;gap:22px">
+    <div style="text-align:center;max-width:520px">
+      <div style="font-size:3.5rem;filter:drop-shadow(0 0 30px rgba(255,215,0,.5))">⚡</div>
+      <h2 style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:2.2rem;color:var(--yellow);letter-spacing:2px;text-shadow:3px 3px 0 var(--dark2);margin-bottom:8px">MODE AUTOMATISMES</h2>
+      <p style="color:var(--gray);font-size:.9rem;line-height:1.5">
+        <strong style="color:var(--white)">Format DNB 2027 :</strong> 20 questions de calcul mental en 20 minutes, sans calculatrice. Chaque question = <strong style="color:var(--yellow)">1 minute max</strong>. Tu tapes la réponse au clavier.
+      </p>
+    </div>
+
+    <div style="background:var(--dark3);border-radius:14px;padding:14px 18px;max-width:520px;width:100%;border-left:3px solid var(--yellow)">
+      <div style="font-size:.7rem;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px">📘 Pourquoi c'est important</div>
+      <p style="font-size:.82rem;color:var(--gray);line-height:1.55">
+        Dès 2027, le DNB de maths comprend une nouvelle épreuve de <strong style="color:var(--white)">20 minutes d'automatismes sans calculatrice</strong>, valant <strong style="color:var(--white)">6 points sur 40</strong>. La rapidité de calcul mental devient une compétence clé du collège.
+      </p>
+    </div>
+
+    <div style="width:100%;max-width:520px">
+      <p class="section-label">🎯 Choisis ton niveau</p>
+      <div class="level-grid">
+        <div class="level-card" onclick="startAutoMode('auto_6e')" style="border-color:rgba(0,230,118,.3)">
+          <div class="lv" style="color:var(--green)">🟢 Académie</div>
+          <div class="lv-name">Niveau 6ème</div>
+          <div class="lv-desc">Calcul mental, fractions simples, conversions, pourcentages basiques</div>
+        </div>
+        <div class="level-card" onclick="startAutoMode('auto_5e')" style="border-color:rgba(26,107,255,.3)">
+          <div class="lv" style="color:var(--blue)">🔵 Genin</div>
+          <div class="lv-name">Niveau 5ème</div>
+          <div class="lv-desc">Relatifs, fractions, puissances, calcul littéral, priorités</div>
+        </div>
+        <div class="level-card" onclick="startAutoMode('auto_mix')" style="border-color:rgba(255,107,0,.3);grid-column:span 2">
+          <div class="lv" style="color:var(--orange)">🟠 Chunin Mix</div>
+          <div class="lv-name">Niveau Mix — 6ème + 5ème</div>
+          <div class="lv-desc">Mélange complet sur les automatismes du cycle, comme l'épreuve réelle du DNB</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-sec" onclick="showHome()" style="margin-top:8px">🏠 Retour accueil</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- ÉCRAN AUTOMATISMES — Jeu                          -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="screen-auto" style="display:none;padding:16px;max-width:860px;margin:0 auto">
+    <div class="mission-card" style="border-left-color:var(--yellow)">
+      <div class="mission-label" style="color:var(--yellow)">⚡ ÉPREUVE D'AUTOMATISMES</div>
+      <div class="mission-title" id="auto-title">Question 1 / 20</div>
+      <div class="mission-desc">Sans calculatrice ! Tape ta réponse au clavier puis valide avec ENTRÉE.</div>
+    </div>
+
+    <!-- Stats compactes -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
+      <div class="stat-block" style="padding:10px 12px">
+        <div class="stat-label">⭐ Points</div>
+        <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:1.3rem;color:var(--yellow)" id="auto-score">0</div>
+      </div>
+      <div class="stat-block" style="padding:10px 12px">
+        <div class="stat-label">✅ Justes</div>
+        <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:1.3rem;color:var(--green)" id="auto-correct">0</div>
+      </div>
+      <div class="stat-block" style="padding:10px 12px">
+        <div class="stat-label">⏱ Total</div>
+        <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:1.3rem;color:var(--blue-light)" id="auto-global-timer">20:00</div>
+      </div>
+    </div>
+
+    <!-- Timer question -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div class="timer-bar" style="flex:1;height:8px"><div class="timer-fill" id="auto-q-timer-fill" style="width:100%"></div></div>
+      <div class="timer-num" id="auto-q-timer-num">60</div>
+    </div>
+
+    <!-- Question -->
+    <div class="question-wrap" style="text-align:center;padding:32px 20px">
+      <div class="q-meta">
+        <span class="q-type" id="auto-q-type" style="background:rgba(255,215,0,.15);color:var(--yellow);border-color:rgba(255,215,0,.3)">Calcul</span>
+        <span class="q-num" id="auto-q-num">1 / 20</span>
+      </div>
+      <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:2.4rem;color:var(--white);margin:20px 0;line-height:1.3;letter-spacing:1px" id="auto-question">3 + 4 × 2 = ?</div>
+
+      <!-- Champ de réponse -->
+      <div style="display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:14px">
+        <input type="text" id="auto-input" inputmode="text" autocomplete="off" placeholder="Ta réponse..." style="background:var(--dark3);border:2px solid var(--yellow);color:var(--white);font-family:'Bangers',Impact,'Arial Black',cursive;font-size:1.6rem;padding:12px 20px;border-radius:12px;width:160px;text-align:center;letter-spacing:1px;outline:none">
+        <button class="btn-main" style="font-size:1rem;padding:12px 22px" onclick="submitAutoAnswer()">✓ VALIDER</button>
+      </div>
+
+      <!-- Feedback minimal -->
+      <div id="auto-feedback" style="display:none;margin-top:16px;font-size:.9rem;line-height:1.5"></div>
+    </div>
+
+    <button class="btn-sec" onclick="exitAutoMode()" style="margin-top:12px;width:100%">⏹ Quitter l'épreuve</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- ÉCRAN AUTOMATISMES — Résultat                     -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="screen-auto-result" style="display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 64px);padding:32px 20px;text-align:center;gap:22px">
+    <div style="font-size:4rem" id="auto-result-emoji">🏅</div>
+    <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:clamp(1.8rem,6vw,2.8rem);color:var(--yellow);letter-spacing:2px;text-shadow:3px 3px 0 var(--dark2)" id="auto-result-msg">ÉPREUVE TERMINÉE !</div>
+
+    <!-- Note convertie DNB -->
+    <div style="background:linear-gradient(135deg,var(--dark3),rgba(255,215,0,.1));border:2px solid rgba(255,215,0,.3);border-radius:16px;padding:22px 24px;max-width:380px;width:100%">
+      <div style="font-size:.7rem;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:var(--yellow);margin-bottom:6px">Note simulée DNB</div>
+      <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:3.5rem;color:var(--yellow);line-height:1"><span id="auto-note-dnb">5</span>/6</div>
+      <div style="font-size:.85rem;color:var(--gray);margin-top:6px" id="auto-note-comment">Très bon score !</div>
+    </div>
+
+    <div class="result-stats">
+      <div class="result-stat">
+        <div class="rs-val" id="auto-res-correct">0/20</div>
+        <div class="rs-label">Réponses justes</div>
+      </div>
+      <div class="result-stat">
+        <div class="rs-val" id="auto-res-score">0</div>
+        <div class="rs-label">Points XP</div>
+      </div>
+      <div class="result-stat">
+        <div class="rs-val" id="auto-res-time">0:00</div>
+        <div class="rs-label">Temps moyen</div>
+      </div>
+    </div>
+
+    <!-- Analyse par thème -->
+    <div style="width:100%;max-width:520px;background:var(--dark3);border-radius:14px;padding:16px 18px;text-align:left">
+      <div style="font-size:.75rem;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:var(--orange);margin-bottom:10px">📊 Analyse par thème</div>
+      <div id="auto-theme-stats" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-main" onclick="startAutoMode(autoState.mode)">🔄 REJOUER</button>
+      <button class="btn-sec" onclick="showHome()">🏠 Accueil</button>
+    </div>
+  </div>
+
   <!-- LOADING -->
   <div id="screen-loading" style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 64px);gap:20px">
     <div style="font-size:4rem;animation:spin 1s linear infinite">🌀</div>
@@ -955,8 +1147,8 @@
   <div id="screen-game">
     <div class="mission-card" id="mission-card">
       <div class="mission-label" id="mission-label">🗾 MISSION EN COURS</div>
-      <div class="mission-title" id="mission-title">Défends Konoha !</div>
-      <div class="mission-desc" id="mission-desc">Réponds correctement pour protéger le village !</div>
+      <div class="mission-title" id="mission-title">Mission en cours !</div>
+      <div class="mission-desc" id="mission-desc">Réponds correctement pour réussir ta mission !</div>
     </div>
 
     <div class="stats-row">
@@ -975,17 +1167,17 @@
     <div class="jutsu-bar" id="jutsu-bar">
       <div class="jutsu-btn" id="jutsu-50" onclick="useJutsu('50')">
         <span>✂️</span> 50/50
-        <span class="jutsu-cost">30 chakra</span>
+        <span class="jutsu-cost" id="j50-cost">30 chakra</span>
         <span class="jutsu-count" id="j50-count">2</span>
       </div>
       <div class="jutsu-btn" id="jutsu-hint" onclick="useJutsu('hint')">
-        <span>💡</span> Kage Bunshin
-        <span class="jutsu-cost">20 chakra</span>
+        <span>💡</span> <span id="jhint-name">Kage Bunshin</span>
+        <span class="jutsu-cost" id="jhint-cost">20 chakra</span>
         <span class="jutsu-count" id="jhint-count">2</span>
       </div>
       <div class="jutsu-btn" id="jutsu-time" onclick="useJutsu('time')">
         <span>⏸️</span> Arrêt du Temps
-        <span class="jutsu-cost">40 chakra</span>
+        <span class="jutsu-cost" id="jtime-cost">40 chakra</span>
         <span class="jutsu-count" id="jtime-count">1</span>
       </div>
     </div>
@@ -1418,23 +1610,144 @@ let state = {
 };
 
 // Personnages
-const CHARS = {
-  naruto:   { name: 'Naruto',   emoji: '🍜', bonus: 'xp',       bVal: 1.5 },
-  sasuke:   { name: 'Sasuke',   emoji: '⚡', bonus: 'precision', bVal: 1   },
-  sakura:   { name: 'Sakura',   emoji: '🌸', bonus: 'hint',      bVal: 1   },
-  kakashi:  { name: 'Kakashi',  emoji: '📖', bonus: 'time',      bVal: 45  },
-  rock_lee: { name: 'Rock Lee', emoji: '💪', bonus: 'combo',     bVal: 1   },
-  shikamaru:{ name: 'Shikamaru',emoji: '☁️', bonus: 'score',     bVal: 1.3 },
+// ═══════════════════════════════════════════════════════════
+// SYSTÈME MULTI-UNIVERS
+// ═══════════════════════════════════════════════════════════
+
+const UNIVERSES = {
+  naruto: {
+    name: 'Naruto', emoji: '🥷', color: '#FF6B00',
+    desc: 'Le monde des ninjas de Konoha',
+    chars: {
+      naruto:   { name: 'Naruto',   emoji: '🍜', desc: 'Fonce sans réfléchir !',   bonus: 'xp',       bVal: 1.5, color: '#FF6B00' },
+      sasuke:   { name: 'Sasuke',   emoji: '⚡', desc: 'Précision absolue',         bonus: 'precision',bVal: 1,   color: '#9B59B6' },
+      sakura:   { name: 'Sakura',   emoji: '🌸', desc: 'Intelligence tactique',     bonus: 'hint',     bVal: 1,   color: '#FF2D55' },
+      kakashi:  { name: 'Kakashi',  emoji: '📖', desc: 'Le maître copiste',         bonus: 'time',     bVal: 45,  color: '#8888AA' },
+      rock_lee: { name: 'Rock Lee', emoji: '💪', desc: 'Travail acharné',           bonus: 'combo',    bVal: 1,   color: '#00E676' },
+      shikamaru:{ name: 'Shikamaru',emoji: '☁️', desc: 'Stratège du village',       bonus: 'score',    bVal: 1.3, color: '#FFD700' },
+    },
+    ranks: [
+      { min: 0,  emoji: '😤', title: 'Académicien',  msg: 'Tu débutes à l\'académie de Konoha !',           quote: '"Chaque grand ninja a commencé par les bases." — Iruka-sensei' },
+      { min: 30, emoji: '🥷', title: 'Genin',        msg: 'Tu es devenu Genin !',                            quote: '"Je ne fuirai jamais !" — Naruto' },
+      { min: 60, emoji: '⚔️', title: 'Chunin',       msg: 'Grade Chunin !',                                  quote: '"Quel fardeau..." — Shikamaru' },
+      { min: 80, emoji: '🔥', title: 'Jonin',        msg: 'Jonin accompli !',                                quote: '"Le talent bat l\'effort..." — Rock Lee' },
+      { min: 95, emoji: '👑', title: 'Hokage',       msg: 'Tu es le Hokage des maths !',                     quote: '"Je surpasserai tous les Hokage !" — Naruto' },
+    ],
+    place: 'Konoha', mission: '🗾 MISSION NINJA', hero: 'ninja', powerName: 'jutsu', currency: 'chakra'
+  },
+
+  onepiece: {
+    name: 'One Piece', emoji: '🏴‍☠️', color: '#FF2D55',
+    desc: 'L\'aventure des pirates au Grand Line',
+    chars: {
+      luffy:    { name: 'Luffy',    emoji: '🍖', desc: 'Le futur Roi des Pirates',  bonus: 'xp',       bVal: 1.5, color: '#FF2D55' },
+      zoro:     { name: 'Zoro',     emoji: '⚔️', desc: 'Le sabreur perdu',          bonus: 'precision',bVal: 1,   color: '#00E676' },
+      nami:     { name: 'Nami',     emoji: '🗺️', desc: 'Navigatrice de génie',      bonus: 'score',    bVal: 1.3, color: '#FFD700' },
+      sanji:    { name: 'Sanji',    emoji: '🔥', desc: 'Cuisinier combattant',      bonus: 'time',     bVal: 45,  color: '#FFD700' },
+      chopper:  { name: 'Chopper',  emoji: '🦌', desc: 'Médecin malin',             bonus: 'hint',     bVal: 1,   color: '#FF6B00' },
+      robin:    { name: 'Robin',    emoji: '📚', desc: 'Archéologue brillante',     bonus: 'combo',    bVal: 1,   color: '#9B59B6' },
+    },
+    ranks: [
+      { min: 0,  emoji: '⛵', title: 'Mousse',                msg: 'Tu hisses ta première voile !',          quote: '"Je serai le Roi des Pirates !" — Luffy' },
+      { min: 30, emoji: '🏴‍☠️', title: 'Pirate Novice',      msg: 'Tu deviens un vrai pirate !',            quote: '"L\'aventure ne fait que commencer !" — Luffy' },
+      { min: 60, emoji: '⚓', title: 'Supernova',             msg: 'Tu rejoins l\'élite des pirates !',     quote: '"Je vais devenir le meilleur sabreur !" — Zoro' },
+      { min: 80, emoji: '☠️', title: 'Capitaine',             msg: 'Capitaine accompli !',                   quote: '"Un trésor existe ! Le One Piece !" — Roger' },
+      { min: 95, emoji: '👑', title: 'Roi des Pirates',       msg: 'Tu domines Grand Line !',                quote: '"Je suis le futur Roi des Pirates !" — Luffy' },
+    ],
+    place: 'Grand Line', mission: '⚓ MISSION PIRATE', hero: 'pirate', powerName: 'pouvoir', currency: 'haki'
+  },
+
+  dragonball: {
+    name: 'Dragon Ball', emoji: '🐉', color: '#FFD700',
+    desc: 'Les guerriers Saiyans et leur ki',
+    chars: {
+      goku:     { name: 'Goku',     emoji: '🥋', desc: 'Le Saiyan au cœur pur',     bonus: 'xp',       bVal: 1.5, color: '#FF6B00' },
+      vegeta:   { name: 'Vegeta',   emoji: '👑', desc: 'Le prince Saiyan',          bonus: 'precision',bVal: 1,   color: '#1A6BFF' },
+      gohan:    { name: 'Gohan',    emoji: '📖', desc: 'Le savant guerrier',        bonus: 'hint',     bVal: 1,   color: '#9B59B6' },
+      piccolo:  { name: 'Piccolo',  emoji: '🟢', desc: 'Le mentor Namek',           bonus: 'time',     bVal: 45,  color: '#00E676' },
+      trunks:   { name: 'Trunks',   emoji: '⚔️', desc: 'Le sabreur du futur',       bonus: 'combo',    bVal: 1,   color: '#FF2D55' },
+      bulma:    { name: 'Bulma',    emoji: '🧠', desc: 'Scientifique de génie',     bonus: 'score',    bVal: 1.3, color: '#FFD700' },
+    },
+    ranks: [
+      { min: 0,  emoji: '👶', title: 'Disciple',             msg: 'Tu commences ton entraînement !',         quote: '"L\'entraînement n\'a pas de fin !" — Maître Roshi' },
+      { min: 30, emoji: '🥋', title: 'Combattant',           msg: 'Tu maîtrises les bases !',                quote: '"Plus on s\'entraîne, plus on devient fort !" — Goku' },
+      { min: 60, emoji: '🔥', title: 'Super Saiyan',         msg: 'Tu atteins le Super Saiyan !',            quote: '"Je vais te montrer ma vraie puissance !" — Vegeta' },
+      { min: 80, emoji: '⚡', title: 'Super Saiyan 2',       msg: 'Niveau légendaire !',                     quote: '"Ce ne sont plus que des mathématiques pour moi !" — Gohan' },
+      { min: 95, emoji: '🌟', title: 'Ultra Instinct',       msg: 'Maîtrise ultime !',                       quote: '"Mon corps réfléchit tout seul !" — Goku' },
+    ],
+    place: 'Capsule Corp', mission: '🐉 MISSION SAIYAN', hero: 'guerrier', powerName: 'technique', currency: 'ki'
+  },
+
+  myhero: {
+    name: 'My Hero Academia', emoji: '🦸', color: '#00E676',
+    desc: 'L\'académie des super-héros',
+    chars: {
+      deku:     { name: 'Deku',     emoji: '💚', desc: 'Le héros au grand cœur',    bonus: 'xp',       bVal: 1.5, color: '#00E676' },
+      bakugo:   { name: 'Bakugo',   emoji: '💥', desc: 'L\'explosion explosive',   bonus: 'combo',    bVal: 1,   color: '#FF6B00' },
+      todoroki: { name: 'Todoroki', emoji: '❄️', desc: 'Glace et feu',             bonus: 'precision',bVal: 1,   color: '#1A6BFF' },
+      uraraka:  { name: 'Uraraka',  emoji: '🌸', desc: 'Anti-gravité',              bonus: 'hint',     bVal: 1,   color: '#FF2D55' },
+      iida:     { name: 'Iida',     emoji: '🦿', desc: 'Vitesse pure',              bonus: 'time',     bVal: 45,  color: '#1A6BFF' },
+      allmight: { name: 'All Might',emoji: '💪', desc: 'Symbole de la paix',        bonus: 'score',    bVal: 1.3, color: '#FFD700' },
+    },
+    ranks: [
+      { min: 0,  emoji: '🎒', title: 'Élève UA',             msg: 'Tu intègres l\'académie UA !',          quote: '"Plus Ultra ! Au-delà de tes limites !" — All Might' },
+      { min: 30, emoji: '🦸', title: 'Apprenti Héros',       msg: 'Tu deviens un vrai héros !',              quote: '"Je peux y arriver !" — Deku' },
+      { min: 60, emoji: '⭐', title: 'Pro Hero',             msg: 'Statut Pro Hero atteint !',              quote: '"Sois un héros, jusqu\'au bout !" — Bakugo' },
+      { min: 80, emoji: '🏆', title: 'Top Hero',             msg: 'Tu fais partie du Top 10 !',              quote: '"Un vrai héros sauve tout le monde !" — Deku' },
+      { min: 95, emoji: '🌟', title: 'Symbole de la Paix',   msg: 'Tu es le nouveau Symbole !',              quote: '"Maintenant c\'est ton tour !" — All Might' },
+    ],
+    place: 'UA Academy', mission: '🦸 MISSION HÉROS', hero: 'héros', powerName: 'Alter', currency: 'énergie'
+  },
+
+  demonslayer: {
+    name: 'Demon Slayer', emoji: '⚔️', color: '#1A6BFF',
+    desc: 'Les pourfendeurs de démons',
+    chars: {
+      tanjiro:  { name: 'Tanjiro',  emoji: '🌊', desc: 'Cœur de pourfendeur',       bonus: 'xp',       bVal: 1.5, color: '#1A6BFF' },
+      nezuko:   { name: 'Nezuko',   emoji: '🎀', desc: 'Démone protectrice',        bonus: 'hint',     bVal: 1,   color: '#FF2D55' },
+      zenitsu:  { name: 'Zenitsu',  emoji: '⚡', desc: 'Éclair du tonnerre',        bonus: 'combo',    bVal: 1,   color: '#FFD700' },
+      inosuke:  { name: 'Inosuke',  emoji: '🐗', desc: 'Le sauvage',                bonus: 'precision',bVal: 1,   color: '#00E676' },
+      giyu:     { name: 'Giyu',     emoji: '🌊', desc: 'Pilier de l\'eau',         bonus: 'time',     bVal: 45,  color: '#1A6BFF' },
+      rengoku:  { name: 'Rengoku',  emoji: '🔥', desc: 'Pilier des flammes',        bonus: 'score',    bVal: 1.3, color: '#FF6B00' },
+    },
+    ranks: [
+      { min: 0,  emoji: '🌱', title: 'Aspirant',              msg: 'Tu débutes l\'entraînement !',          quote: '"Affermis ton esprit !" — Urokodaki' },
+      { min: 30, emoji: '⚔️', title: 'Mizunoto',              msg: 'Rang 10 — Pourfendeur !',                quote: '"Donne tout ce que tu as !" — Tanjiro' },
+      { min: 60, emoji: '🗡️', title: 'Kanoe',                 msg: 'Rang 6 — Tu progresses vite !',           quote: '"L\'effort triomphe toujours !" — Rengoku' },
+      { min: 80, emoji: '🔥', title: 'Hashira',              msg: 'Tu es un Pilier !',                       quote: '"Embrasse ton cœur, sois ferme !" — Rengoku' },
+      { min: 95, emoji: '🌟', title: 'Maître Pourfendeur',    msg: 'Légende des pourfendeurs !',              quote: '"L\'esprit ne vieillit jamais !" — Rengoku' },
+    ],
+    place: 'Mont Sagiri', mission: '🗡️ MISSION POURFENDEUR', hero: 'pourfendeur', powerName: 'souffle', currency: 'esprit'
+  },
+
+  pokemon: {
+    name: 'Pokémon', emoji: '⚡', color: '#FFD700',
+    desc: 'L\'univers des Pokémon et de leurs dresseurs',
+    chars: {
+      sacha:    { name: 'Sacha',    emoji: '🧢', desc: 'Le dresseur du destin',     bonus: 'xp',       bVal: 1.5, color: '#FF2D55' },
+      pikachu:  { name: 'Pikachu',  emoji: '⚡', desc: 'Souris électrique',         bonus: 'combo',    bVal: 1,   color: '#FFD700' },
+      ondine:   { name: 'Ondine',   emoji: '💧', desc: 'Spécialiste Eau',           bonus: 'hint',     bVal: 1,   color: '#1A6BFF' },
+      pierre:   { name: 'Pierre',   emoji: '🪨', desc: 'Spécialiste Roche',         bonus: 'precision',bVal: 1,   color: '#8888AA' },
+      ouisticram:{ name: 'Ouisticram',emoji: '🔥',desc: 'Pokémon Feu malin',         bonus: 'time',     bVal: 45,  color: '#FF6B00' },
+      léviator: { name: 'Léviator', emoji: '🐉', desc: 'Dragon des mers',           bonus: 'score',    bVal: 1.3, color: '#1A6BFF' },
+    },
+    ranks: [
+      { min: 0,  emoji: '🥚', title: 'Apprenti Dresseur',     msg: 'Tu reçois ton premier Pokémon !',         quote: '"Attrapez-les tous !" — Devise des dresseurs' },
+      { min: 30, emoji: '⚡', title: 'Dresseur',              msg: 'Tu gagnes ton 1er badge !',               quote: '"Pikachu, je te choisis !" — Sacha' },
+      { min: 60, emoji: '🏅', title: 'Champion d\'Arène',    msg: 'Tu deviens Champion !',                   quote: '"Mes Pokémon sont les plus forts !" — Pierre' },
+      { min: 80, emoji: '🏆', title: 'Conseil 4',             msg: 'Tu rejoins le Conseil des 4 !',           quote: '"L\'amitié avec ses Pokémon est la vraie force." — Sacha' },
+      { min: 95, emoji: '👑', title: 'Maître Pokémon',        msg: 'Tu es Maître Pokémon !',                  quote: '"Devenir Maître Pokémon est mon rêve !" — Sacha' },
+    ],
+    place: 'Bourg Palette', mission: '⚡ MISSION DRESSEUR', hero: 'dresseur', powerName: 'attaque', currency: 'énergie'
+  }
 };
 
-// Messages selon grade
-const RANKS = [
-  { min: 0,   emoji: '😤', title: 'Académicien',  msg: 'Tu débutes à l\'académie de Konoha !',           quote: '"Chaque grand ninja a commencé par les bases." — Iruka-sensei' },
-  { min: 30,  emoji: '🥷', title: 'Genin',        msg: 'Tu es devenu Genin ! Continue à t\'entraîner !',  quote: '"Je ne fuirai jamais, je ne reviendrai jamais sur mes paroles !" — Naruto' },
-  { min: 60,  emoji: '⚔️', title: 'Chunin',       msg: 'Grade Chunin ! Tu montres ton intelligence !',    quote: '"Quel fardeau..." — Shikamaru, mais il résout quand même le problème.' },
-  { min: 80,  emoji: '🔥', title: 'Jonin',        msg: 'Jonin accompli ! Maître des jutsus mathématiques !', quote: '"Le talent bat l\'effort... dit celui qui ne connaît pas l\'effort." — Rock Lee' },
-  { min: 95,  emoji: '👑', title: 'Kage',         msg: 'Tu es le Hokage des maths ! Légendaire !',        quote: '"Je surpasserai tous les Hokage précédents !" — Naruto Uzumaki' },
-];
+// État courant
+let currentUniverse = 'naruto';
+
+// CHARS pour compatibilité : pointe sur l'univers courant
+let CHARS = UNIVERSES[currentUniverse].chars;
+let RANKS = UNIVERSES[currentUniverse].ranks;
 
 // ══════════════════════════════
 // PARTICULES DE CHAKRA
@@ -1466,7 +1779,10 @@ function showScreen(id) {
     el.style.display = 'none';
   });
   const el = document.getElementById('screen-' + id);
-  if (el) el.style.display = id === 'home' || id === 'loading' ? 'flex' : (id === 'result' ? 'flex' : 'block');
+  if (!el) return;
+  // Écrans utilisant flex column
+  const flexScreens = ['home', 'loading', 'result', 'auto-menu', 'auto-result'];
+  el.style.display = flexScreens.includes(id) ? 'flex' : 'block';
 }
 
 function showHome() {
@@ -1481,12 +1797,213 @@ function selectChar(el, char) {
   showToast(`${CHARS[char].emoji} ${CHARS[char].name} sélectionné !`);
 }
 
+// ═══════════════════════════════════════════════════════
+// GESTION DES UNIVERS
+// ═══════════════════════════════════════════════════════
+
+function renderUniverseGrid() {
+  const grid = document.getElementById('universe-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  Object.entries(UNIVERSES).forEach(([key, uni]) => {
+    const card = document.createElement('div');
+    card.className = 'universe-card' + (key === currentUniverse ? ' selected' : '');
+    card.style.setProperty('--uni-color', uni.color);
+    card.dataset.universe = key;
+    card.innerHTML = `
+      <span class="universe-emoji">${uni.emoji}</span>
+      <div class="universe-name">${uni.name}</div>
+      <div class="universe-desc">${uni.desc}</div>
+    `;
+    card.onclick = () => selectUniverse(key);
+    grid.appendChild(card);
+  });
+}
+
+function selectUniverse(universeKey) {
+  if (!UNIVERSES[universeKey]) return;
+  if (currentUniverse === universeKey) return;
+
+  currentUniverse = universeKey;
+  CHARS = UNIVERSES[currentUniverse].chars;
+  RANKS = UNIVERSES[currentUniverse].ranks;
+
+  // Sélectionne le premier personnage de cet univers par défaut
+  state.char = Object.keys(CHARS)[0];
+
+  // Met à jour la grille des univers (état selected)
+  document.querySelectorAll('.universe-card').forEach(c => {
+    c.classList.toggle('selected', c.dataset.universe === universeKey);
+  });
+
+  // Anime la transition de la grille de personnages
+  const grid = document.getElementById('char-grid');
+  grid.classList.add('changing');
+  setTimeout(() => {
+    renderCharGrid();
+    grid.classList.remove('changing');
+    grid.classList.add('entering');
+    setTimeout(() => grid.classList.remove('entering'), 400);
+  }, 200);
+
+  // Met à jour le label
+  const lbl = document.getElementById('char-section-label');
+  if (lbl) lbl.innerHTML = `🎭 Choisis ton ${UNIVERSES[currentUniverse].hero}`;
+
+  // Met à jour le logo / couleur d'accent
+  const uni = UNIVERSES[currentUniverse];
+  document.documentElement.style.setProperty('--orange', uni.color);
+
+  // Adapte les noms de jutsus/pouvoirs
+  const powerNames = {
+    naruto:      { hint: 'Kage Bunshin', currency: 'chakra' },
+    onepiece:    { hint: 'Observation', currency: 'haki' },
+    dragonball:  { hint: 'Scouter',    currency: 'ki' },
+    myhero:      { hint: 'Analyse',    currency: 'énergie' },
+    demonslayer: { hint: 'Souffle',    currency: 'esprit' },
+    pokemon:     { hint: 'Détecteur',  currency: 'PP' }
+  };
+  const pn = powerNames[universeKey] || powerNames.naruto;
+  const hintEl = document.getElementById('jhint-name');
+  if (hintEl) hintEl.textContent = pn.hint;
+  // Adapte les coûts en utilisant la devise de l'univers
+  const j50c = document.getElementById('j50-cost'); if (j50c) j50c.textContent = `30 ${pn.currency}`;
+  const jhc  = document.getElementById('jhint-cost'); if (jhc) jhc.textContent = `20 ${pn.currency}`;
+  const jtc  = document.getElementById('jtime-cost'); if (jtc) jtc.textContent = `40 ${pn.currency}`;
+  // Adapte le label "Chakra" → currency
+  const chakraLabel = document.querySelector('.stat-block .stat-label:nth-of-type(1)');
+  // direct id approach:
+  const labels = document.querySelectorAll('.stat-block .stat-label');
+  if (labels.length >= 2) {
+    labels[1].innerHTML = `💧 ${pn.currency.charAt(0).toUpperCase()+pn.currency.slice(1)}`;
+  }
+
+  showToast(`${uni.emoji} Univers : ${uni.name}`);
+}
+
+function renderCharGrid() {
+  const grid = document.getElementById('char-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  const bonusLabels = {
+    'xp': '+XP', 'precision': '+Précision', 'hint': '+Indices',
+    'time': '+Temps', 'combo': '+Combo', 'score': '+Score'
+  };
+  Object.entries(CHARS).forEach(([key, char]) => {
+    const card = document.createElement('div');
+    card.className = 'char-card' + (state.char === key ? ' selected' : '');
+    card.dataset.char = key;
+    card.style.setProperty('--char-color', char.color);
+    const badgeColor = char.color === '#FFD700' ? 'background:#FFD700;color:#0D0D1A' : `background:${char.color}`;
+    card.innerHTML = `
+      <span class="char-emoji">${char.emoji}</span>
+      <div class="char-name">${char.name}</div>
+      <div class="char-desc">${char.desc}</div>
+      <div class="char-badge" style="${badgeColor}">${bonusLabels[char.bonus] || ''}</div>
+    `;
+    card.onclick = () => selectChar(card, key);
+    grid.appendChild(card);
+  });
+}
+
 // ══════════════════════════════
 // DÉMARRAGE
 // ══════════════════════════════
+// Adapte les questions à l'univers choisi (remplace les références Naruto)
+const UNIVERSE_THEMES_MAP = {
+  naruto: {
+    'Naruto': 'Naruto', 'Sasuke': 'Sasuke', 'Sakura': 'Sakura', 'Kakashi': 'Kakashi',
+    'Shikamaru': 'Shikamaru', 'Rock Lee': 'Rock Lee', 'Jiraiya': 'Jiraiya',
+    'Hokage': 'Hokage', 'Konoha': 'Konoha', 'ramen': 'ramen', 'kunai': 'kunai',
+    'shuriken': 'shuriken', 'shurikens': 'shurikens', 'Orochimaru': 'Orochimaru',
+    'jutsu': 'jutsu', 'chakra': 'chakra', 'ninja': 'ninja', 'Kisame': 'Kisame', 'Minato': 'Minato',
+    'Obito': 'Obito', 'Hinata': 'Hinata', 'Iruka': 'Iruka', 'Akatsuki': 'Akatsuki', 'Gato': 'Gato', 'Gaara': 'Gaara'
+  },
+  onepiece: {
+    'Naruto': 'Luffy', 'Sasuke': 'Zoro', 'Sakura': 'Nami', 'Kakashi': 'Sanji',
+    'Shikamaru': 'Robin', 'Rock Lee': 'Chopper', 'Jiraiya': 'Shanks',
+    'Hokage': 'Capitaine', 'Konoha': 'le Sunny', 'ramen': 'viande', 'kunai': 'sabre',
+    'shuriken': 'log pose', 'shurikens': 'logs pose', 'Orochimaru': 'Barbe Noire',
+    'jutsu': 'pouvoir', 'chakra': 'haki', 'ninja': 'pirate', 'Ramen': 'Viande', 'Kisame': 'Crocodile', 'Minato': 'Roger',
+    'Obito': 'Doflamingo', 'Hinata': 'Vivi', 'Iruka': 'Garp', 'Akatsuki': 'Marine', 'Gato': 'Dorago', 'Gaara': 'Kid'
+  },
+  dragonball: {
+    'Naruto': 'Goku', 'Sasuke': 'Vegeta', 'Sakura': 'Bulma', 'Kakashi': 'Piccolo',
+    'Shikamaru': 'Gohan', 'Rock Lee': 'Trunks', 'Jiraiya': 'Maître Roshi',
+    'Hokage': 'Champion', 'Konoha': 'Capsule Corp', 'ramen': 'plat', 'kunai': 'épée',
+    'shuriken': 'Dragon Ball', 'shurikens': 'Dragon Balls', 'Orochimaru': 'Cell',
+    'jutsu': 'technique', 'chakra': 'ki', 'ninja': 'guerrier', 'Ramen': 'Bento', 'Kisame': 'Freezer', 'Minato': 'Bardock',
+    'Obito': 'Buu', 'Hinata': 'Chichi', 'Iruka': 'Krilin', 'Akatsuki': 'Red Ribbon', 'Gato': 'Pilaf', 'Gaara': 'Cell'
+  },
+  myhero: {
+    'Naruto': 'Deku', 'Sasuke': 'Bakugo', 'Sakura': 'Uraraka', 'Kakashi': 'Aizawa',
+    'Shikamaru': 'Todoroki', 'Rock Lee': 'Iida', 'Jiraiya': 'All Might',
+    'Hokage': 'Pro Hero', 'Konoha': 'UA Academy', 'ramen': 'katsudon', 'kunai': 'gantelet',
+    'shuriken': 'badge', 'shurikens': 'badges', 'Orochimaru': 'All For One',
+    'jutsu': 'Alter', 'chakra': 'énergie', 'ninja': 'héros', 'Ramen': 'Katsudon', 'Kisame': 'Stain', 'Minato': 'Endeavor',
+    'Obito': 'Shigaraki', 'Hinata': 'Tsuyu', 'Iruka': 'Présent Mic', 'Akatsuki': 'League of Villains', 'Gato': 'Overhaul', 'Gaara': 'Mirio'
+  },
+  demonslayer: {
+    'Naruto': 'Tanjiro', 'Sasuke': 'Inosuke', 'Sakura': 'Nezuko', 'Kakashi': 'Giyu',
+    'Shikamaru': 'Tomioka', 'Rock Lee': 'Zenitsu', 'Jiraiya': 'Urokodaki',
+    'Hokage': 'Pilier', 'Konoha': 'Mont Sagiri', 'ramen': 'soba', 'kunai': 'katana',
+    'shuriken': 'lame Nichirin', 'shurikens': 'lames Nichirin', 'Orochimaru': 'Muzan',
+    'jutsu': 'souffle', 'chakra': 'esprit', 'ninja': 'pourfendeur', 'Ramen': 'Soba', 'Kisame': 'Akaza', 'Minato': 'Yoriichi',
+    'Obito': 'Doma', 'Hinata': 'Kanao', 'Iruka': 'Sakonji', 'Akatsuki': 'Lune Supérieure', 'Gato': 'Enmu', 'Gaara': 'Rui'
+  },
+  pokemon: {
+    'Naruto': 'Sacha', 'Sasuke': 'Régis', 'Sakura': 'Flora', 'Kakashi': 'Pierre',
+    'Shikamaru': 'Aurore', 'Rock Lee': 'Ondine', 'Jiraiya': 'Prof. Chen',
+    'Hokage': 'Maître Pokémon', 'Konoha': 'Bourg Palette', 'ramen': 'baie', 'kunai': 'Poké Ball',
+    'shuriken': 'Poké Ball', 'shurikens': 'Poké Balls', 'Orochimaru': 'Giovanni',
+    'jutsu': 'attaque', 'chakra': 'énergie', 'ninja': 'dresseur', 'Ramen': 'Pomme', 'Kisame': 'Léviator', 'Minato': 'Roucarnage',
+    'Obito': 'Mewtwo', 'Hinata': 'Lulu', 'Iruka': 'Pierre', 'Akatsuki': 'Team Rocket', 'Gato': 'Auguste', 'Gaara': 'Régis'
+  }
+};
+
+// Mapping des emojis thématiques par univers
+const UNIVERSE_EMOJI_MAP = {
+  naruto:      { '🥷': '🥷', '🍜': '🍜', '⚡': '⚡', '🌸': '🌸', '📖': '📖', '💪': '💪', '☁️': '☁️', '🎯': '🎯', '🐸': '🐸', '🌀': '🌀', '🌪️': '🌪️', '🌊': '🌊', '🔥': '🔥', '🎌': '🎌', '🏯': '🏯' },
+  onepiece:    { '🥷': '🏴‍☠️', '🍜': '🍖', '⚡': '⚔️', '🌸': '🗺️', '📖': '📜', '💪': '🦌', '☁️': '🦉', '🎯': '🏹', '🐸': '🐙', '🌀': '🌊', '🌪️': '⛵', '🌊': '🌊', '🔥': '🔥', '🎌': '🏴‍☠️', '🏯': '⛵' },
+  dragonball:  { '🥷': '🥋', '🍜': '🍱', '⚡': '⚡', '🌸': '🌸', '📖': '📖', '💪': '💪', '☁️': '☁️', '🎯': '🐉', '🐸': '🐉', '🌀': '✨', '🌪️': '🌪️', '🌊': '🌊', '🔥': '🔥', '🎌': '🚀', '🏯': '🚀' },
+  myhero:      { '🥷': '🦸', '🍜': '🍱', '⚡': '⚡', '🌸': '🌸', '📖': '📖', '💪': '💪', '☁️': '☁️', '🎯': '🎯', '🐸': '🐸', '🌀': '💥', '🌪️': '💨', '🌊': '🌊', '🔥': '🔥', '🎌': '🏫', '🏯': '🏫' },
+  demonslayer: { '🥷': '🗡️', '🍜': '🍙', '⚡': '⚡', '🌸': '🌸', '📖': '📖', '💪': '💪', '☁️': '☁️', '🎯': '🎯', '🐸': '🐗', '🌀': '🌀', '🌪️': '🌪️', '🌊': '🌊', '🔥': '🔥', '🎌': '🏯', '🏯': '🏯' },
+  pokemon:     { '🥷': '🧢', '🍜': '🍓', '⚡': '⚡', '🌸': '🌷', '📖': '📔', '💪': '💪', '☁️': '☁️', '🎯': '🎯', '🐸': '🐸', '🌀': '🔵', '🌪️': '💨', '🌊': '💧', '🔥': '🔥', '🎌': '🎌', '🏯': '🏠' }
+};
+
+function adaptQuestionToUniverse(q, universe) {
+  if (universe === 'naruto' || !UNIVERSE_THEMES_MAP[universe]) return q;
+  const map = UNIVERSE_THEMES_MAP[universe];
+  const emoMap = UNIVERSE_EMOJI_MAP[universe] || {};
+
+  // Clone (préserve l'original)
+  const adapted = Object.assign({}, q);
+  // On adapte text + theme + feedback
+  ['text', 'theme', 'feedback'].forEach(field => {
+    if (typeof adapted[field] !== 'string') return;
+    let s = adapted[field];
+    // 1. Replace character names (sorted by length DESC pour éviter "Rock Lee" → "Lee" coupé)
+    const keys = Object.keys(map).sort((a, b) => b.length - a.length);
+    keys.forEach(k => {
+      // \b ne fonctionne pas avec accents, on fait du replace simple mais entouré de séparateurs si nécessaire
+      const re = new RegExp(k.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g');
+      s = s.replace(re, map[k]);
+    });
+    // 2. Replace emojis dans le theme uniquement
+    if (field === 'theme') {
+      Object.entries(emoMap).forEach(([from, to]) => {
+        s = s.split(from).join(to);
+      });
+    }
+    adapted[field] = s;
+  });
+  return adapted;
+}
+
 function startGame(mode) {
   state.mode = mode;
-  const qs = QUESTIONS[mode] ? [...QUESTIONS[mode]] : [];
+  const rawQs = QUESTIONS[mode] ? [...QUESTIONS[mode]] : [];
+  const qs = rawQs.map(q => adaptQuestionToUniverse(q, currentUniverse));
   // Mélange
   for (let i = qs.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -1503,6 +2020,11 @@ function startGame(mode) {
   state.answered = false;
   state.jutsu = { '50': 2, 'hint': 2, 'time': 1 };
   state.timeFrozen = false;
+  // Répétition espacée
+  state.missedQueue = [];          // questions à revoir
+  state.reviewedRetries = 0;       // compteur de re-test
+  state.originalLength = qs.length;
+  state.questions.forEach((q, i) => { q._origIndex = i; q._retry = false; });
 
   // Bonus par personnage
   const char = CHARS[state.char];
@@ -1516,7 +2038,7 @@ function startGame(mode) {
     'CHARGEMENT DU JUTSU...', 'PRÉPARATION DU PARCHEMIN...'
   ];
   document.getElementById('loading-text').textContent = msgs[Math.floor(Math.random()*msgs.length)];
-  document.getElementById('loading-sub').textContent = `Mode : ${getModeLabel(mode)} — Ninja : ${char.name}`;
+  document.getElementById('loading-sub').textContent = `Mode : ${getModeLabel(mode)} — ${UNIVERSES[currentUniverse].hero.charAt(0).toUpperCase()+UNIVERSES[currentUniverse].hero.slice(1)} : ${char.name}`;
 
   setTimeout(() => {
     showScreen('game');
@@ -1543,9 +2065,11 @@ function loadQuestion() {
   clearInterval(state.timer);
 
   // Mission
-  document.getElementById('mission-label').textContent = `🗾 ${q.theme}`;
+  document.getElementById('mission-label').textContent = `🗾 ${q.theme}${q._retry ? ' — 🔁 REVISION' : ''}`;
   document.getElementById('mission-title').textContent = `Question ${state.qIndex + 1} / ${state.questions.length}`;
-  document.getElementById('mission-desc').textContent = `Réponds correctement pour protéger le village !`;
+  document.getElementById('mission-desc').textContent = q._retry
+    ? `🔁 Tu as raté cette question, à toi de la corriger !`
+    : `Réponds correctement pour réussir ta mission !`;
 
   // Type + numéro
   document.getElementById('q-type').textContent = q.type;
@@ -1654,6 +2178,11 @@ function answer(idx) {
     state.streak = 0;
     loseHp();
     showFeedback(false, q);
+    // Répétition espacée : remettre la question dans la pile (sauf si déjà en retry)
+    if (!q._retry && state.mode !== 'boss') {
+      const retryQ = Object.assign({}, q, { _retry: true });
+      state.missedQueue.push(retryQ);
+    }
   }
 
   updateHUD();
@@ -1795,7 +2324,25 @@ function addXP(amount) {
 // ══════════════════════════════
 function nextQuestion() {
   state.qIndex++;
+  // Injecte une question ratée toutes les 3 questions (répétition espacée)
+  if (state.missedQueue && state.missedQueue.length > 0 && state.qIndex % 3 === 0 && state.qIndex < state.originalLength) {
+    const retry = state.missedQueue.shift();
+    state.questions.splice(state.qIndex, 0, retry);
+    state.reviewedRetries++;
+    showToast('🔁 Question ratée — on la retente !');
+  }
+  // En fin de session normale, on bascule sur les questions ratées restantes
   if (state.qIndex >= state.questions.length) {
+    if (state.missedQueue && state.missedQueue.length > 0) {
+      // Phase "révision" : on ajoute toutes les questions ratées restantes
+      const remaining = state.missedQueue.length;
+      state.questions = state.questions.concat(state.missedQueue);
+      state.missedQueue = [];
+      showToast(`📚 Phase révision : ${remaining} question${remaining>1?'s':''} à revoir !`);
+      loadQuestion();
+      updateJutsuUI();
+      return;
+    }
     endGame();
   } else {
     loadQuestion();
@@ -1828,6 +2375,8 @@ function endGame() {
   if (pct === 100) trophies.push('🏅 Score parfait !');
   if (state.bestStreak >= 5) trophies.push('🔥 Combo Légendaire !');
   if (state.bestStreak >= 3) trophies.push('⚡ Combo Éclair !');
+  if (state.reviewedRetries >= 3) trophies.push('🔁 Révision active !');
+  if (state.reviewedRetries >= 1 && state.correct === total) trophies.push('📚 Apprenant tenace');
   if (state.score > 1500) trophies.push('⭐ Grand Ninja !');
   if (state.jutsu['50'] === 2 && state.jutsu['hint'] === 2) trophies.push('💎 Pur chakra !');
   if (trophies.length === 0) trophies.push('📚 Continue à t\'entraîner !');
@@ -1864,8 +2413,9 @@ function showToast(msg) {
 // ══════════════════════════════
 initParticles();
 updateHUD();
-// Sélectionner Naruto par défaut
-document.querySelector('[data-char="naruto"]').classList.add('selected');
+// Init multi-univers
+renderUniverseGrid();
+renderCharGrid();
 
 
 // ══════════════════════════════════════════════════════════
@@ -2773,6 +3323,410 @@ function nextPuzzle() {
     return;
   }
   loadPuzzle();
+}
+
+
+
+// ══════════════════════════════════════════════════════════════
+// MODE AUTOMATISMES — Format DNB 2027
+// ══════════════════════════════════════════════════════════════
+
+// Générateurs aléatoires de calculs par catégorie
+const AUTO_GENERATORS = {
+
+  // ─── NIVEAU 6ème ───
+  '6e_add_dec': () => {
+    const a = Math.round((Math.random() * 9 + 1) * 10) / 10;
+    const b = Math.round((Math.random() * 9 + 1) * 10) / 10;
+    return { q: `${frFr(a)} + ${frFr(b)}`, a: frFr(Math.round((a+b)*10)/10), theme: 'Décimaux' };
+  },
+  '6e_sub_dec': () => {
+    let a = Math.round((Math.random() * 18 + 2) * 10) / 10;
+    let b = Math.round((Math.random() * (a-0.5)) * 10) / 10;
+    return { q: `${frFr(a)} − ${frFr(b)}`, a: frFr(Math.round((a-b)*10)/10), theme: 'Décimaux' };
+  },
+  '6e_mult_simple': () => {
+    const a = Math.floor(Math.random() * 9 + 2);
+    const b = Math.floor(Math.random() * 9 + 2);
+    return { q: `${a} × ${b}`, a: String(a*b), theme: 'Tables' };
+  },
+  '6e_mult_10_100': () => {
+    const a = Math.round((Math.random() * 9 + 1) * 100) / 100;
+    const mult = [10, 100, 1000][Math.floor(Math.random()*3)];
+    return { q: `${frFr(a)} × ${mult}`, a: frFr(Math.round(a*mult*100)/100), theme: 'Multiplier par 10' };
+  },
+  '6e_div_10_100': () => {
+    const a = Math.floor(Math.random() * 900 + 100);
+    const div = [10, 100][Math.floor(Math.random()*2)];
+    return { q: `${a} ÷ ${div}`, a: frFr(a/div), theme: 'Diviser par 10' };
+  },
+  '6e_frac_add_same': () => {
+    const d = Math.floor(Math.random()*5+3);
+    const a = Math.floor(Math.random()*(d-1)+1);
+    const b = Math.floor(Math.random()*(d-a-1)+1);
+    return { q: `${a}/${d} + ${b}/${d}`, a: `${a+b}/${d}`, theme: 'Fractions', accept: [`${a+b}/${d}`, simpFrac(a+b, d)] };
+  },
+  '6e_percent_easy': () => {
+    const pcts = [10, 25, 50, 75];
+    const p = pcts[Math.floor(Math.random()*4)];
+    const bases = [40, 60, 80, 100, 120, 160, 200];
+    const n = bases[Math.floor(Math.random()*bases.length)];
+    return { q: `${p}% de ${n}`, a: String(n*p/100), theme: 'Pourcentages' };
+  },
+  '6e_double_half': () => {
+    if (Math.random() < 0.5) {
+      const n = Math.floor(Math.random()*40+5);
+      return { q: `Le double de ${n}`, a: String(n*2), theme: 'Doubles/moitiés' };
+    } else {
+      const n = (Math.floor(Math.random()*20+3)) * 2;
+      return { q: `La moitié de ${n}`, a: String(n/2), theme: 'Doubles/moitiés' };
+    }
+  },
+  '6e_perim_rect': () => {
+    const L = Math.floor(Math.random()*15+3);
+    const l = Math.floor(Math.random()*L);
+    return { q: `Périmètre rectangle ${L} × ${l} cm`, a: String(2*(L+l)), theme: 'Périmètres', unit: 'cm' };
+  },
+  '6e_complement_100': () => {
+    const n = Math.floor(Math.random()*89+10);
+    return { q: `${n} + ? = 100`, a: String(100-n), theme: 'Compléments' };
+  },
+
+  // ─── NIVEAU 5ème ───
+  '5e_relat_add': () => {
+    const a = Math.floor(Math.random()*30-15);
+    const b = Math.floor(Math.random()*30-15);
+    return { q: `(${signedFr(a)}) + (${signedFr(b)})`, a: signedFr(a+b), theme: 'Relatifs +/−' };
+  },
+  '5e_relat_sub': () => {
+    const a = Math.floor(Math.random()*30-15);
+    const b = Math.floor(Math.random()*30-15);
+    return { q: `(${signedFr(a)}) − (${signedFr(b)})`, a: signedFr(a-b), theme: 'Relatifs +/−' };
+  },
+  '5e_relat_mult': () => {
+    const a = Math.floor(Math.random()*15-7);
+    const b = Math.floor(Math.random()*15-7);
+    return { q: `(${signedFr(a)}) × (${signedFr(b)})`, a: signedFr(a*b), theme: 'Relatifs ×' };
+  },
+  '5e_powers': () => {
+    const base = Math.floor(Math.random()*4+2);
+    const exp = Math.floor(Math.random()*3+2);
+    return { q: `${base}^${exp}`, a: String(Math.pow(base,exp)), theme: 'Puissances' };
+  },
+  '5e_priorities': () => {
+    const a = Math.floor(Math.random()*8+2);
+    const b = Math.floor(Math.random()*8+2);
+    const c = Math.floor(Math.random()*8+2);
+    return { q: `${a} + ${b} × ${c}`, a: String(a+b*c), theme: 'Priorités' };
+  },
+  '5e_priorities_par': () => {
+    const a = Math.floor(Math.random()*8+2);
+    const b = Math.floor(Math.random()*8+2);
+    const c = Math.floor(Math.random()*8+2);
+    return { q: `${a} × (${b} + ${c})`, a: String(a*(b+c)), theme: 'Priorités' };
+  },
+  '5e_calc_litt': () => {
+    const a = Math.floor(Math.random()*8+2);
+    const x = Math.floor(Math.random()*9-4);
+    const b = Math.floor(Math.random()*8+2);
+    return { q: `Si x = ${signedFr(x)}, ${a}x + ${b} = ?`, a: String(a*x+b), theme: 'Calcul littéral' };
+  },
+  '5e_frac_mult': () => {
+    const a = Math.floor(Math.random()*4+1);
+    const b = Math.floor(Math.random()*4+2);
+    const c = Math.floor(Math.random()*4+1);
+    const d = Math.floor(Math.random()*4+2);
+    const num = a*c, den = b*d;
+    return { q: `${a}/${b} × ${c}/${d}`, a: simpFrac(num, den), theme: 'Fractions ×', accept: [`${num}/${den}`, simpFrac(num,den)] };
+  },
+  '5e_percent_full': () => {
+    const pcts = [5, 15, 20, 30];
+    const p = pcts[Math.floor(Math.random()*4)];
+    const n = (Math.floor(Math.random()*15+5)) * 10;
+    return { q: `${p}% de ${n}`, a: String(Math.round(n*p/100*100)/100), theme: 'Pourcentages' };
+  },
+  '5e_propor': () => {
+    // produit en croix simple
+    const k = Math.floor(Math.random()*5+2);
+    const a = Math.floor(Math.random()*5+2);
+    const b = Math.floor(Math.random()*5+2);
+    return { q: `Si ${a} → ${a*k}, alors ${b} → ?`, a: String(b*k), theme: 'Proportionnalité' };
+  },
+  '5e_angle_tri': () => {
+    const a = Math.floor(Math.random()*8+3) * 10;
+    const b = Math.floor(Math.random()*(160-a)/10) * 10 + 20;
+    return { q: `Triangle, 2 angles = ${a}° et ${b}°, 3e angle ?`, a: String(180-a-b), theme: 'Triangle', unit: '°' };
+  },
+};
+
+// Helpers
+function frFr(n) {
+  // Affiche les décimaux à la française (virgule)
+  return String(n).replace('.', ',');
+}
+function signedFr(n) {
+  if (n === 0) return '0';
+  return n < 0 ? `−${Math.abs(n)}` : `+${n}`;
+}
+function pgcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a || 1; }
+function simpFrac(n, d) {
+  const g = pgcd(n, d);
+  const sn = n/g, sd = d/g;
+  if (sd === 1) return String(sn);
+  return `${sn}/${sd}`;
+}
+
+// Pools par mode
+const AUTO_POOLS = {
+  'auto_6e': ['6e_add_dec','6e_sub_dec','6e_mult_simple','6e_mult_10_100','6e_div_10_100','6e_frac_add_same','6e_percent_easy','6e_double_half','6e_perim_rect','6e_complement_100'],
+  'auto_5e': ['5e_relat_add','5e_relat_sub','5e_relat_mult','5e_powers','5e_priorities','5e_priorities_par','5e_calc_litt','5e_frac_mult','5e_percent_full','5e_propor','5e_angle_tri'],
+  'auto_mix': null  // initialisé dynamiquement
+};
+AUTO_POOLS['auto_mix'] = [...AUTO_POOLS.auto_6e, ...AUTO_POOLS.auto_5e];
+
+// État
+let autoState = {
+  mode: null,
+  questions: [],
+  qIdx: 0,
+  score: 0,
+  correct: 0,
+  themeStats: {},
+  qTimer: null,
+  globalTimer: null,
+  qTimeLeft: 60,
+  globalTimeLeft: 20 * 60,
+  startTime: 0,
+  answered: false,
+  history: []  // {q, userAns, correctAns, ok, time, theme}
+};
+
+function showAutoMenu() {
+  showScreen('auto-menu');
+}
+
+function startAutoMode(mode) {
+  autoState.mode = mode;
+  autoState.qIdx = 0;
+  autoState.score = 0;
+  autoState.correct = 0;
+  autoState.themeStats = {};
+  autoState.history = [];
+  autoState.startTime = Date.now();
+  autoState.globalTimeLeft = 20 * 60;
+
+  // Génère 20 questions
+  const pool = AUTO_POOLS[mode];
+  autoState.questions = [];
+  for (let i = 0; i < 20; i++) {
+    const key = pool[Math.floor(Math.random() * pool.length)];
+    const q = AUTO_GENERATORS[key]();
+    q.genKey = key;
+    autoState.questions.push(q);
+  }
+
+  showScreen('auto');
+  loadAutoQuestion();
+
+  // Timer global 20 min
+  clearInterval(autoState.globalTimer);
+  autoState.globalTimer = setInterval(() => {
+    autoState.globalTimeLeft--;
+    const m = Math.floor(autoState.globalTimeLeft / 60);
+    const s = autoState.globalTimeLeft % 60;
+    const el = document.getElementById('auto-global-timer');
+    if (el) el.textContent = `${m}:${String(s).padStart(2,'0')}`;
+    if (autoState.globalTimeLeft <= 0) {
+      clearInterval(autoState.globalTimer);
+      endAutoMode();
+    }
+  }, 1000);
+
+  // Focus input
+  setTimeout(() => { const i = document.getElementById('auto-input'); if (i) i.focus(); }, 100);
+}
+
+function loadAutoQuestion() {
+  const q = autoState.questions[autoState.qIdx];
+  if (!q) { endAutoMode(); return; }
+  autoState.answered = false;
+  autoState.qTimeLeft = 60;
+
+  document.getElementById('auto-title').textContent = `Question ${autoState.qIdx + 1} / 20`;
+  document.getElementById('auto-q-type').textContent = q.theme;
+  document.getElementById('auto-q-num').textContent = `${autoState.qIdx + 1} / 20`;
+  document.getElementById('auto-question').textContent = q.q + (q.unit ? '' : ' = ?');
+  document.getElementById('auto-input').value = '';
+  document.getElementById('auto-input').disabled = false;
+  document.getElementById('auto-feedback').style.display = 'none';
+  document.getElementById('auto-feedback').innerHTML = '';
+  document.getElementById('auto-input').focus();
+
+  // Timer question (1 min max)
+  clearInterval(autoState.qTimer);
+  autoState.qTimer = setInterval(() => {
+    autoState.qTimeLeft -= 0.1;
+    const pct = (autoState.qTimeLeft / 60) * 100;
+    document.getElementById('auto-q-timer-fill').style.width = Math.max(0, pct) + '%';
+    document.getElementById('auto-q-timer-num').textContent = Math.max(0, Math.ceil(autoState.qTimeLeft));
+    if (autoState.qTimeLeft <= 0) {
+      clearInterval(autoState.qTimer);
+      submitAutoAnswer(true);
+    }
+  }, 100);
+}
+
+function normalizeAnswer(s) {
+  if (s == null) return '';
+  let r = String(s).trim()
+    .replace(/\s+/g, '')
+    .replace(/,/g, '.')
+    .replace(/[−–—]/g, '-')
+    .replace(/\u00A0/g, '');
+  // Supprime le "+" initial pour que "+5" === "5"
+  if (r.startsWith('+')) r = r.substring(1);
+  // Supprime les zéros décimaux inutiles : "5.0" -> "5", "0.50" -> "0.5"
+  if (r.includes('.') && !r.includes('/')) {
+    r = r.replace(/0+$/, '').replace(/\.$/, '');
+  }
+  return r;
+}
+
+function submitAutoAnswer(timedOut) {
+  if (autoState.answered) return;
+  autoState.answered = true;
+  clearInterval(autoState.qTimer);
+
+  const q = autoState.questions[autoState.qIdx];
+  const input = document.getElementById('auto-input');
+  const userRaw = input.value;
+  const user = normalizeAnswer(userRaw);
+  const correct = normalizeAnswer(q.a);
+  // Liste des réponses acceptées (équivalences)
+  const accepted = [correct];
+  if (q.accept) q.accept.forEach(x => accepted.push(normalizeAnswer(x)));
+  // Si format est un nombre, accepter 0.5 et 0,5 et /1
+  if (!isNaN(parseFloat(correct))) {
+    const num = parseFloat(correct);
+    accepted.push(String(num), String(Math.round(num*100)/100));
+  }
+
+  const ok = !timedOut && user !== '' && accepted.includes(user);
+  input.disabled = true;
+
+  // Tracking par thème
+  if (!autoState.themeStats[q.theme]) autoState.themeStats[q.theme] = { ok: 0, total: 0 };
+  autoState.themeStats[q.theme].total++;
+  if (ok) autoState.themeStats[q.theme].ok++;
+
+  // Score
+  if (ok) {
+    autoState.correct++;
+    const speedBonus = Math.floor(autoState.qTimeLeft * 2);
+    const earned = 50 + speedBonus;
+    autoState.score += earned;
+    addXP(25);
+  }
+
+  autoState.history.push({
+    q: q.q, userAns: userRaw, correctAns: q.a, ok, theme: q.theme,
+    timeUsed: 60 - autoState.qTimeLeft
+  });
+
+  document.getElementById('auto-score').textContent = autoState.score;
+  document.getElementById('auto-correct').textContent = autoState.correct;
+  state.score += ok ? 50 : 0;
+  updateHUD();
+
+  // Feedback minimal et rapide
+  const fb = document.getElementById('auto-feedback');
+  fb.style.display = 'block';
+  if (ok) {
+    fb.innerHTML = `<span style="color:var(--green);font-weight:800">✅ Correct ! +${50 + Math.floor(autoState.qTimeLeft * 2)} pts</span>`;
+  } else if (timedOut) {
+    fb.innerHTML = `<span style="color:var(--red);font-weight:800">⏰ Temps écoulé !</span> Réponse : <strong style="color:var(--yellow)">${q.a}</strong>`;
+  } else {
+    fb.innerHTML = `<span style="color:var(--red);font-weight:800">❌ Incorrect.</span> Réponse : <strong style="color:var(--yellow)">${q.a}</strong>`;
+  }
+
+  // Passe automatiquement à la suivante après 1.5s
+  setTimeout(() => {
+    autoState.qIdx++;
+    if (autoState.qIdx >= 20) endAutoMode();
+    else loadAutoQuestion();
+  }, ok ? 900 : 2000);
+}
+
+// Enter key on input
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const screen = document.getElementById('screen-auto');
+    if (screen && screen.style.display !== 'none' && !autoState.answered) {
+      const input = document.getElementById('auto-input');
+      if (input && document.activeElement === input && input.value.trim() !== '') {
+        e.preventDefault();
+        submitAutoAnswer();
+      }
+    }
+  }
+});
+
+function exitAutoMode() {
+  clearInterval(autoState.qTimer);
+  clearInterval(autoState.globalTimer);
+  showHome();
+}
+
+function endAutoMode() {
+  clearInterval(autoState.qTimer);
+  clearInterval(autoState.globalTimer);
+
+  showScreen('auto-result');
+
+  // Note DNB sur 6 (selon nb correct / 20)
+  const ratio = autoState.correct / 20;
+  const noteDnb = Math.round(ratio * 6 * 10) / 10;
+
+  let emoji, msg, comment;
+  if (ratio >= 0.9) { emoji = '🏆'; msg = 'MAÎTRE DES AUTOMATISMES !'; comment = 'Niveau Hokage — Tu domines les calculs !'; }
+  else if (ratio >= 0.75) { emoji = '⭐'; msg = 'EXCELLENT JONIN !'; comment = 'Très bon score, fluide et précis.'; }
+  else if (ratio >= 0.6) { emoji = '🥷'; msg = 'BON GENIN'; comment = 'Tu progresses bien, continue !'; }
+  else if (ratio >= 0.4) { emoji = '📚'; msg = 'EN PROGRÈS'; comment = 'Les automatismes se travaillent par la pratique régulière.'; }
+  else { emoji = '💪'; msg = 'ENTRAÎNEMENT À POURSUIVRE'; comment = "Pas grave, c'est en s'entraînant qu'on progresse !"; }
+
+  document.getElementById('auto-result-emoji').textContent = emoji;
+  document.getElementById('auto-result-msg').textContent = msg;
+  document.getElementById('auto-note-dnb').textContent = noteDnb;
+  document.getElementById('auto-note-comment').textContent = comment;
+  document.getElementById('auto-res-correct').textContent = `${autoState.correct}/20`;
+  document.getElementById('auto-res-score').textContent = autoState.score;
+
+  const totalTime = autoState.history.reduce((s, h) => s + h.timeUsed, 0);
+  const avgTime = autoState.history.length > 0 ? totalTime / autoState.history.length : 0;
+  document.getElementById('auto-res-time').textContent = `${avgTime.toFixed(1)}s`;
+
+  // Stats par thème
+  const tsContainer = document.getElementById('auto-theme-stats');
+  tsContainer.innerHTML = '';
+  const themes = Object.entries(autoState.themeStats).sort((a,b) => (b[1].ok/b[1].total) - (a[1].ok/a[1].total));
+  themes.forEach(([theme, stat]) => {
+    const pct = Math.round((stat.ok / stat.total) * 100);
+    const color = pct >= 75 ? 'var(--green)' : pct >= 50 ? 'var(--yellow)' : 'var(--red)';
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:10px';
+    row.innerHTML = `
+      <span style="font-size:.8rem;font-weight:700;color:var(--white);flex:0 0 130px">${theme}</span>
+      <div style="flex:1;height:8px;background:var(--dark2);border-radius:4px;overflow:hidden;border:1px solid rgba(255,255,255,.06)">
+        <div style="height:100%;width:${pct}%;background:${color};border-radius:4px;transition:width .8s"></div>
+      </div>
+      <span style="font-size:.78rem;font-weight:800;color:${color};min-width:55px;text-align:right">${stat.ok}/${stat.total}</span>
+    `;
+    tsContainer.appendChild(row);
+  });
+
+  // Bonus XP final si bon score
+  if (ratio >= 0.6) addXP(100);
+  if (ratio >= 0.9) addXP(200);
 }
 
 </script>
