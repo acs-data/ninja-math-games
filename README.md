@@ -1,8 +1,12 @@
 # 🥷 Anime Math Academy
 
-> Un jeu HTML pédagogique pour réviser les maths de 6ème et préparer la 5ème, dans l’univers des animes populaires.
+> Un jeu HTML pédagogique pour réviser les maths de 6ème et préparer la 5ème, dans l'univers des animes populaires.
 
 Un fichier HTML autonome (aucune installation, aucun serveur), conçu pour les collégiens fans de Naruto, One Piece, Dragon Ball, My Hero Academia, Demon Slayer et Pokémon.
+
+> ⚠️ **Mention importante** — Ce projet n'est **ni affilié, ni sponsorisé, ni endossé** par Shueisha, Toei Animation, The Pokémon Company, Nintendo, Bandai Namco, ufotable, Aniplex, BONES, ou tout autre ayant droit. Les noms cités sont des marques déposées de leurs titulaires respectifs et sont utilisés à titre purement référentiel à des fins éducatives, **sans reproduction d'éléments graphiques, sonores ou d'extraits** de ces œuvres.
+>
+> Tout ayant droit peut demander à `legal@acs-dataformation.fr` le retrait immédiat des références concernant son œuvre. Engagement de réponse sous 72 h ouvrées.
 
 -----
 
@@ -111,8 +115,9 @@ Nombres relatifs (addition, soustraction, multiplication, classement), fractions
 - **Canvas API** pour le mode tracé géométrique (avec gestion mouse + touch)
 - **Drag & Drop manuel** (mouse + touch) pour le mode puzzle
 - **Polices** : Bangers (titres) et Nunito (corps) via Google Fonts, avec fallback Impact/Arial Black pour iOS et offline
-- **Pas de localStorage** : compatible avec tous les contextes d’utilisation
-- **Pas d’API externe** : tout est embarqué
+- **Sauvegarde locale opt-in** : `localStorage` activable explicitement par l'utilisateur sur l'écran d'accueil (RGPD-safe, jamais activé par défaut)
+- **Pas d'API externe** : tout est embarqué
+- **PWA installable** : `manifest.json` + service worker (`sw.js`) pour un fonctionnement hors-ligne complet après la 1re visite
 
 ### Structure du fichier
 
@@ -176,25 +181,65 @@ Le code est volontairement lisible et modulaire. Pour modifier ou enrichir :
 
 ## 🐛 Limitations connues
 
-- **Pas de persistance** : pas de localStorage = les progrès ne sont pas sauvegardés entre sessions (choix volontaire pour la portabilité)
-- **Pas de dashboard de suivi long terme** : pas d’historique des erreurs sur plusieurs sessions
+- **Persistance opt-in uniquement** : la sauvegarde locale (XP, niveau, univers, personnage) doit être activée par l'utilisateur via le bouton dédié sur l'écran d'accueil
+- **Pas de dashboard de suivi long terme** : pas d'historique des erreurs sur plusieurs sessions
 - **Questions QCM en banque fixe** (sauf mode Automatismes) : limité à ce qui est codé en dur
 - **Mode tracé** : la validation est tolérante mais imparfaite pour les angles complexes
-- **Pas d’audio** : pas de sons ni de musique (volontaire pour le calme de l’étude)
+- **Pas d'audio** : pas de sons ni de musique (volontaire pour le calme de l'étude)
 
 -----
 
 ## 📝 Crédits
 
-- **Conception pédagogique** : alignée sur les programmes officiels français du collège, cycles 3 et 4
-- **Univers** : références à des œuvres protégées par le droit d’auteur (Naruto, One Piece, Dragon Ball, My Hero Academia, Demon Slayer, Pokémon). Usage strictement éducatif et privé, non commercial.
-- **Polices** : Bangers et Nunito via Google Fonts (licence SIL Open Font)
+- **Conception pédagogique** : alignée sur les programmes officiels français du collège, cycles 3 et 4 (BO 17/04/2025 et BO 05/03/2026).
+- **Polices** : Bangers et Nunito via Google Fonts (licence SIL Open Font).
+
+-----
+
+## ⚖️ Mentions légales et propriété intellectuelle
+
+### Éditeur
+
+ACS Dataformation — France.
+Contact général : `contact@acs-dataformation.fr`
+Contact pour les demandes de retrait et propriété intellectuelle : `legal@acs-dataformation.fr`
+
+### Marques et œuvres tierces citées
+
+Ce projet **cite nominativement** des personnages issus d'œuvres protégées dans le seul but de proposer un habillage thématique motivant pour des collégiens. Les marques suivantes appartiennent à leurs titulaires respectifs :
+
+- **NARUTO**, **ONE PIECE**, **DRAGON BALL**, **MY HERO ACADEMIA**, **DEMON SLAYER / KIMETSU NO YAIBA** — Shueisha, Toei Animation, ufotable, Aniplex, BONES (selon œuvre)
+- **POKÉMON**, **POKÉ BALL** — Nintendo / Creatures Inc. / Game Freak / The Pokémon Company
+
+Aucun élément graphique, sonore ou textuel substantiel de ces œuvres n'est reproduit. Le jeu utilise uniquement :
+- des **noms** de personnages dans le texte des questions,
+- des **emojis Unicode** standards (🥷 🍜 ⚡ 🌸 etc.), libres de droits.
+
+L'éditeur n'a aucune affiliation, partenariat ou endossement avec les ayants droit. Ce projet ne saurait être confondu avec un produit officiel.
+
+### Demande de retrait (notice & takedown)
+
+Tout titulaire de droits ou son représentant légal peut demander, par email à **`legal@acs-dataformation.fr`**, le retrait des références concernant son œuvre. L'éditeur s'engage à répondre **sous 72 heures ouvrées** et à retirer ou renommer les éléments concernés dans les meilleurs délais.
+
+### Caractère non commercial
+
+Ce projet est **strictement non commercial** :
+- 100 % gratuit, sans pub, sans inscription, sans paywall
+- Aucune donnée personnelle collectée par défaut
+- Aucun transfert vers des tiers
+- La sauvegarde locale est opt-in explicite (`localStorage` navigateur uniquement)
+
+### Données personnelles (RGPD)
+
+Aucune donnée personnelle n'est collectée ou transmise à un serveur tiers. Voir le modal "Mentions légales" accessible depuis l'écran d'accueil pour le détail.
 
 -----
 
 ## 📄 Licence
 
-Usage personnel et éducatif libre. Pas de redistribution commerciale.
+Code source : usage personnel et éducatif libre. Toute redistribution doit conserver les mentions légales ci-dessus et l'adresse de contact pour demande de retrait.
+
+Ce projet ne crée aucun droit sur les œuvres tierces citées, qui restent la propriété exclusive de leurs ayants droit.
 
 -----
 
