@@ -2,8 +2,42 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ninja Math Academy 🥷</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Anime Math Academy — Maths 6e & 5e en mode anime</title>
+
+<!-- Description & SEO -->
+<meta name="description" content="Jeu éducatif gratuit pour réviser les maths de 6e et 5e dans l'univers de Naruto, One Piece, Dragon Ball, My Hero Academia, Demon Slayer et Pokémon. QCM, tracés, puzzles et automatismes DNB 2027.">
+<meta name="keywords" content="maths, mathématiques, 6ème, 5ème, collège, DNB 2027, automatismes, fractions, géométrie, anime, naruto, one piece, dragon ball, jeu éducatif, gratuit">
+<meta name="author" content="ACS Dataformation">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#FF6B00">
+<meta name="application-name" content="Anime Math Academy">
+<meta name="apple-mobile-web-app-title" content="Math Academy">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<!-- Favicon SVG inline (zéro fichier supplémentaire) -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230D0D1A'/%3E%3Ctext x='50' y='72' font-size='64' text-anchor='middle' font-family='Apple Color Emoji,Segoe UI Emoji,sans-serif'%3E%F0%9F%A5%B7%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%23FF6B00'/%3E%3Ctext x='90' y='130' font-size='110' text-anchor='middle' font-family='Apple Color Emoji,Segoe UI Emoji,sans-serif'%3E%F0%9F%A5%B7%3C/text%3E%3C/svg%3E">
+
+<!-- OpenGraph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Anime Math Academy">
+<meta property="og:title" content="Anime Math Academy 🥷 — Maths 6e & 5e en mode anime">
+<meta property="og:description" content="Révise les maths de 6e et 5e dans 6 univers anime (Naruto, One Piece, Dragon Ball, My Hero, Demon Slayer, Pokémon). QCM, puzzles, tracés et automatismes DNB 2027. 100% gratuit, hors-ligne, sans inscription.">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:image" content="https://acs-data.github.io/ninja-math-games/og-image.svg">
+<meta property="og:image:type" content="image/svg+xml">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Anime Math Academy — logo ninja sur fond sombre orange">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Anime Math Academy 🥷 — Maths 6e & 5e en mode anime">
+<meta name="twitter:description" content="Le jeu de maths qui transforme la révision en aventure ninja. 6 univers, 9 modes, programmes 6e/5e officiels.">
+<meta name="twitter:image" content="https://acs-data.github.io/ninja-math-games/og-image.svg">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -24,14 +58,15 @@
     --dark: #0D0D1A;
     --dark2: #151528;
     --dark3: #1E1E3A;
-    --blue: #1A6BFF;
-    --blue-light: #4D8FFF;
-    --red: #FF2D55;
+    /* Contraste WCAG AA renforcé sur fond sombre */
+    --blue: #5C9DFF;        /* anc. #1A6BFF (ratio 3.5:1) → 5.3:1 sur dark3 */
+    --blue-light: #80B4FF;
+    --red: #FF5577;         /* anc. #FF2D55 (4.4:1) → 4.7:1 sur dark3 */
     --green: #00E676;
     --yellow: #FFD700;
-    --purple: #9B59B6;
+    --purple: #B47BCC;      /* anc. #9B59B6 → contraste renforcé */
     --white: #F0F0FF;
-    --gray: #8888AA;
+    --gray: #A0A0C0;        /* anc. #8888AA → meilleure lisibilité texte secondaire */
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -42,6 +77,8 @@
     color: var(--white);
     min-height: 100vh;
     overflow-x: hidden;
+    /* Safe-area iOS (notch, dynamic island, home indicator) */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
 
   /* ── PARTICULES DE CHAKRA ── */
@@ -68,7 +105,9 @@
   /* ── HEADER ── */
   header {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 24px;
+    /* Padding compense le padding safe-area sur body (notch iOS) */
+    padding: calc(12px + env(safe-area-inset-top)) calc(24px + env(safe-area-inset-right)) 12px calc(24px + env(safe-area-inset-left));
+    margin: calc(-1 * env(safe-area-inset-top)) calc(-1 * env(safe-area-inset-right)) 0 calc(-1 * env(safe-area-inset-left));
     background: linear-gradient(90deg, var(--dark2) 0%, var(--dark3) 100%);
     border-bottom: 2px solid var(--orange);
     position: sticky; top: 0; z-index: 100;
@@ -593,12 +632,50 @@
   }
   #toast.show { transform: translateX(-50%) translateY(0); }
 
-  /* Responsive */
+  /* Responsive — Mobile-first avec breakpoints intermédiaires */
   @media(max-width:480px) {
     .answers-grid { grid-template-columns: 1fr; }
     .char-grid { grid-template-columns: repeat(2,1fr); }
     .stats-row { grid-template-columns: 1fr; }
     .result-stats { grid-template-columns: repeat(2,1fr); }
+    /* Header plus compact sur très petits écrans */
+    .logo { font-size: 1.3rem; letter-spacing: 1px; }
+    .hud { gap: 8px; }
+    .hud-item { padding: 4px 8px; font-size: .75rem; }
+  }
+  /* Tablet portrait / phone landscape */
+  @media(min-width: 481px) and (max-width: 768px) {
+    .answers-grid { grid-template-columns: repeat(2, 1fr); }
+    .char-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  /* Énoncés et titres : taille fluide avec clamp() pour ne jamais déborder ni être trop petit */
+  .question-text {
+    font-size: clamp(1.05rem, 3.5vw, 1.5rem) !important;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+  }
+  #auto-question {
+    font-size: clamp(1.4rem, 6vw, 2.4rem) !important;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+  #auto-input {
+    width: clamp(120px, 45vw, 200px) !important;
+    font-size: clamp(1.2rem, 4vw, 1.6rem) !important;
+    max-width: 100%;
+  }
+  .mission-title, .mission-desc, .feedback-text, .feedback-title {
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+  /* Paysage iPhone : timer + question doivent rester compacts */
+  @media (orientation: landscape) and (max-height: 500px) {
+    header { padding-top: calc(6px + env(safe-area-inset-top)); padding-bottom: 6px; }
+    .logo { font-size: 1.2rem; }
+    .hero-ninja { display: none; }
+    .question-wrap { padding: 12px 16px !important; }
+    #auto-question { margin: 8px 0 !important; }
   }
 
   /* ── ÉCRAN LOADING ── */
@@ -769,6 +846,9 @@
   @media(max-width:480px) {
     .universe-grid { grid-template-columns: repeat(2, 1fr); }
   }
+  @media(min-width: 481px) and (max-width: 768px) {
+    .universe-grid { grid-template-columns: repeat(3, 1fr); }
+  }
 
   /* Animation de transition lors du changement d'univers */
   .char-grid.changing {
@@ -893,6 +973,26 @@
   }
   .btn-control:hover { border-color: var(--orange); transform: translateY(-1px); }
 
+  /* Réglages rapides sur l'accueil */
+  .home-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+  }
+  .home-action-btn {
+    background: var(--dark2);
+    border-color: rgba(255, 215, 0, 0.25);
+    font-size: .82rem;
+  }
+  .home-action-btn:hover { border-color: var(--yellow); }
+  .home-action-btn.active {
+    border-color: var(--green);
+    background: rgba(0, 230, 118, 0.1);
+    color: var(--green);
+  }
+
   /* Modal Pause */
   .modal-overlay {
     position: fixed;
@@ -965,6 +1065,16 @@
     <div>
       <h1 class="hero-title" id="hero-title">ANIME MATH ACADEMY</h1>
       <p class="hero-sub">Maîtrise les maths comme ton héros maîtrise ses pouvoirs !<br>Choisis ton univers, réponds aux questions, gagne de l'XP et monte en grade.</p>
+    </div>
+
+    <!-- Réglages rapides -->
+    <div class="home-actions" role="toolbar" aria-label="Réglages">
+      <button type="button" class="btn-control home-action-btn" onclick="openTutorial()" aria-label="Voir le tutoriel">
+        <span aria-hidden="true">❓</span> Comment jouer
+      </button>
+      <button type="button" class="btn-control home-action-btn" id="save-toggle-btn" onclick="toggleSave()" aria-label="Activer ou désactiver la sauvegarde locale">
+        <span aria-hidden="true" id="save-toggle-icon">💾</span> <span id="save-toggle-label">Sauvegarde : OFF</span>
+      </button>
     </div>
 
     <div style="width:100%;max-width:560px">
@@ -1201,6 +1311,14 @@
   <!-- ÉCRAN AUTOMATISMES — Jeu                          -->
   <!-- ═══════════════════════════════════════════════════ -->
   <div id="screen-auto" style="display:none;padding:16px;max-width:860px;margin:0 auto">
+    <div class="game-controls" role="toolbar" aria-label="Contrôles de l'épreuve">
+      <button type="button" class="btn-control" onclick="pauseAutoMode()" aria-label="Mettre l'épreuve en pause">
+        <span aria-hidden="true">⏸️</span> Pause
+      </button>
+      <button type="button" class="btn-control" onclick="confirmQuitAutoMode()" aria-label="Quitter l'épreuve">
+        <span aria-hidden="true">🏠</span> Accueil
+      </button>
+    </div>
     <div class="mission-card" style="border-left-color:var(--yellow)">
       <div class="mission-label" style="color:var(--yellow)">⚡ ÉPREUVE D'AUTOMATISMES</div>
       <div class="mission-title" id="auto-title">Question 1 / 20</div>
@@ -1239,8 +1357,9 @@
 
       <!-- Champ de réponse -->
       <div style="display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:14px">
-        <input type="text" id="auto-input" inputmode="text" autocomplete="off" placeholder="Ta réponse..." style="background:var(--dark3);border:2px solid var(--yellow);color:var(--white);font-family:'Bangers',Impact,'Arial Black',cursive;font-size:1.6rem;padding:12px 20px;border-radius:12px;width:160px;text-align:center;letter-spacing:1px;outline:none">
-        <button class="btn-main" style="font-size:1rem;padding:12px 22px" onclick="submitAutoAnswer()">✓ VALIDER</button>
+        <label for="auto-input" class="sr-only">Entrez votre réponse mathématique</label>
+        <input type="text" id="auto-input" inputmode="text" autocomplete="off" placeholder="Ta réponse..." aria-label="Réponse mathématique" aria-describedby="auto-question" style="background:var(--dark3);border:2px solid var(--yellow);color:var(--white);font-family:'Bangers',Impact,'Arial Black',cursive;font-size:1.6rem;padding:12px 20px;border-radius:12px;width:160px;text-align:center;letter-spacing:1px;outline:none">
+        <button type="button" class="btn-main" style="font-size:1rem;padding:12px 22px" onclick="submitAutoAnswer()">✓ VALIDER</button>
       </div>
 
       <!-- Feedback minimal -->
@@ -1425,6 +1544,52 @@
     <div class="modal-actions">
       <button type="button" class="btn-main" onclick="closeQuitModal()" autofocus>↩️ NON, CONTINUER</button>
       <button type="button" class="btn-sec" style="border-color:var(--red);color:var(--red)" onclick="confirmedQuit()">✓ Oui, retour accueil</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Pause / Quitter — Mode automatismes -->
+<div class="modal-overlay" id="modal-auto-pause" role="dialog" aria-modal="true" aria-labelledby="modal-auto-pause-title" aria-describedby="modal-auto-pause-desc">
+  <div class="modal-card">
+    <div style="font-size:3rem;margin-bottom:8px" aria-hidden="true">⏸️</div>
+    <h3 id="modal-auto-pause-title">PAUSE</h3>
+    <p id="modal-auto-pause-desc">Les deux timers (question et total) sont arrêtés. Tu peux reprendre, recommencer ou retourner à l'accueil.</p>
+    <div class="modal-actions">
+      <button type="button" class="btn-main" onclick="resumeAutoMode()" autofocus>▶️ REPRENDRE</button>
+      <button type="button" class="btn-sec" onclick="restartAutoFromPause()">🔄 Recommencer</button>
+      <button type="button" class="btn-sec" onclick="quitAutoFromPause()">🏠 Quitter vers l'accueil</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-auto-quit" role="dialog" aria-modal="true" aria-labelledby="modal-auto-quit-title" aria-describedby="modal-auto-quit-desc">
+  <div class="modal-card">
+    <div style="font-size:3rem;margin-bottom:8px" aria-hidden="true">⚠️</div>
+    <h3 id="modal-auto-quit-title" style="color:var(--red)">Quitter l'épreuve ?</h3>
+    <p id="modal-auto-quit-desc">Les questions déjà répondues seront perdues. Tu pourras recommencer une nouvelle épreuve.</p>
+    <div class="modal-actions">
+      <button type="button" class="btn-main" onclick="closeAutoQuitModal()" autofocus>↩️ NON, CONTINUER</button>
+      <button type="button" class="btn-sec" style="border-color:var(--red);color:var(--red)" onclick="confirmedQuitAuto()">✓ Oui, retour accueil</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Tutoriel premier lancement -->
+<div class="modal-overlay" id="modal-tutorial" role="dialog" aria-modal="true" aria-labelledby="modal-tutorial-title" aria-describedby="modal-tutorial-desc">
+  <div class="modal-card" style="max-width:480px;text-align:left">
+    <div style="text-align:center;font-size:3rem;margin-bottom:8px" aria-hidden="true">🥷</div>
+    <h3 id="modal-tutorial-title" style="text-align:center">BIENVENUE NINJA !</h3>
+    <div id="modal-tutorial-desc" style="font-size:.9rem;line-height:1.6;color:var(--white);margin:14px 0">
+      <p style="margin-bottom:12px"><strong style="color:var(--orange)">🎯 Le but :</strong> réviser les maths de 6e / 5e en t'amusant dans 6 univers anime.</p>
+      <p style="margin-bottom:12px"><strong style="color:var(--red)">❤️ 3 vies</strong> par partie. Tu en perds une à chaque mauvaise réponse ou temps écoulé.</p>
+      <p style="margin-bottom:12px"><strong style="color:var(--blue)">💧 Chakra</strong> : ressource pour utiliser les <strong>jutsus</strong> (✂️ 50/50, 💡 indice, ⏸️ stop le temps). Bonne réponse = +15 chakra.</p>
+      <p style="margin-bottom:12px"><strong style="color:var(--yellow)">🔥 Combo</strong> : enchaîne les bonnes réponses pour multiplier ton score.</p>
+      <p style="margin-bottom:12px"><strong style="color:var(--green)">🔁 Répétition espacée</strong> : les questions ratées reviennent automatiquement plus tard.</p>
+      <p style="margin-bottom:0;color:var(--gray);font-size:.85rem">💡 Astuce : tu peux jouer entièrement au clavier (touches 1-4 pour répondre, Échap pour la pause).</p>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-main" onclick="closeTutorial()" autofocus>✓ J'AI COMPRIS, JE JOUE !</button>
+      <button type="button" class="btn-sec" onclick="closeTutorial(true)">📌 Ne plus afficher</button>
     </div>
   </div>
 </div>
@@ -2386,11 +2551,16 @@ function answer(idx) {
 
     showFeedback(true, q);
     showToast(`+${earned} pts${state.streak >= 2 ? ` 🔥 Combo ×${state.streak}` : ''}`);
+    // Annonce SR : confirme la bonne réponse + lit le feedback pédagogique
+    announceToScreenReader(`Correct ! ${stripHtml(q.feedback)}`);
   } else {
     // Mauvaise réponse
     state.streak = 0;
     loseHp();
     showFeedback(false, q);
+    // Annonce SR : indique la bonne réponse + lit le feedback pédagogique
+    const correctText = q.answers[q.correct];
+    announceToScreenReader(`Faux. La bonne réponse était : ${correctText}. ${stripHtml(q.feedback)}`);
     // Répétition espacée : remettre la question dans la pile (sauf si déjà en retry)
     if (!q._retry && state.mode !== 'boss') {
       const retryQ = Object.assign({}, q, { _retry: true });
@@ -3856,10 +4026,13 @@ function submitAutoAnswer(timedOut) {
   fb.style.display = 'block';
   if (ok) {
     fb.innerHTML = `<span style="color:var(--green);font-weight:800">✅ Correct ! +${50 + Math.floor(autoState.qTimeLeft * 2)} pts</span>`;
+    announceToScreenReader(`Correct. Question suivante.`);
   } else if (timedOut) {
     fb.innerHTML = `<span style="color:var(--red);font-weight:800">⏰ Temps écoulé !</span> Réponse : <strong style="color:var(--yellow)">${q.a}</strong>`;
+    announceToScreenReader(`Temps écoulé. La bonne réponse était ${q.a}.`);
   } else {
     fb.innerHTML = `<span style="color:var(--red);font-weight:800">❌ Incorrect.</span> Réponse : <strong style="color:var(--yellow)">${q.a}</strong>`;
+    announceToScreenReader(`Faux. La bonne réponse était ${q.a}.`);
   }
 
   // Passe automatiquement à la suivante après 1.5s
@@ -4049,6 +4222,9 @@ function trapFocus(e) {
     const modal = e.currentTarget;
     if (modal.id === 'modal-pause') resumeGame();
     else if (modal.id === 'modal-quit') closeQuitModal();
+    else if (modal.id === 'modal-auto-pause') resumeAutoMode();
+    else if (modal.id === 'modal-auto-quit') closeAutoQuitModal();
+    else if (modal.id === 'modal-tutorial') closeTutorial();
     return;
   }
   if (e.key !== 'Tab') return;
@@ -4067,19 +4243,27 @@ function trapFocus(e) {
 
 // ── RACCOURCIS CLAVIER GLOBAUX ──
 document.addEventListener('keydown', (e) => {
-  // Ignore si on est dans un input
-  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  // Si un modal est déjà ouvert, ses propres handlers s'occupent du clavier
+  if (document.querySelector('.modal-overlay.show')) return;
 
-  // Échap = pause si on est en jeu
+  // Échap = pause si on est en jeu (QCM ou automatismes)
   if (e.key === 'Escape') {
     const gameVisible = document.getElementById('screen-game') &&
                         document.getElementById('screen-game').style.display !== 'none';
+    const autoVisible = document.getElementById('screen-auto') &&
+                        document.getElementById('screen-auto').style.display !== 'none';
     if (gameVisible) {
       e.preventDefault();
       pauseGame();
+    } else if (autoVisible) {
+      e.preventDefault();
+      pauseAutoMode();
     }
     return;
   }
+
+  // Ignore si on est dans un input (pour les autres raccourcis 1-4)
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
   // Raccourcis QCM : 1-4 pour répondre A/B/C/D
   const gameVisible = document.getElementById('screen-game') &&
@@ -4174,13 +4358,17 @@ window.addEventListener('popstate', (e) => {
 // Initialise l'historique pour pouvoir intercepter Back
 history.replaceState({ screen: 'home' }, '');
 
-// ── CLIC EXTERNE SUR MODAL = ANNULE (sauf pause/quit qui requièrent action) ──
+// ── CLIC EXTERNE SUR MODAL = ANNULE (sauf tuto qui demande action explicite) ──
 document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', (e) => {
     if (e.target === m) {
       // Click sur l'overlay, pas sur la carte
       if (m.id === 'modal-pause') resumeGame();
       else if (m.id === 'modal-quit') closeQuitModal();
+      else if (m.id === 'modal-auto-pause') resumeAutoMode();
+      else if (m.id === 'modal-auto-quit') closeAutoQuitModal();
+      // modal-tutorial : volontairement pas de close sur click extérieur,
+      // pour forcer l'utilisateur à valider sa compréhension via le bouton.
     }
   });
 });
@@ -4202,6 +4390,237 @@ showScreen = function(id) {
   };
   if (announcements[id]) announceToScreenReader(announcements[id]);
 };
+
+// ═══════════════════════════════════════════════════════════
+// HELPER : strip HTML pour les annonces SR (évite de lire les balises)
+// ═══════════════════════════════════════════════════════════
+function stripHtml(html) {
+  if (!html) return '';
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
+}
+
+// ═══════════════════════════════════════════════════════════
+// PAUSE / QUITTER — Mode automatismes
+// ═══════════════════════════════════════════════════════════
+let autoPausedState = { savedQTime: 0, savedGlobalTime: 0 };
+
+function pauseAutoMode() {
+  if (!autoState.qTimer && !autoState.globalTimer) return;
+  autoPausedState.savedQTime = autoState.qTimeLeft;
+  autoPausedState.savedGlobalTime = autoState.globalTimeLeft;
+  clearInterval(autoState.qTimer); autoState.qTimer = null;
+  clearInterval(autoState.globalTimer); autoState.globalTimer = null;
+  openModal('modal-auto-pause');
+}
+
+function resumeAutoMode() {
+  closeModal('modal-auto-pause');
+  // Restaure les valeurs et relance les deux timers
+  autoState.qTimeLeft = autoPausedState.savedQTime;
+  autoState.globalTimeLeft = autoPausedState.savedGlobalTime;
+  // Timer question
+  autoState.qTimer = setInterval(() => {
+    autoState.qTimeLeft -= 0.1;
+    const pct = (autoState.qTimeLeft / 60) * 100;
+    const fillEl = document.getElementById('auto-q-timer-fill');
+    const numEl = document.getElementById('auto-q-timer-num');
+    if (fillEl) fillEl.style.width = Math.max(0, pct) + '%';
+    if (numEl) numEl.textContent = Math.max(0, Math.ceil(autoState.qTimeLeft));
+    if (autoState.qTimeLeft <= 0) {
+      clearInterval(autoState.qTimer);
+      submitAutoAnswer(true);
+    }
+  }, 100);
+  // Timer global
+  autoState.globalTimer = setInterval(() => {
+    autoState.globalTimeLeft--;
+    const m = Math.floor(autoState.globalTimeLeft / 60);
+    const s = autoState.globalTimeLeft % 60;
+    const el = document.getElementById('auto-global-timer');
+    if (el) el.textContent = `${m}:${String(s).padStart(2,'0')}`;
+    if (autoState.globalTimeLeft <= 0) {
+      clearInterval(autoState.globalTimer);
+      endAutoMode();
+    }
+  }, 1000);
+  const inp = document.getElementById('auto-input');
+  if (inp && !inp.disabled) inp.focus();
+}
+
+function restartAutoFromPause() {
+  closeModal('modal-auto-pause');
+  if (autoState.mode) startAutoMode(autoState.mode);
+}
+
+function quitAutoFromPause() {
+  closeModal('modal-auto-pause');
+  exitAutoMode();
+}
+
+function confirmQuitAutoMode() {
+  // Met en pause les timers d'abord
+  if (autoState.qTimer || autoState.globalTimer) {
+    autoPausedState.savedQTime = autoState.qTimeLeft;
+    autoPausedState.savedGlobalTime = autoState.globalTimeLeft;
+    clearInterval(autoState.qTimer); autoState.qTimer = null;
+    clearInterval(autoState.globalTimer); autoState.globalTimer = null;
+  }
+  openModal('modal-auto-quit');
+}
+
+function closeAutoQuitModal() {
+  closeModal('modal-auto-quit');
+  // Reprend si on était en cours
+  if (autoPausedState.savedGlobalTime > 0 && autoState.qIdx < 20) {
+    resumeAutoMode();
+    // resumeAutoMode ferme modal-auto-pause (qui n'est pas ouvert), donc OK
+  }
+}
+
+function confirmedQuitAuto() {
+  closeModal('modal-auto-quit');
+  exitAutoMode();
+}
+
+// ═══════════════════════════════════════════════════════════
+// TUTORIEL (premier lancement)
+// ═══════════════════════════════════════════════════════════
+function openTutorial() {
+  openModal('modal-tutorial');
+}
+
+function closeTutorial(dontShowAgain) {
+  closeModal('modal-tutorial');
+  // Marque comme vu pour la session (sessionStorage = pas de RGPD)
+  try { sessionStorage.setItem('tutorial_seen', '1'); } catch(e) {}
+  if (dontShowAgain) {
+    // Si l'utilisateur a choisi "ne plus afficher", on le persiste seulement
+    // si la sauvegarde locale est activée (opt-in respecté)
+    try {
+      if (localStorage.getItem('save_enabled') === '1') {
+        localStorage.setItem('tutorial_seen', '1');
+      } else {
+        // Demande l'activation de la sauvegarde pour mémoriser ce choix
+        showToast('💾 Active la sauvegarde pour mémoriser ce choix entre sessions.');
+      }
+    } catch(e) {}
+  }
+}
+
+function maybeShowTutorialOnLoad() {
+  try {
+    const sessionSeen = sessionStorage.getItem('tutorial_seen') === '1';
+    const persistedSeen = localStorage.getItem('save_enabled') === '1' && localStorage.getItem('tutorial_seen') === '1';
+    if (!sessionSeen && !persistedSeen) {
+      setTimeout(() => openTutorial(), 600);
+    }
+  } catch(e) {
+    // Storage bloqué (mode privé) → on affiche quand même
+    setTimeout(() => openTutorial(), 600);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// SAUVEGARDE LOCALE (opt-in explicite, RGPD-safe)
+// ═══════════════════════════════════════════════════════════
+const SAVE_KEY = 'amat_save_v1';
+
+function isSaveEnabled() {
+  try { return localStorage.getItem('save_enabled') === '1'; }
+  catch(e) { return false; }
+}
+
+function toggleSave() {
+  try {
+    if (isSaveEnabled()) {
+      // Désactivation : on supprime tout
+      localStorage.removeItem('save_enabled');
+      localStorage.removeItem(SAVE_KEY);
+      localStorage.removeItem('tutorial_seen');
+      showToast('💾 Sauvegarde désactivée. Données locales effacées.');
+    } else {
+      localStorage.setItem('save_enabled', '1');
+      saveProgress();
+      showToast('✅ Sauvegarde activée. Ta progression sera conservée sur cet appareil.');
+    }
+  } catch(e) {
+    showToast('⚠️ Stockage local non disponible (mode privé ?)');
+  }
+  updateSaveToggleUI();
+}
+
+function updateSaveToggleUI() {
+  const btn = document.getElementById('save-toggle-btn');
+  const label = document.getElementById('save-toggle-label');
+  const icon = document.getElementById('save-toggle-icon');
+  if (!btn || !label) return;
+  if (isSaveEnabled()) {
+    btn.classList.add('active');
+    label.textContent = 'Sauvegarde : ON';
+    if (icon) icon.textContent = '💾';
+    btn.setAttribute('aria-pressed', 'true');
+  } else {
+    btn.classList.remove('active');
+    label.textContent = 'Sauvegarde : OFF';
+    if (icon) icon.textContent = '💾';
+    btn.setAttribute('aria-pressed', 'false');
+  }
+}
+
+function saveProgress() {
+  if (!isSaveEnabled()) return;
+  try {
+    const data = {
+      xp: state.xp,
+      level: state.level,
+      totalScore: state.totalScore,
+      universe: currentUniverse,
+      char: state.char,
+      bestStreak: state.bestStreak,
+      timestamp: Date.now()
+    };
+    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+  } catch(e) { /* quota dépassé ou stockage bloqué */ }
+}
+
+function restoreProgress() {
+  if (!isSaveEnabled()) return;
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (typeof data.xp === 'number') state.xp = data.xp;
+    if (typeof data.level === 'number') state.level = data.level;
+    if (typeof data.totalScore === 'number') state.totalScore = data.totalScore;
+    if (typeof data.bestStreak === 'number') state.bestStreak = data.bestStreak;
+    if (data.universe && UNIVERSES[data.universe]) {
+      currentUniverse = data.universe;
+      CHARS = UNIVERSES[currentUniverse].chars;
+      RANKS = UNIVERSES[currentUniverse].ranks;
+    }
+    if (data.char && CHARS[data.char]) state.char = data.char;
+    updateHUD();
+  } catch(e) { /* JSON corrompu : on ignore */ }
+}
+
+// Hook : sauvegarde automatique après chaque gain XP / fin de partie
+const _origAddXP = addXP;
+addXP = function(amount) {
+  _origAddXP(amount);
+  saveProgress();
+};
+
+// ── Initialisation différée : restaure la sauvegarde et affiche le tutoriel ──
+(function initExtensions() {
+  restoreProgress();
+  updateSaveToggleUI();
+  // Re-render univers + persos avec l'état restauré
+  if (typeof renderUniverseGrid === 'function') renderUniverseGrid();
+  if (typeof renderCharGrid === 'function') renderCharGrid();
+  maybeShowTutorialOnLoad();
+})();
 
 </script>
 </body>
