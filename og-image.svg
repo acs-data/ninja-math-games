@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0D0D1A"/>
+      <stop offset="100%" stop-color="#1E1E3A"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FF6B00" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#FF6B00" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="textShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="4" dy="4" stdDeviation="0" flood-color="#0D0D1A" flood-opacity="1"/>
+    </filter>
+  </defs>
+
+  <!-- Fond -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Halo orange -->
+  <circle cx="600" cy="315" r="380" fill="url(#glow)"/>
+
+  <!-- Particules décoratives -->
+  <circle cx="120" cy="100" r="4" fill="#FFD700" opacity="0.6"/>
+  <circle cx="1080" cy="140" r="6" fill="#FF6B00" opacity="0.7"/>
+  <circle cx="180" cy="520" r="5" fill="#00E676" opacity="0.5"/>
+  <circle cx="1050" cy="490" r="4" fill="#9B59B6" opacity="0.6"/>
+  <circle cx="950" cy="80" r="3" fill="#1A6BFF" opacity="0.5"/>
+  <circle cx="220" cy="200" r="3" fill="#FFD700" opacity="0.4"/>
+  <circle cx="980" cy="280" r="4" fill="#FF2D55" opacity="0.4"/>
+
+  <!-- Emoji ninja -->
+  <text x="600" y="230" font-size="180" text-anchor="middle" font-family="Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif">🥷</text>
+
+  <!-- Titre principal -->
+  <text x="600" y="370" font-family="Impact, 'Arial Black', sans-serif" font-size="86" font-weight="900" text-anchor="middle" fill="#FF6B00" filter="url(#textShadow)" letter-spacing="6">ANIME MATH ACADEMY</text>
+
+  <!-- Sous-titre -->
+  <text x="600" y="430" font-family="'Nunito', 'Helvetica Neue', sans-serif" font-size="32" font-weight="700" text-anchor="middle" fill="#F0F0FF">Maths 6e &amp; 5e — Programmes 2025/2026 — DNB 2027</text>
+
+  <!-- Badges univers -->
+  <g transform="translate(0,490)">
+    <text x="600" y="0" font-family="'Nunito', sans-serif" font-size="22" font-weight="800" text-anchor="middle" fill="#FFD700">
+      <tspan>🥷 Naruto</tspan>
+      <tspan dx="30">🏴‍☠️ One Piece</tspan>
+      <tspan dx="30">🐉 Dragon Ball</tspan>
+      <tspan dx="30">⚡ My Hero</tspan>
+      <tspan dx="30">⚔️ Demon Slayer</tspan>
+      <tspan dx="30">⚡ Pokémon</tspan>
+    </text>
+  </g>
+
+  <!-- Footer URL -->
+  <text x="600" y="580" font-family="'Nunito', sans-serif" font-size="20" font-weight="600" text-anchor="middle" fill="#8888AA">100% gratuit · hors-ligne · sans inscription</text>
+</svg>
