@@ -1068,6 +1068,39 @@
   .story-narrative em { color: var(--yellow); font-style: normal; font-weight: 800; }
   .story-narrative strong { color: var(--orange); }
 
+  /* Footer global */
+  .site-footer {
+    margin-top: 40px;
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+    border-top: 1px solid rgba(255,255,255,.08);
+    background: var(--dark2);
+    color: var(--gray);
+    font-size: .78rem;
+    text-align: center;
+    line-height: 1.6;
+  }
+  .site-footer .footer-content {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .site-footer p { margin: 4px 0; }
+  .site-footer a {
+    color: var(--yellow);
+    text-decoration: underline;
+  }
+  .site-footer a:hover { color: var(--orange); }
+  .footer-link-btn {
+    background: none;
+    border: none;
+    color: var(--yellow);
+    text-decoration: underline;
+    cursor: pointer;
+    font: inherit;
+    padding: 0;
+    min-height: auto;
+  }
+  .footer-link-btn:hover { color: var(--orange); }
+
   /* Réglages rapides sur l'accueil */
   .home-actions {
     display: flex;
@@ -1172,6 +1205,9 @@
       </button>
       <button type="button" class="btn-control home-action-btn" id="install-pwa-btn" onclick="installPWA()" aria-label="Installer l'application sur cet appareil" style="display:none">
         <span aria-hidden="true">📲</span> Installer l'app
+      </button>
+      <button type="button" class="btn-control home-action-btn" onclick="openModal('modal-legal')" aria-label="Mentions légales et informations">
+        <span aria-hidden="true">⚖️</span> Mentions légales
       </button>
     </div>
 
@@ -1870,6 +1906,54 @@
 
 <!-- Toast -->
 <div id="toast">Message</div>
+
+<!-- Modal À propos / Mentions légales -->
+<div class="modal-overlay" id="modal-legal" role="dialog" aria-modal="true" aria-labelledby="modal-legal-title" aria-describedby="modal-legal-desc">
+  <div class="modal-card" style="max-width:560px;text-align:left;max-height:90vh;overflow-y:auto">
+    <div style="text-align:center;font-size:3rem;margin-bottom:8px" aria-hidden="true">⚖️</div>
+    <h3 id="modal-legal-title" style="text-align:center">À propos &amp; Mentions légales</h3>
+    <div id="modal-legal-desc" style="font-size:.88rem;line-height:1.55;color:var(--white);margin:14px 0">
+      <p style="margin-bottom:10px"><strong style="color:var(--orange)">📚 Projet pédagogique</strong></p>
+      <p style="margin-bottom:14px">Anime Math Academy est un jeu éducatif <strong>gratuit, sans publicité, sans inscription, sans collecte de données personnelles</strong>, conçu pour aider les collégiens de 6e et 5e à réviser les mathématiques selon les programmes officiels (BO 17/04/2025 et 05/03/2026).</p>
+
+      <p style="margin-bottom:10px"><strong style="color:var(--orange)">🎌 Univers anime cités</strong></p>
+      <p style="margin-bottom:14px">Ce projet n'est <strong>ni affilié, ni sponsorisé, ni endossé</strong> par les ayants droit des œuvres suivantes : Shueisha, Toei Animation, The Pokémon Company, Nintendo, Bandai Namco, ufotable, Aniplex, BONES, ou tout autre titulaire de droits. Les noms cités (Naruto, One Piece, Dragon Ball, My Hero Academia, Demon Slayer, Pokémon et les noms de personnages associés) sont des marques déposées de leurs titulaires respectifs et sont utilisés <strong>à titre purement référentiel à des fins éducatives</strong>, sans reproduction d'éléments graphiques, sonores ou d'extraits de ces œuvres.</p>
+
+      <p style="margin-bottom:10px"><strong style="color:var(--orange)">🛡️ Demande de retrait</strong></p>
+      <p style="margin-bottom:14px">Tout ayant droit ou son représentant peut demander à tout moment, par simple email à <a href="mailto:legal@acs-dataformation.fr" style="color:var(--yellow);text-decoration:underline">legal@acs-dataformation.fr</a>, le retrait immédiat des références concernant son œuvre. Engagement de réponse sous 72 h ouvrées.</p>
+
+      <p style="margin-bottom:10px"><strong style="color:var(--orange)">🧑‍🏫 Éditeur</strong></p>
+      <p style="margin-bottom:14px">ACS Dataformation — France.<br>Contact : <a href="mailto:contact@acs-dataformation.fr" style="color:var(--yellow);text-decoration:underline">contact@acs-dataformation.fr</a></p>
+
+      <p style="margin-bottom:10px"><strong style="color:var(--orange)">🔒 Données personnelles</strong></p>
+      <p style="margin-bottom:14px">Aucune donnée personnelle n'est collectée par défaut. La sauvegarde locale (XP, niveau, univers, personnage) est <strong>opt-in explicite</strong> et stockée uniquement dans le navigateur de l'utilisateur via <code>localStorage</code>. Aucune transmission à un serveur tiers. Le service worker met en cache les ressources statiques pour le fonctionnement hors-ligne (RGPD-safe).</p>
+
+      <p style="margin-bottom:10px"><strong style="color:var(--orange)">📜 Licence et source</strong></p>
+      <p style="margin-bottom:0">Code source ouvert. Toute utilisation respectueuse des droits des tiers est encouragée.</p>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-main" onclick="closeModal('modal-legal')" autofocus>✓ J'AI COMPRIS</button>
+    </div>
+  </div>
+</div>
+
+<!-- Footer global -->
+<footer class="site-footer" role="contentinfo">
+  <div class="footer-content">
+    <p>
+      🥷 <strong>Anime Math Academy</strong> · Projet pédagogique non commercial ·
+      Ni affilié, ni sponsorisé, ni endossé par les ayants droit des œuvres citées.
+    </p>
+    <p>
+      Noms cités utilisés à titre référentiel à des fins éducatives uniquement —
+      <a href="mailto:legal@acs-dataformation.fr">demande de retrait</a>.
+      ·
+      <button type="button" class="footer-link-btn" onclick="openModal('modal-legal')">
+        Mentions légales &amp; À propos
+      </button>
+    </p>
+  </div>
+</footer>
 
 <script>
 // ══════════════════════════════
@@ -4833,6 +4917,7 @@ function trapFocus(e) {
     else if (modal.id === 'modal-auto-pause') resumeAutoMode();
     else if (modal.id === 'modal-auto-quit') closeAutoQuitModal();
     else if (modal.id === 'modal-tutorial') closeTutorial();
+    else if (modal.id === 'modal-legal') closeModal('modal-legal');
     return;
   }
   if (e.key !== 'Tab') return;
@@ -4975,6 +5060,7 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
       else if (m.id === 'modal-quit') closeQuitModal();
       else if (m.id === 'modal-auto-pause') resumeAutoMode();
       else if (m.id === 'modal-auto-quit') closeAutoQuitModal();
+      else if (m.id === 'modal-legal') closeModal('modal-legal');
       // modal-tutorial : volontairement pas de close sur click extérieur,
       // pour forcer l'utilisateur à valider sa compréhension via le bouton.
     }
