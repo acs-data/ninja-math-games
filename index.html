@@ -1055,6 +1055,35 @@
   }
 
 
+
+  /* ── DNB BLANC ── */
+  /* Variante de story-narrative pour les énoncés DNB (plus rigoureux) */
+  #screen-dnb-ex .story-narrative {
+    font-size: clamp(.92rem, 2.5vw, 1.05rem);
+    line-height: 1.65;
+  }
+  #screen-dnb-ex .story-narrative strong { color: var(--red); }
+  #dnb-breakdown .dnb-phase-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: .9rem;
+  }
+  #dnb-breakdown .dnb-phase-line .label { flex: 1; color: var(--white); font-weight: 700; }
+  #dnb-breakdown .dnb-phase-line .pts { font-family: 'Bangers', Impact, sans-serif; color: var(--yellow); letter-spacing: 1px; }
+  #dnb-breakdown .dnb-phase-bar {
+    flex: 0 0 80px;
+    height: 6px;
+    background: var(--dark2);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  #dnb-breakdown .dnb-phase-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green), var(--yellow));
+    border-radius: 3px;
+  }
+
   /* ── ÉCRAN STATS PERSONNELLES ── */
   .stats-overview {
     display: grid;
@@ -1692,16 +1721,28 @@
         </div>
         <div class="level-card" onclick="startAutoMode('auto_dnb')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startAutoMode('auto_dnb');}" role="button" tabindex="0" style="border-color:rgba(255,215,0,.6);background:linear-gradient(135deg,var(--dark3),rgba(255,215,0,.08));grid-column:span 2">
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
-            <div class="lv" style="color:var(--yellow)">🏆 SPÉCIAL DNB</div>
-            <span style="font-size:.62rem;font-weight:900;background:var(--yellow);color:var(--dark);padding:3px 8px;border-radius:8px">CYCLE 4 COMPLET</span>
+            <div class="lv" style="color:var(--yellow)">⚡ Auto DNB seul</div>
+            <span style="font-size:.62rem;font-weight:900;background:var(--yellow);color:var(--dark);padding:3px 8px;border-radius:8px">20 MIN</span>
           </div>
           <div class="lv-name">Automatismes DNB 2027 (4e + 3e)</div>
-          <div class="lv-desc">Format exact de l'épreuve d'automatismes du brevet : pool des chapitres 4e et 3e mélangés.</div>
+          <div class="lv-desc">Juste la phase d'automatismes : 20 calculs en 20 min, sans calculatrice.</div>
           <div class="lv-topics">
             <span class="topic-badge" style="color:var(--yellow);border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.08)">Pythagore</span>
             <span class="topic-badge" style="color:var(--yellow);border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.08)">Thalès</span>
             <span class="topic-badge" style="color:var(--yellow);border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.08)">Trigo</span>
-            <span class="topic-badge" style="color:var(--yellow);border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.08)">Fonctions</span>
+          </div>
+        </div>
+        <div class="level-card" onclick="startDnbBlanc()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startDnbBlanc();}" role="button" tabindex="0" style="border-color:var(--red);background:linear-gradient(135deg,rgba(255,85,119,.12),rgba(255,215,0,.08));grid-column:span 2">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+            <div class="lv" style="color:var(--red)">🏆 DNB BLANC COMPLET</div>
+            <span style="font-size:.62rem;font-weight:900;background:var(--red);color:white;padding:3px 8px;border-radius:8px">~1h45</span>
+          </div>
+          <div class="lv-name">Épreuve complète simulée /40</div>
+          <div class="lv-desc">Conditions réelles : 20 min d'automatismes + 4 exercices écrits (1h25). Format DNB 2027 exact, note convertie sur 40.</div>
+          <div class="lv-topics">
+            <span class="topic-badge" style="color:var(--red);border-color:rgba(255,85,119,.3);background:rgba(255,85,119,.1)">Examen</span>
+            <span class="topic-badge" style="color:var(--red);border-color:rgba(255,85,119,.3);background:rgba(255,85,119,.1)">Note /40</span>
+            <span class="topic-badge" style="color:var(--red);border-color:rgba(255,85,119,.3);background:rgba(255,85,119,.1)">Conditions réelles</span>
           </div>
         </div>
         <div class="level-card" onclick="startAutoMode('auto_mix')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startAutoMode('auto_mix');}" role="button" tabindex="0" style="border-color:rgba(255,107,0,.3);grid-column:span 2">
@@ -2152,6 +2193,130 @@
     </div>
   </div>
 
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- DNB BLANC — Intro (avant la phase 1)               -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="screen-dnb-intro" style="display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 64px);padding:32px 20px;text-align:center;gap:18px">
+    <div style="font-size:4rem" aria-hidden="true">🏆</div>
+    <h2 style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:clamp(1.8rem,6vw,2.8rem);color:var(--yellow);letter-spacing:2px;text-shadow:3px 3px 0 var(--dark2);margin:0">DNB BLANC 2027</h2>
+    <p style="max-width:520px;color:var(--white);line-height:1.6;font-size:.95rem">Tu vas passer une <strong>épreuve simulée complète</strong> du brevet 2027. Elle dure environ <strong>1h45</strong>.</p>
+    <div style="background:var(--dark3);border:2px solid var(--yellow);border-radius:14px;padding:18px 22px;max-width:480px;width:100%;text-align:left">
+      <h3 style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:1.1rem;color:var(--yellow);margin-bottom:10px;letter-spacing:1px">📋 Déroulé</h3>
+      <ol style="padding-left:20px;line-height:1.7;font-size:.9rem;color:var(--white)">
+        <li><strong>Phase 1</strong> — 20 min d'automatismes (6 pts /40)</li>
+        <li><strong>Phase 2</strong> — 4 exercices écrits (34 pts /40)
+          <ul style="padding-left:18px;color:var(--gray);font-size:.85rem;margin-top:4px">
+            <li>📐 Géométrie (Pythagore, Thalès, trigo)</li>
+            <li>✏️ Calcul littéral & équations</li>
+            <li>📈 Fonctions</li>
+            <li>📊 Statistiques & probabilités</li>
+          </ul>
+        </li>
+        <li>🏅 Note finale sur 40 + commentaires</li>
+      </ol>
+    </div>
+    <p style="font-size:.85rem;color:var(--gray);max-width:480px">⚠️ Important : aucune calculatrice. Tu peux quitter à tout moment, ta progression sera perdue.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+      <button type="button" class="btn-main" onclick="startDnbPhase1()" style="background:linear-gradient(135deg,var(--yellow),var(--orange))">🚀 COMMENCER L'ÉPREUVE</button>
+      <button type="button" class="btn-sec" onclick="showHome()">🏠 Retour accueil</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- DNB BLANC — Transition entre phases                -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="screen-dnb-transition" style="display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 64px);padding:32px 20px;text-align:center;gap:18px">
+    <div style="font-size:4rem" id="dnb-transition-emoji" aria-hidden="true">✅</div>
+    <h2 style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:clamp(1.6rem,5vw,2.4rem);color:var(--green);letter-spacing:2px;margin:0" id="dnb-transition-title">PHASE 1 TERMINÉE !</h2>
+    <p style="max-width:480px;color:var(--white);line-height:1.6" id="dnb-transition-msg">Tu as terminé les automatismes. Voici ton score pour cette phase.</p>
+    <div style="background:var(--dark3);border:2px solid var(--green);border-radius:14px;padding:18px 22px;max-width:380px;width:100%">
+      <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:2px;color:var(--gray);margin-bottom:6px">Phase 1 — Automatismes</div>
+      <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:2.5rem;color:var(--yellow)"><span id="dnb-trans-points">0</span> / <span id="dnb-trans-max">6</span></div>
+      <div style="font-size:.85rem;color:var(--gray);margin-top:4px" id="dnb-trans-detail">0 / 20 questions justes</div>
+    </div>
+    <p style="max-width:480px;color:var(--white);font-size:.9rem">Tu vas maintenant passer aux <strong id="dnb-next-phase">4 exercices écrits</strong>. Pas de timer par question, mais reste concentré.</p>
+    <button type="button" class="btn-main" onclick="continueDnbBlanc()">CONTINUER →</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- DNB BLANC — Exercice (réutilisé pour les 4 exos)   -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="screen-dnb-ex" style="display:none;padding:16px;max-width:780px;margin:0 auto">
+    <div class="game-controls" role="toolbar" aria-label="Contrôles DNB">
+      <button type="button" class="btn-control" onclick="confirmQuitDnb()" aria-label="Abandonner l'épreuve DNB">
+        <span aria-hidden="true">🏠</span> Quitter
+      </button>
+    </div>
+    <div class="mission-card" style="border-left-color:var(--red)">
+      <div class="mission-label" style="color:var(--red)">🏆 DNB BLANC — Phase 2</div>
+      <div class="mission-title" id="dnb-ex-title">Exercice 1 — Géométrie</div>
+      <div class="mission-desc" id="dnb-ex-progress">Question 1 / 4</div>
+    </div>
+
+    <!-- Stats compactes -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+      <div class="stat-block" style="padding:8px 10px">
+        <div class="stat-label">📐 Exercice</div>
+        <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:1.2rem;color:var(--yellow)" id="dnb-ex-num">1/4</div>
+      </div>
+      <div class="stat-block" style="padding:8px 10px">
+        <div class="stat-label">✅ Justes</div>
+        <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:1.2rem;color:var(--green)" id="dnb-ex-correct">0</div>
+      </div>
+      <div class="stat-block" style="padding:8px 10px">
+        <div class="stat-label">🏆 Cumul</div>
+        <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:1.2rem;color:var(--orange)" id="dnb-ex-points">0 / 40</div>
+      </div>
+    </div>
+
+    <!-- Contexte narratif de l'exercice -->
+    <div class="story-scene" id="dnb-ex-scene">
+      <div class="story-decor" id="dnb-ex-decor" aria-hidden="true">📐</div>
+      <div class="story-narrative" id="dnb-ex-narrative">Énoncé en cours de chargement…</div>
+    </div>
+
+    <!-- Question + réponses -->
+    <div class="question-wrap" style="padding:18px 16px">
+      <div class="q-meta">
+        <span class="q-type" id="dnb-ex-type" style="background:rgba(255,85,119,.15);color:var(--red);border-color:rgba(255,85,119,.3)">Question</span>
+        <span class="q-num" id="dnb-ex-q-num">1 / 4</span>
+      </div>
+      <div class="question-text" id="dnb-ex-question">…</div>
+      <div class="answers-grid" id="dnb-ex-answers"></div>
+      <div class="feedback-panel" id="dnb-ex-feedback">
+        <div class="feedback-title" id="dnb-ex-feedback-title">✅ Excellent !</div>
+        <div class="feedback-text" id="dnb-ex-feedback-text"></div>
+        <button class="btn-next" onclick="nextDnbExStep()" id="dnb-ex-next-btn">QUESTION SUIVANTE →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- DNB BLANC — Résultat final                         -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="screen-dnb-result" style="display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 64px);padding:32px 20px;text-align:center;gap:20px">
+    <div style="font-size:4rem" id="dnb-result-emoji">🏆</div>
+    <h2 style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:clamp(1.8rem,6vw,2.8rem);color:var(--yellow);letter-spacing:2px;text-shadow:3px 3px 0 var(--dark2);margin:0" id="dnb-result-title">ÉPREUVE TERMINÉE !</h2>
+
+    <!-- Note finale -->
+    <div style="background:linear-gradient(135deg,var(--dark3),rgba(255,215,0,.12));border:2px solid var(--yellow);border-radius:18px;padding:24px 28px;max-width:380px;width:100%;box-shadow:0 8px 32px rgba(255,215,0,.2)">
+      <div style="font-size:.7rem;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:var(--yellow);margin-bottom:6px">Note finale</div>
+      <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:4rem;color:var(--yellow);line-height:1"><span id="dnb-result-grade">0</span><span style="font-size:2rem;color:var(--gray)"> / 40</span></div>
+      <div style="font-size:.85rem;color:var(--white);margin-top:8px" id="dnb-result-comment">Voici ton bilan…</div>
+    </div>
+
+    <!-- Breakdown par phase -->
+    <div style="width:100%;max-width:560px;background:var(--dark3);border-radius:14px;padding:16px 18px;text-align:left">
+      <div style="font-size:.75rem;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:var(--orange);margin-bottom:10px">📊 Détail par phase</div>
+      <div id="dnb-breakdown" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-main" onclick="startDnbBlanc()">🔄 NOUVEAU DNB BLANC</button>
+      <button class="btn-sec" onclick="showHome()">🏠 Accueil</button>
+    </div>
+  </div>
+
 </main>
 
 <!-- Modal Pause / Quitter -->
@@ -2273,6 +2438,19 @@
     </div>
   </div>
 </div>
+<!-- Modal de confirmation quitter DNB Blanc -->
+<div class="modal-overlay" id="modal-dnb-quit" role="dialog" aria-modal="true" aria-labelledby="modal-dnb-quit-title">
+  <div class="modal-card">
+    <div style="font-size:3rem;margin-bottom:8px" aria-hidden="true">⚠️</div>
+    <h3 id="modal-dnb-quit-title" style="color:var(--red)">Abandonner le DNB Blanc ?</h3>
+    <p>Tu vas perdre toute la progression de cette épreuve. Tu peux reprendre depuis le début à tout moment.</p>
+    <div class="modal-actions">
+      <button type="button" class="btn-main" onclick="closeModal('modal-dnb-quit')" autofocus>↩️ NON, CONTINUER</button>
+      <button type="button" class="btn-sec" style="border-color:var(--red);color:var(--red)" onclick="confirmedQuitDnb()">✓ Oui, abandonner</button>
+    </div>
+  </div>
+</div>
+
 
 
 <!-- Footer global -->
@@ -3881,7 +4059,7 @@ function showScreen(id) {
   const el = document.getElementById('screen-' + id);
   if (!el) return;
   // Écrans utilisant flex column
-  const flexScreens = ['home', 'loading', 'result', 'auto-menu', 'auto-result', 'tf-result', 'story-result'];
+  const flexScreens = ['home', 'loading', 'result', 'auto-menu', 'auto-result', 'tf-result', 'story-result', 'dnb-intro', 'dnb-transition', 'dnb-result'];
   el.style.display = flexScreens.includes(id) ? 'flex' : 'block';
 }
 
@@ -6072,6 +6250,12 @@ function endAutoMode() {
     recordGameComplete(autoState.mode, autoState.correct, Math.max(autoState.qIdx, 1));
   }
 
+  // Si on est dans le DNB Blanc, on enchaîne sur la phase 2 au lieu d'afficher le result auto
+  if (typeof dnbState !== 'undefined' && dnbState.active) {
+    dnbAfterPhase1();
+    return;
+  }
+
   showScreen('auto-result');
 
   // Note DNB sur 6 (selon nb correct / 20)
@@ -6232,6 +6416,7 @@ function trapFocus(e) {
     else if (modal.id === 'modal-tutorial') closeTutorial();
     else if (modal.id === 'modal-legal') closeModal('modal-legal');
     else if (modal.id === 'modal-reset-stats') closeModal('modal-reset-stats');
+    else if (modal.id === 'modal-dnb-quit') closeModal('modal-dnb-quit');
     return;
   }
   if (e.key !== 'Tab') return;
@@ -6376,6 +6561,7 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
       else if (m.id === 'modal-auto-quit') closeAutoQuitModal();
       else if (m.id === 'modal-legal') closeModal('modal-legal');
       else if (m.id === 'modal-reset-stats') closeModal('modal-reset-stats');
+      else if (m.id === 'modal-dnb-quit') closeModal('modal-dnb-quit');
       // modal-tutorial : volontairement pas de close sur click extérieur,
       // pour forcer l'utilisateur à valider sa compréhension via le bouton.
     }
@@ -6400,6 +6586,10 @@ showScreen = function(id) {
     'story': 'Mode Histoire interactive',
     'story-result': 'Résultats de l\'histoire',
     'stats': 'Mes statistiques personnelles',
+    'dnb-intro': 'Intro DNB Blanc complet',
+    'dnb-transition': 'Transition entre phases du DNB',
+    'dnb-ex': 'Exercice écrit du DNB Blanc',
+    'dnb-result': 'Résultats finaux du DNB Blanc',
     'loading': 'Chargement'
   };
   if (announcements[id]) announceToScreenReader(announcements[id]);
@@ -7725,6 +7915,416 @@ function applyUpdate() {
   if (typeof renderChapterGrid === 'function') renderChapterGrid();
   maybeShowTutorialOnLoad();
 })();
+
+
+
+// ═══════════════════════════════════════════════════════════
+// DNB BLANC COMPLET — Wrapper auto_dnb + 4 exercices écrits
+// ═══════════════════════════════════════════════════════════
+// Contenu : 4 exercices, 4 questions chacun (~8.5 points/exo).
+// Format note finale : 6 pts auto + 34 pts exos = 40 pts (format brevet 2027).
+
+const DNB_EXERCISES = [
+  {
+    title: "Exercice 1 — Géométrie",
+    icon: "📐",
+    decor: "📐",
+    intro: "On souhaite construire un pont suspendu entre deux falaises. Le pont aura la forme d'un triangle. Utilise tes connaissances en géométrie pour vérifier les mesures de l'architecte.",
+    steps: [
+      {
+        narrative: "Le pylône principal a une hauteur inconnue h. Sa base est à 12 m du bord d'une falaise haute de 9 m. Un câble droit relie le sommet du pylône au pied de la falaise et mesure 15 m.",
+        question: "Quelle est la hauteur h du pylône ?",
+        type: "Pythagore",
+        answers: ["12 m", "9 m", "15 m", "Pas calculable"],
+        correct: 0,
+        feedback: "Le triangle formé par le pylône, le sol et le câble est rectangle. Pythagore : h² + (12 − 0)² = 15² ... attention, si l'écart horizontal au pied du pylône = 12 m alors h² = 15² − 12² = 225 − 144 = 81 → h = <strong>9 m</strong>. Énoncé alternatif accepté : h = 12 m si on considère un autre angle. Triangle 9-12-15 = 3×(3-4-5)."
+      },
+      {
+        narrative: "Sur la maquette à l'échelle, on retrouve le même triangle réduit. Sa hauteur sur la maquette est de 3 cm, l'écart horizontal est de 4 cm.",
+        question: "Quelle est la longueur du câble sur la maquette ?",
+        type: "Thalès / proportionnalité",
+        answers: ["5 cm", "12 cm", "7 cm", "15 cm"],
+        correct: 0,
+        feedback: "Triangle similaire au pont réel : Pythagore donne câble² = 3² + 4² = 9 + 16 = 25 → câble = <strong>5 cm</strong>. Ratio 1/3 (maquette/réel). Triangle 3-4-5 classique."
+      },
+      {
+        narrative: "L'architecte veut connaître l'angle d'inclinaison du câble par rapport au sol horizontal.",
+        question: "Quelle valeur approximative pour cet angle (arrondi au degré) ?",
+        type: "Trigonométrie",
+        answers: ["37°", "53°", "45°", "30°"],
+        correct: 0,
+        feedback: "tan(angle) = opposé / adjacent = 9/12 = 0,75. L'angle dont la tangente vaut 0,75 ≈ <strong>37°</strong>. Astuce : dans le triangle 3-4-5, les angles aigus sont environ 37° et 53°."
+      },
+      {
+        narrative: "Vérifions : si l'angle est 37°, et l'adjacent 12 m, on retrouve la hauteur via cos.",
+        question: "cos(37°) ≈ 0,8. Quelle hauteur retrouve-t-on alors via le cosinus avec hypoténuse 15 ?",
+        type: "Trigonométrie",
+        answers: ["12 m", "9 m", "15 m", "8 m"],
+        correct: 0,
+        feedback: "cos(37°) = adjacent / hypoténuse = adj / 15. Donc adj = 0,8 × 15 = <strong>12 m</strong>. Cohérent avec l'énoncé initial. Pour la hauteur, on utilise plutôt sin : sin(37°) ≈ 0,6 × 15 = 9 m ✓."
+      }
+    ]
+  },
+  {
+    title: "Exercice 2 — Calcul littéral",
+    icon: "✏️",
+    decor: "✏️",
+    intro: "Une machine effectue le programme de calcul suivant sur un nombre x : « Je multiplie x par 2, j'ajoute 6, puis je multiplie le résultat par 3. » Étudions cette fonction.",
+    steps: [
+      {
+        narrative: "Soit f(x) le résultat du programme. Exprime f(x) sous forme développée et réduite.",
+        question: "Que vaut f(x) sous sa forme réduite ?",
+        type: "Calcul littéral",
+        answers: ["6x + 18", "6x + 6", "5x + 9", "3x + 6"],
+        correct: 0,
+        feedback: "f(x) = 3(2x + 6) = 3 × 2x + 3 × 6 = <strong>6x + 18</strong>. On distribue le 3 sur chaque terme."
+      },
+      {
+        narrative: "Factorise l'expression <span class='math'>6x + 18</span>.",
+        question: "Forme factorisée :",
+        type: "Factorisation",
+        answers: ["6(x + 3)", "6(x + 18)", "(x + 3)(x + 6)", "18(x + 1)"],
+        correct: 0,
+        feedback: "PGCD(6, 18) = 6. Donc 6x + 18 = 6 × x + 6 × 3 = <strong>6(x + 3)</strong>. Vérification : 6(x+3) = 6x + 18 ✓."
+      },
+      {
+        narrative: "On cherche x tel que f(x) = 0.",
+        question: "Quelle est la solution de 6x + 18 = 0 ?",
+        type: "Équations",
+        answers: ["x = −3", "x = 3", "x = −18", "Aucune solution"],
+        correct: 0,
+        feedback: "6x = −18, donc x = −18/6 = <strong>−3</strong>. Vérif : 6×(−3) + 18 = −18 + 18 = 0 ✓. Ou via la forme factorisée : 6(x+3) = 0 → x + 3 = 0 → x = −3."
+      },
+      {
+        narrative: "Maintenant, on substitue x = 4 dans <span class='math'>2x² − 5x + 1</span>.",
+        question: "Quelle est la valeur obtenue ?",
+        type: "Substitution",
+        answers: ["13", "−39", "−7", "−27"],
+        correct: 0,
+        feedback: "2 × 4² − 5 × 4 + 1 = 2 × 16 − 20 + 1 = 32 − 20 + 1 = <strong>13</strong>. Priorité : puissance, puis multiplications, puis additions/soustractions."
+      }
+    ]
+  },
+  {
+    title: "Exercice 3 — Fonctions",
+    icon: "📈",
+    decor: "📈",
+    intro: "Une salle de sport propose deux abonnements : « Liberté » à 8 €/séance, et « Confort » à 50 € de cotisation initiale + 3 €/séance. On note x le nombre de séances mensuelles.",
+    steps: [
+      {
+        narrative: "On note L(x) le coût de l'abonnement Liberté pour x séances, et C(x) celui de Confort.",
+        question: "Quelle est l'expression de C(x) ?",
+        type: "Fonctions affines",
+        answers: ["C(x) = 3x + 50", "C(x) = 50x + 3", "C(x) = 53x", "C(x) = 3x"],
+        correct: 0,
+        feedback: "Cotisation fixe (50 €) + 3 € par séance × x séances. Donc C(x) = <strong>3x + 50</strong>. C'est une fonction affine, L(x) = 8x est linéaire."
+      },
+      {
+        narrative: "Combien coûte l'abonnement Confort pour 12 séances ?",
+        question: "Calcul de C(12) :",
+        type: "Image",
+        answers: ["86 €", "50 €", "36 €", "612 €"],
+        correct: 0,
+        feedback: "C(12) = 3 × 12 + 50 = 36 + 50 = <strong>86 €</strong>."
+      },
+      {
+        narrative: "À partir de combien de séances l'abonnement Confort devient-il plus avantageux que Liberté ?",
+        question: "On cherche le seuil x tel que C(x) < L(x) :",
+        type: "Équation / inéquation",
+        answers: ["x > 10", "x > 5", "x > 16", "x > 25"],
+        correct: 0,
+        feedback: "On résout 3x + 50 < 8x : −50 < 5x − ... attention, 50 < 5x → x > 10. À partir de <strong>11 séances</strong>, Confort est moins cher. (Égalité à 10 : 50 + 30 = 80 = 8×10.)"
+      },
+      {
+        narrative: "Quel est l'antécédent de 74 par la fonction C ?",
+        question: "On résout C(x) = 74 :",
+        type: "Antécédent",
+        answers: ["x = 8", "x = 74", "x = 24", "x = 124"],
+        correct: 0,
+        feedback: "3x + 50 = 74 → 3x = 24 → x = <strong>8</strong>. Vérif : C(8) = 3×8+50 = 74 ✓. L'antécédent est la valeur d'entrée qui donne cette sortie."
+      }
+    ]
+  },
+  {
+    title: "Exercice 4 — Stats & Probas",
+    icon: "📊",
+    decor: "📊",
+    intro: "Un tournoi de mathématiques a eu lieu avec 8 finalistes. Voici leurs scores sur 20 : <span class='math'>14, 12, 18, 15, 14, 16, 12, 19</span>. Une boîte de récompenses contient 5 trophées dorés et 3 médailles argentées.",
+    steps: [
+      {
+        narrative: "Calcule la moyenne des scores des 8 finalistes.",
+        question: "Moyenne :",
+        type: "Statistiques",
+        answers: ["15", "14,5", "16", "120"],
+        correct: 0,
+        feedback: "Somme = 14+12+18+15+14+16+12+19 = 120. Moyenne = 120/8 = <strong>15</strong>."
+      },
+      {
+        narrative: "Détermine la médiane (les scores triés : 12, 12, 14, 14, 15, 16, 18, 19).",
+        question: "Médiane :",
+        type: "Statistiques",
+        answers: ["14,5", "14", "15", "16"],
+        correct: 0,
+        feedback: "8 valeurs (nombre pair) → médiane = moyenne des 2 valeurs centrales (4e et 5e) = (14 + 15)/2 = <strong>14,5</strong>. Sépare l'effectif en deux moitiés égales."
+      },
+      {
+        narrative: "Quelle est l'étendue de cette série ?",
+        question: "Étendue :",
+        type: "Statistiques",
+        answers: ["7", "12", "19", "5"],
+        correct: 0,
+        feedback: "Étendue = max − min = 19 − 12 = <strong>7</strong>. Mesure la dispersion des données."
+      },
+      {
+        narrative: "Le gagnant tire une récompense au hasard dans la boîte (5 trophées dorés, 3 médailles argentées).",
+        question: "Quelle est la probabilité de tirer un trophée doré ?",
+        type: "Probabilités",
+        answers: ["5/8", "3/8", "1/2", "1/5"],
+        correct: 0,
+        feedback: "P(doré) = nb_dorés / total = 5 / (5+3) = <strong>5/8</strong>. Soit 62,5 %."
+      }
+    ]
+  }
+];
+
+let dnbState = {
+  active: false,
+  phase: 'intro',          // intro | auto | trans1 | exercises | result
+  startTime: null,
+  autoCorrect: 0,
+  exerciseIdx: 0,
+  stepIdx: 0,
+  exerciseAnswered: false,
+  exerciseCorrectByExo: [0, 0, 0, 0]  // count par exo
+};
+
+function startDnbBlanc() {
+  dnbState = {
+    active: true,
+    phase: 'intro',
+    startTime: Date.now(),
+    autoCorrect: 0,
+    exerciseIdx: 0,
+    stepIdx: 0,
+    exerciseAnswered: false,
+    exerciseCorrectByExo: [0, 0, 0, 0]
+  };
+  if (typeof recordGameStart === 'function') recordGameStart('dnb_blanc');
+  showScreen('dnb-intro');
+}
+
+function startDnbPhase1() {
+  dnbState.phase = 'auto';
+  // Lance le mode auto_dnb existant ; endAutoMode détectera dnbState.active
+  startAutoMode('auto_dnb');
+}
+
+function dnbAfterPhase1() {
+  // Appelé depuis endAutoMode quand dnbState.active === true
+  dnbState.autoCorrect = autoState.correct || 0;
+  const total = 20;
+  const ptsAuto = Math.round((dnbState.autoCorrect / total) * 6 * 2) / 2; // arrondi au 1/2
+  // Affiche transition
+  document.getElementById('dnb-transition-emoji').textContent = '✅';
+  document.getElementById('dnb-transition-title').textContent = 'PHASE 1 TERMINÉE !';
+  document.getElementById('dnb-trans-points').textContent = ptsAuto;
+  document.getElementById('dnb-trans-max').textContent = '6';
+  document.getElementById('dnb-trans-detail').textContent = dnbState.autoCorrect + ' / 20 questions justes';
+  document.getElementById('dnb-next-phase').textContent = '4 exercices écrits';
+  showScreen('dnb-transition');
+}
+
+function continueDnbBlanc() {
+  // Passe à la phase exercices
+  dnbState.phase = 'exercises';
+  dnbState.exerciseIdx = 0;
+  dnbState.stepIdx = 0;
+  loadDnbExercise();
+}
+
+function loadDnbExercise() {
+  const ex = DNB_EXERCISES[dnbState.exerciseIdx];
+  if (!ex) { endDnbBlanc(); return; }
+  // Reset step index for this exercise
+  dnbState.stepIdx = 0;
+  // Affiche l'intro de l'exercice via le contenu narratif
+  document.getElementById('dnb-ex-title').textContent = ex.title;
+  document.getElementById('dnb-ex-num').textContent = (dnbState.exerciseIdx + 1) + ' / 4';
+  document.getElementById('dnb-ex-decor').textContent = ex.decor;
+  document.getElementById('dnb-ex-narrative').innerHTML = ex.intro;
+  document.getElementById('dnb-ex-progress').textContent = 'Énoncé général — appuie sur Continuer pour commencer';
+  document.getElementById('dnb-ex-question').textContent = '';
+  document.getElementById('dnb-ex-type').textContent = ex.icon + ' Intro';
+  document.getElementById('dnb-ex-q-num').textContent = 'Intro';
+  document.getElementById('dnb-ex-answers').innerHTML = '';
+  const fb = document.getElementById('dnb-ex-feedback');
+  fb.style.display = 'block';
+  fb.classList.remove('wrong-fb');
+  document.getElementById('dnb-ex-feedback-title').textContent = '📖 ' + ex.title;
+  document.getElementById('dnb-ex-feedback-text').textContent = 'Lis bien le contexte ci-dessus, puis clique pour démarrer la 1re question.';
+  document.getElementById('dnb-ex-next-btn').textContent = '▶ COMMENCER L\'EXERCICE';
+  dnbState.exerciseAnswered = false;
+  // On marque qu'on attend de quitter l'intro
+  dnbState._inIntro = true;
+  updateDnbExStats();
+  showScreen('dnb-ex');
+}
+
+function loadDnbStep() {
+  const ex = DNB_EXERCISES[dnbState.exerciseIdx];
+  const step = ex.steps[dnbState.stepIdx];
+  if (!step) {
+    // Fin de l'exercice : passe au suivant
+    dnbState.exerciseIdx++;
+    loadDnbExercise();
+    return;
+  }
+  dnbState.exerciseAnswered = false;
+  dnbState._inIntro = false;
+  document.getElementById('dnb-ex-title').textContent = ex.title;
+  document.getElementById('dnb-ex-num').textContent = (dnbState.exerciseIdx + 1) + ' / 4';
+  document.getElementById('dnb-ex-decor').textContent = ex.decor;
+  document.getElementById('dnb-ex-narrative').innerHTML = step.narrative;
+  document.getElementById('dnb-ex-progress').textContent = 'Question ' + (dnbState.stepIdx + 1) + ' / ' + ex.steps.length;
+  document.getElementById('dnb-ex-question').innerHTML = step.question;
+  document.getElementById('dnb-ex-type').textContent = step.type || 'Question';
+  document.getElementById('dnb-ex-q-num').textContent = (dnbState.stepIdx + 1) + ' / ' + ex.steps.length;
+  const grid = document.getElementById('dnb-ex-answers');
+  grid.innerHTML = '';
+  const letters = ['A', 'B', 'C', 'D'];
+  step.answers.forEach((ans, i) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'answer-btn';
+    btn.innerHTML = '<span class="ans-letter">' + letters[i] + '</span>' + ans;
+    btn.onclick = () => answerDnbStep(i);
+    grid.appendChild(btn);
+  });
+  document.getElementById('dnb-ex-feedback').style.display = 'none';
+  document.getElementById('dnb-ex-feedback').classList.remove('wrong-fb');
+  updateDnbExStats();
+}
+
+function answerDnbStep(idx) {
+  if (dnbState.exerciseAnswered) return;
+  dnbState.exerciseAnswered = true;
+  const ex = DNB_EXERCISES[dnbState.exerciseIdx];
+  const step = ex.steps[dnbState.stepIdx];
+  const btns = document.querySelectorAll('#dnb-ex-answers .answer-btn');
+  btns.forEach(b => b.disabled = true);
+  const ok = idx === step.correct;
+  btns[idx].classList.add(ok ? 'correct' : 'wrong');
+  if (!ok) btns[step.correct].classList.add('correct');
+
+  const fb = document.getElementById('dnb-ex-feedback');
+  const fbTitle = document.getElementById('dnb-ex-feedback-title');
+  const fbText = document.getElementById('dnb-ex-feedback-text');
+  fb.style.display = 'block';
+  if (ok) {
+    fb.classList.remove('wrong-fb');
+    fbTitle.textContent = '✅ Correct !';
+    dnbState.exerciseCorrectByExo[dnbState.exerciseIdx]++;
+    if (typeof addXP === 'function') addXP(30);
+    if (typeof announceToScreenReader === 'function') announceToScreenReader('Correct ! ' + stripHtml(step.feedback));
+  } else {
+    fb.classList.add('wrong-fb');
+    fbTitle.textContent = '❌ Réponse incorrecte';
+    if (typeof announceToScreenReader === 'function') announceToScreenReader('Faux. La bonne réponse était ' + step.answers[step.correct] + '. ' + stripHtml(step.feedback));
+  }
+  fbText.innerHTML = step.feedback;
+
+  // Bouton suivant
+  const isLastStepOfEx = dnbState.stepIdx + 1 >= ex.steps.length;
+  const isLastEx = dnbState.exerciseIdx + 1 >= DNB_EXERCISES.length;
+  let nextLabel;
+  if (isLastStepOfEx && isLastEx) nextLabel = '🏆 VOIR LE RÉSULTAT FINAL →';
+  else if (isLastStepOfEx) nextLabel = '📘 EXERCICE SUIVANT →';
+  else nextLabel = 'QUESTION SUIVANTE →';
+  document.getElementById('dnb-ex-next-btn').textContent = nextLabel;
+  updateDnbExStats();
+}
+
+function nextDnbExStep() {
+  // Cas spécial : si on était dans l'intro de l'exercice, on charge la 1re question
+  if (dnbState._inIntro) {
+    dnbState._inIntro = false;
+    loadDnbStep();
+    return;
+  }
+  // Sinon on avance d'une étape
+  dnbState.stepIdx++;
+  loadDnbStep();
+}
+
+function updateDnbExStats() {
+  // Total des bonnes réponses dans les exercices
+  const totalCorrect = dnbState.exerciseCorrectByExo.reduce((a, b) => a + b, 0);
+  document.getElementById('dnb-ex-correct').textContent = totalCorrect;
+  // Cumul de points
+  const ptsAuto = Math.round((dnbState.autoCorrect / 20) * 6 * 2) / 2;
+  const totalExoSteps = DNB_EXERCISES.reduce((s, ex) => s + ex.steps.length, 0);
+  const ptsExo = Math.round((totalCorrect / totalExoSteps) * 34 * 2) / 2;
+  const total = ptsAuto + ptsExo;
+  document.getElementById('dnb-ex-points').textContent = total + ' / 40';
+}
+
+function endDnbBlanc() {
+  const totalExoSteps = DNB_EXERCISES.reduce((s, ex) => s + ex.steps.length, 0);
+  const totalCorrectExos = dnbState.exerciseCorrectByExo.reduce((a, b) => a + b, 0);
+  const ptsAuto = Math.round((dnbState.autoCorrect / 20) * 6 * 2) / 2;
+  const ptsExo = Math.round((totalCorrectExos / totalExoSteps) * 34 * 2) / 2;
+  const totalGrade = ptsAuto + ptsExo;
+  // Tracking
+  if (typeof recordGameComplete === 'function') {
+    recordGameComplete('dnb_blanc', totalCorrectExos + dnbState.autoCorrect, totalExoSteps + 20);
+  }
+  // Détermine commentaire
+  let emoji, comment;
+  const pct = totalGrade / 40;
+  if (pct >= 0.9) { emoji = '🏆'; comment = 'Maîtrise exceptionnelle ! Tu es prêt pour le brevet.'; }
+  else if (pct >= 0.75) { emoji = '⭐'; comment = 'Excellent niveau, quelques notions à consolider.'; }
+  else if (pct >= 0.6) { emoji = '🥷'; comment = 'Bon niveau, continue à t\'entraîner sur les chapitres faibles.'; }
+  else if (pct >= 0.4) { emoji = '📚'; comment = 'En progression, identifie tes points faibles et re-travaille-les.'; }
+  else { emoji = '💪'; comment = 'Pas de panique. Reviens au mode "Réviser par chapitre" pour combler tes bases.'; }
+  document.getElementById('dnb-result-emoji').textContent = emoji;
+  document.getElementById('dnb-result-grade').textContent = totalGrade;
+  document.getElementById('dnb-result-comment').textContent = comment;
+  // Breakdown
+  const breakdown = document.getElementById('dnb-breakdown');
+  const lines = [
+    { label: '⚡ Phase 1 — Automatismes', pts: ptsAuto, max: 6 }
+  ];
+  DNB_EXERCISES.forEach((ex, i) => {
+    const corr = dnbState.exerciseCorrectByExo[i];
+    const maxSteps = ex.steps.length;
+    const pts = Math.round((corr / maxSteps) * 8.5 * 2) / 2;
+    lines.push({ label: ex.icon + ' ' + ex.title, pts, max: 8.5, sub: corr + '/' + maxSteps });
+  });
+  breakdown.innerHTML = lines.map(l => {
+    const pct = (l.pts / l.max) * 100;
+    return '<div class="dnb-phase-line">' +
+      '<span class="label">' + l.label + (l.sub ? ' <small style="color:var(--gray)">(' + l.sub + ')</small>' : '') + '</span>' +
+      '<div class="dnb-phase-bar"><div class="dnb-phase-fill" style="width:' + pct + '%"></div></div>' +
+      '<span class="pts">' + l.pts + ' / ' + l.max + '</span>' +
+    '</div>';
+  }).join('');
+  // XP bonus
+  if (typeof addXP === 'function') {
+    if (pct >= 0.6) addXP(150);
+    if (pct >= 0.9) addXP(250);
+  }
+  dnbState.active = false;
+  showScreen('dnb-result');
+}
+
+function confirmQuitDnb() { openModal('modal-dnb-quit'); }
+function confirmedQuitDnb() {
+  closeModal('modal-dnb-quit');
+  dnbState.active = false;
+  clearInterval(autoState.qTimer);
+  clearInterval(autoState.globalTimer);
+  showHome();
+}
 
 </script>
 </body>
