@@ -976,6 +976,84 @@
   }
   .btn-control:hover { border-color: var(--orange); transform: translateY(-1px); }
 
+  /* ── SÉLECTEUR DE CHAPITRE (4e/3e) ── */
+  .chapter-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .chapter-tab {
+    flex: 1;
+    min-width: 130px;
+    background: var(--dark3);
+    border: 2px solid rgba(255,255,255,.1);
+    color: var(--gray);
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-family: inherit;
+    font-weight: 800;
+    font-size: .9rem;
+    cursor: pointer;
+    transition: all .2s;
+    min-height: 44px;
+  }
+  .chapter-tab:hover { border-color: var(--yellow); color: var(--white); }
+  .chapter-tab.active {
+    background: linear-gradient(135deg, var(--dark3), rgba(255,215,0,.12));
+    border-color: var(--yellow);
+    color: var(--yellow);
+    box-shadow: 0 4px 14px rgba(255,215,0,.2);
+  }
+  .chapter-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  @media(max-width: 480px) {
+    .chapter-grid { grid-template-columns: 1fr; }
+  }
+  .chapter-card {
+    background: var(--dark3);
+    border: 2px solid rgba(255,215,0,.2);
+    border-radius: 12px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all .25s;
+    text-align: left;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .chapter-card:hover {
+    border-color: var(--yellow);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255,215,0,.25);
+  }
+  .chapter-card .ch-emoji {
+    font-size: 1.3rem;
+    line-height: 1;
+  }
+  .chapter-card .ch-name {
+    font-family: 'Bangers', Impact, 'Arial Black', cursive;
+    font-size: 1rem;
+    color: var(--white);
+    letter-spacing: 1px;
+    line-height: 1.2;
+  }
+  .chapter-card .ch-desc {
+    font-size: .72rem;
+    color: var(--gray);
+    line-height: 1.3;
+  }
+  .chapter-card .ch-meta {
+    font-size: .65rem;
+    color: var(--yellow);
+    font-weight: 800;
+    margin-top: auto;
+  }
+
   /* ── MODE VRAI / FAUX SPEED ── */
   .tf-card {
     background: var(--dark2);
@@ -1276,6 +1354,21 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- NOUVEAU : Sélecteur par chapitre (4e/3e)            -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <div style="width:100%;max-width:560px">
+      <p class="section-label">📚 Réviser par chapitre <span style="background:var(--yellow);color:var(--dark);font-size:.55rem;padding:2px 7px;border-radius:6px;margin-left:6px;letter-spacing:1px;font-weight:900">NOUVEAU 4e/3e</span></p>
+      <div class="chapter-tabs" role="tablist" aria-label="Niveau de classe">
+        <button type="button" class="chapter-tab active" data-class="4e" onclick="selectChapterClass('4e')" role="tab" aria-selected="true">📘 4ème</button>
+        <button type="button" class="chapter-tab" data-class="3e" onclick="selectChapterClass('3e')" role="tab" aria-selected="false">📕 3ème (DNB)</button>
+      </div>
+      <div class="chapter-grid" id="chapter-grid" role="tabpanel">
+        <!-- Généré dynamiquement par renderChapterGrid() -->
+      </div>
+      <p style="font-size:.7rem;color:var(--gray);margin-top:8px;text-align:center;line-height:1.4">💡 Astuce : chaque chapitre = 8 questions ciblées sur une notion précise du programme.</p>
     </div>
 
     <div style="width:100%;max-width:520px">
@@ -2593,6 +2686,329 @@ const QUESTIONS = {
   ]
 };
 
+
+// ═══════════════════════════════════════════════════════════
+// BANQUE PAR CHAPITRE — 4e et 3e (BO 05/03/2026, cycle 4)
+// ═══════════════════════════════════════════════════════════
+// Structure : QUESTIONS_BY_CHAPTER[classe][chapitre] = [questions]
+// Permet le sélecteur "Je révise les fractions" etc.
+const QUESTIONS_BY_CHAPTER = {
+  '4e': {
+    'pythagore': [
+      {
+        type: "Pythagore", theme: "🔺 Triangle ABC",
+        text: `Dans un triangle rectangle, les côtés de l'angle droit mesurent <span class='math'>3 cm</span> et <span class='math'>4 cm</span>. Hypoténuse ?`,
+        answers: ["5 cm", "7 cm", "12 cm", "25 cm"],
+        correct: 0,
+        feedback: "Pythagore : h² = 3² + 4² = 9 + 16 = 25. Donc h = √25 = <strong>5 cm</strong>. Le triangle 3-4-5 est le plus célèbre des triangles rectangles."
+      },
+      {
+        type: "Pythagore", theme: "🔺 Mission de Kakashi",
+        text: `Hypoténuse <span class='math'>13 cm</span>, un côté <span class='math'>5 cm</span>. Quel est l'autre côté de l'angle droit ?`,
+        answers: ["12 cm", "8 cm", "10 cm", "√14 cm"],
+        correct: 0,
+        feedback: "Pythagore : 13² = 5² + x², donc 169 = 25 + x², donc x² = 144, donc x = <strong>12 cm</strong>. Triangle 5-12-13 (autre triangle rectangle classique)."
+      },
+      {
+        type: "Réciproque Pythagore", theme: "🔺 Vérification de Sasuke",
+        text: `Un triangle a pour côtés <span class='math'>6 cm</span>, <span class='math'>8 cm</span> et <span class='math'>10 cm</span>. Est-il rectangle ?`,
+        answers: ["Oui, rectangle en l'angle opposé à 10 cm", "Oui, rectangle en l'angle opposé à 6 cm", "Non", "On ne peut pas savoir"],
+        correct: 0,
+        feedback: "On teste : 10² = 100 et 6² + 8² = 36 + 64 = 100. <strong>Égalité</strong> → réciproque de Pythagore : le triangle est rectangle, et l'angle droit est <strong>opposé au plus grand côté (10 cm)</strong>."
+      },
+      {
+        type: "Pythagore appliqué", theme: "📦 Boîte de Naruto",
+        text: `Une feuille rectangulaire mesure <span class='math'>9 cm × 12 cm</span>. Quelle est la longueur de sa diagonale ?`,
+        answers: ["15 cm", "21 cm", "10 cm", "√225 = pas le bon"],
+        correct: 0,
+        feedback: "La diagonale est l'hypoténuse du triangle rectangle formé par les deux côtés. d² = 9² + 12² = 81 + 144 = 225. d = √225 = <strong>15 cm</strong>."
+      }
+    ],
+    'puissances_scientifique': [
+      {
+        type: "Notation scientifique", theme: "🔬 Microscope de Sakura",
+        text: `Une bactérie mesure <span class='math'>0,000 003 m</span>. Quelle est cette mesure en notation scientifique ?`,
+        answers: ["3 × 10⁻⁶ m", "3 × 10⁶ m", "3 × 10⁻⁵ m", "0,3 × 10⁻⁵ m"],
+        correct: 0,
+        feedback: "On déplace la virgule après le 1er chiffre non nul. 0,000003 → 3. La virgule a été décalée de 6 rangs vers la droite, donc exposant <strong>négatif</strong> : 3 × 10⁻⁶."
+      },
+      {
+        type: "Puissances", theme: "💥 Énergie de Goku",
+        text: `Calcule : <span class='math'>10³ × 10⁵</span>.`,
+        answers: ["10⁸", "10¹⁵", "10²", "100⁸"],
+        correct: 0,
+        feedback: "Règle : aⁿ × aᵐ = aⁿ⁺ᵐ. Donc 10³ × 10⁵ = 10³⁺⁵ = <strong>10⁸</strong>. On additionne les exposants quand on multiplie des puissances de même base."
+      },
+      {
+        type: "Puissances quotient", theme: "🔬 Division énergétique",
+        text: `Calcule : <span class='math'>10⁹ ÷ 10⁴</span>.`,
+        answers: ["10⁵", "10¹³", "10⁻⁵", "1.000.000.000.000"],
+        correct: 0,
+        feedback: "Règle : aⁿ ÷ aᵐ = aⁿ⁻ᵐ. Donc 10⁹ ÷ 10⁴ = 10⁹⁻⁴ = <strong>10⁵</strong>. Quand on divise, on soustrait les exposants."
+      },
+      {
+        type: "Notation scientifique", theme: "🌌 Distance étoile",
+        text: `Une distance vaut <span class='math'>4,5 × 10⁸ km</span>. Combien de kilomètres exactement ?`,
+        answers: ["450 000 000 km", "45 000 000 km", "4 500 000 km", "4,5 milliards de km"],
+        correct: 0,
+        feedback: "4,5 × 10⁸ = 4,5 suivi de 8 - 1 = 7 zéros (on décale la virgule de 8 rangs) = <strong>450 000 000 km</strong>, soit 450 millions."
+      }
+    ],
+    'calcul_litteral_4e': [
+      {
+        type: "Développement", theme: "📐 Distributivité de Shikamaru",
+        text: `Développe et réduis : <span class='math'>3(2x + 5) − 4x</span>.`,
+        answers: ["2x + 15", "6x + 15 − 4x", "6x − 4x + 5", "2x + 5"],
+        correct: 0,
+        feedback: "Distribuer : 3(2x + 5) = 6x + 15. Puis 6x + 15 − 4x = (6 − 4)x + 15 = <strong>2x + 15</strong>. Toujours regrouper les termes en x ensemble."
+      },
+      {
+        type: "Substitution", theme: "🎯 Test de Kakashi",
+        text: `Si <span class='math'>x = −3</span>, calcule <span class='math'>2x² + 5x − 7</span>.`,
+        answers: ["−4", "−40", "8", "32"],
+        correct: 0,
+        feedback: "x² = (−3)² = <strong>+9</strong> (moins × moins). Donc 2 × 9 + 5 × (−3) − 7 = 18 − 15 − 7 = <strong>−4</strong>. Piège classique : (−3)² ≠ −9."
+      },
+      {
+        type: "Factorisation simple", theme: "✂️ Coupe de Sasuke",
+        text: `Factorise : <span class='math'>15x − 25</span>.`,
+        answers: ["5(3x − 5)", "5(3x − 25)", "5x(3 − 5)", "15(x − 25)"],
+        correct: 0,
+        feedback: "PGCD(15, 25) = 5. Donc 15x − 25 = 5 × 3x − 5 × 5 = <strong>5(3x − 5)</strong>. On vérifie en redéveloppant : 5 × 3x − 5 × 5 = 15x − 25 ✓."
+      }
+    ],
+    'equations_4e': [
+      {
+        type: "Équation complexe", theme: "⚖️ Énigme de Jiraiya",
+        text: `Résous : <span class='math'>4x − 7 = 2x + 5</span>. Que vaut x ?`,
+        answers: ["6", "3", "12", "−1"],
+        correct: 0,
+        feedback: "On regroupe les x à gauche, les nombres à droite : 4x − 2x = 5 + 7, donc 2x = 12, donc x = <strong>6</strong>. Vérification : 4 × 6 − 7 = 17 et 2 × 6 + 5 = 17 ✓."
+      },
+      {
+        type: "Équation parenthèses", theme: "📦 Boîte fermée",
+        text: `Résous : <span class='math'>2(x − 3) = 4(x + 1)</span>.`,
+        answers: ["−5", "5", "−1", "Pas de solution"],
+        correct: 0,
+        feedback: "Développer : 2x − 6 = 4x + 4. Regrouper : 2x − 4x = 4 + 6, donc −2x = 10, donc x = <strong>−5</strong>. Vérif : 2(−5−3) = −16 et 4(−5+1) = −16 ✓."
+      }
+    ],
+    'statistiques_4e': [
+      {
+        type: "Médiane", theme: "📊 Notes de Naruto",
+        text: `Notes : <span class='math'>8, 12, 14, 14, 16, 17, 19</span>. Quelle est la médiane ?`,
+        answers: ["14", "15", "14,3", "12"],
+        correct: 0,
+        feedback: "Les notes sont déjà triées. Il y a 7 valeurs, la médiane est la valeur du milieu (4e position) : <strong>14</strong>. La médiane partage l'effectif en deux moitiés égales."
+      },
+      {
+        type: "Étendue", theme: "📊 Écart de Naruto",
+        text: `Notes : <span class='math'>8, 12, 14, 14, 16, 17, 19</span>. Quelle est l'étendue ?`,
+        answers: ["11", "14", "7", "19"],
+        correct: 0,
+        feedback: "Étendue = valeur max − valeur min = 19 − 8 = <strong>11</strong>. Mesure la dispersion des données."
+      },
+      {
+        type: "Moyenne pondérée", theme: "📊 Bulletin trimestriel",
+        text: `Maths : 14 (coef 4), Français : 12 (coef 3). Quelle est la moyenne pondérée ?`,
+        answers: ["13,1", "13", "26", "13,5"],
+        correct: 0,
+        feedback: "Moyenne pondérée = (14×4 + 12×3) ÷ (4+3) = (56 + 36) ÷ 7 = 92 ÷ 7 ≈ <strong>13,1</strong>. On multiplie chaque note par son coefficient, on divise par la somme des coefficients."
+      }
+    ],
+    'transformations_4e': [
+      {
+        type: "Translation", theme: "🔄 Déplacement",
+        text: `Le point A(2 ; 3) est translaté par le vecteur (5 ; −1). Quelles sont les coordonnées de A' ?`,
+        answers: ["(7 ; 2)", "(7 ; 4)", "(−3 ; 4)", "(10 ; −3)"],
+        correct: 0,
+        feedback: "Translation : on ajoute les coordonnées du vecteur : x' = 2 + 5 = 7, y' = 3 + (−1) = 2. Donc A' = <strong>(7 ; 2)</strong>."
+      },
+      {
+        type: "Rotation", theme: "🔄 Pivot",
+        text: `Lors d'une rotation de centre O et d'angle 90°, l'image d'un segment de longueur 4 cm a pour longueur ?`,
+        answers: ["4 cm", "8 cm", "2 cm", "Dépend de l'angle"],
+        correct: 0,
+        feedback: "La rotation est une <strong>isométrie</strong> : elle conserve les longueurs et les angles. L'image mesure donc <strong>4 cm</strong>, comme le segment d'origine."
+      }
+    ]
+  },
+  '3e': {
+    'thales': [
+      {
+        type: "Thalès", theme: "📐 Triangles emboîtés",
+        text: `Dans un triangle ABC, M ∈ [AB] et N ∈ [AC] avec (MN) ∥ (BC). Si AM=4, AB=6, AC=9, combien vaut AN ?`,
+        answers: ["6", "4,5", "13,5", "5"],
+        correct: 0,
+        feedback: "Thalès : AM/AB = AN/AC. Donc 4/6 = AN/9, donc AN = (4 × 9) ÷ 6 = 36/6 = <strong>6</strong>. La parallèle découpe proportionnellement."
+      },
+      {
+        type: "Thalès calcul", theme: "📐 Ombres au soleil",
+        text: `Un arbre projette une ombre de 12 m. À côté, un piquet de 1,5 m projette une ombre de 2 m. Quelle est la hauteur de l'arbre ?`,
+        answers: ["9 m", "16 m", "8 m", "6 m"],
+        correct: 0,
+        feedback: "Thalès (les rayons solaires sont parallèles) : h/1,5 = 12/2, donc h = (1,5 × 12) ÷ 2 = 18 ÷ 2 = <strong>9 m</strong>. Méthode utilisée depuis l'Antiquité !"
+      },
+      {
+        type: "Réciproque Thalès", theme: "📐 Parallélisme",
+        text: `ABC, M ∈ [AB] et N ∈ [AC]. AM=3, AB=5, AN=6, AC=10. (MN) et (BC) sont-elles parallèles ?`,
+        answers: ["Oui, car AM/AB = AN/AC", "Non", "Oui, car même triangle", "Impossible à dire"],
+        correct: 0,
+        feedback: "On vérifie : AM/AB = 3/5 = 0,6 et AN/AC = 6/10 = 0,6. <strong>Les rapports sont égaux ET les points sont dans le même ordre</strong> → réciproque de Thalès : (MN) ∥ (BC)."
+      }
+    ],
+    'trigonometrie': [
+      {
+        type: "Cosinus", theme: "📏 Triangle rectangle",
+        text: `Dans un triangle rectangle, l'angle est de 60°, l'hypoténuse mesure 10 cm. Quelle est la longueur du côté adjacent ?`,
+        answers: ["5 cm", "8,66 cm", "10 cm", "5,77 cm"],
+        correct: 0,
+        feedback: "cos(60°) = adjacent / hypoténuse = 0,5. Donc adjacent = 0,5 × 10 = <strong>5 cm</strong>. Mémo : <strong>SOH-CAH-TOA</strong> (Sin=Opp/Hyp, Cos=Adj/Hyp, Tan=Opp/Adj)."
+      },
+      {
+        type: "Tangente", theme: "📏 Pente d'une route",
+        text: `Une route monte. Sur 100 m horizontaux, elle monte de 8 m. Quel est l'angle de la pente (arrondi à 1°) ?`,
+        answers: ["5°", "8°", "12°", "45°"],
+        correct: 0,
+        feedback: "tan(angle) = opposé / adjacent = 8 / 100 = 0,08. L'angle est tel que tan = 0,08, soit environ <strong>5°</strong> (touche tan⁻¹ de la calculatrice). Une pente de 8% correspond à un angle d'environ 4,6°."
+      },
+      {
+        type: "Sinus", theme: "📏 Hauteur d'une tour",
+        text: `On vise le sommet d'une tour à 50 m de distance avec un angle d'élévation de 30°. Quelle est la hauteur (en utilisant tan) ?`,
+        answers: ["≈ 28,9 m", "≈ 25 m", "≈ 43,3 m", "≈ 100 m"],
+        correct: 0,
+        feedback: "tan(30°) = hauteur / 50, donc hauteur = 50 × tan(30°) ≈ 50 × 0,577 ≈ <strong>28,9 m</strong>. La hauteur est inférieure à la distance car l'angle est inférieur à 45°."
+      }
+    ],
+    'fonctions': [
+      {
+        type: "Fonction linéaire", theme: "📈 Proportionnalité",
+        text: `f(x) = 3x. Quelle est l'image de 5 par f ?`,
+        answers: ["15", "8", "3", "5"],
+        correct: 0,
+        feedback: "f(5) = 3 × 5 = <strong>15</strong>. L'image, c'est la valeur de sortie. Pour une fonction linéaire f(x) = ax, c'est toujours a × x."
+      },
+      {
+        type: "Antécédent", theme: "📈 Inverse de la fonction",
+        text: `f(x) = 4x − 7. Quel est l'antécédent de 13 par f ?`,
+        answers: ["5", "45", "3,25", "20"],
+        correct: 0,
+        feedback: "On résout f(x) = 13, soit 4x − 7 = 13. Donc 4x = 20, donc x = <strong>5</strong>. Vérif : f(5) = 4 × 5 − 7 = 13 ✓. Antécédent = entrée qui donne cette sortie."
+      },
+      {
+        type: "Fonction affine", theme: "📈 Droite y = ax + b",
+        text: `Une fonction affine vérifie f(0) = 3 et f(2) = 11. Quelle est son expression ?`,
+        answers: ["f(x) = 4x + 3", "f(x) = 8x + 3", "f(x) = 2x + 7", "f(x) = 3x + 5"],
+        correct: 0,
+        feedback: "f(0) = b = 3. Coefficient directeur a = (11 − 3) ÷ (2 − 0) = 8 ÷ 2 = 4. Donc f(x) = <strong>4x + 3</strong>. Toute fonction affine a la forme ax + b."
+      }
+    ],
+    'factorisation': [
+      {
+        type: "Identité remarquable", theme: "🔢 Carré d'une somme",
+        text: `Développe : <span class='math'>(x + 5)²</span>.`,
+        answers: ["x² + 10x + 25", "x² + 25", "x² + 5x + 25", "2x + 10"],
+        correct: 0,
+        feedback: "Identité : (a + b)² = a² + 2ab + b². Ici a = x, b = 5 : x² + 2 × x × 5 + 5² = <strong>x² + 10x + 25</strong>. Le double produit est essentiel !"
+      },
+      {
+        type: "Factorisation a²−b²", theme: "🔢 Différence de carrés",
+        text: `Factorise : <span class='math'>x² − 49</span>.`,
+        answers: ["(x − 7)(x + 7)", "(x − 7)²", "(x + 49)(x − 1)", "x(x − 49)"],
+        correct: 0,
+        feedback: "Identité : a² − b² = (a − b)(a + b). Ici x² − 49 = x² − 7² = <strong>(x − 7)(x + 7)</strong>. Très utile pour résoudre les équations produit-nul."
+      },
+      {
+        type: "Équation produit", theme: "🔢 Produit nul",
+        text: `Résous : <span class='math'>(x − 3)(x + 5) = 0</span>.`,
+        answers: ["x = 3 ou x = −5", "x = −3 ou x = 5", "x = 15", "Aucune solution"],
+        correct: 0,
+        feedback: "Règle du produit nul : un produit est nul si et seulement si l'un des facteurs est nul. Donc x − 3 = 0 (x = 3) <strong>ou</strong> x + 5 = 0 (x = −5)."
+      }
+    ],
+    'probabilites_arbre': [
+      {
+        type: "Probabilités composées", theme: "🌳 Arbre à deux niveaux",
+        text: `On lance 2 fois une pièce équilibrée. Probabilité d'obtenir 2 piles ?`,
+        answers: ["1/4", "1/2", "2/4", "0"],
+        correct: 0,
+        feedback: "Chaque lancer P(pile) = 1/2. Indépendants donc P(pile, pile) = 1/2 × 1/2 = <strong>1/4</strong>. Sur l'arbre : on multiplie le long d'une branche."
+      },
+      {
+        type: "Probabilités totale", theme: "🌳 Somme des branches",
+        text: `Une urne contient 3 boules rouges et 2 noires. On tire 1 boule au hasard. P(tirer une rouge) ?`,
+        answers: ["3/5", "2/5", "1/2", "3/2"],
+        correct: 0,
+        feedback: "P(rouge) = nb_rouges ÷ nb_total = 3/5 = <strong>0,6</strong> ou 60%. Pour une expérience équiprobable, on divise les cas favorables par les cas possibles."
+      },
+      {
+        type: "Probabilités conditionnelles", theme: "🌳 Tirage sans remise",
+        text: `Sac : 4 jaunes, 6 bleues. Je tire 1 boule, ne la remets pas, j'en tire une 2e. P(les 2 jaunes) ?`,
+        answers: ["12/90 = 2/15", "16/100", "4/10", "1/2"],
+        correct: 0,
+        feedback: "1re jaune : 4/10. 2e jaune (3 jaunes restantes / 9 total) : 3/9 = 1/3. P(2 jaunes) = 4/10 × 1/3 = 4/30 = <strong>2/15</strong>. Sans remise → 2e proba dépend de la 1re."
+      }
+    ],
+    'arithmetique_3e': [
+      {
+        type: "PGCD", theme: "🔍 Algorithme d'Euclide",
+        text: `PGCD(60, 84) = ?`,
+        answers: ["12", "6", "20", "5040"],
+        correct: 0,
+        feedback: "Algorithme d'Euclide : 84 = 60×1 + 24, 60 = 24×2 + 12, 24 = 12×2 + 0. Le dernier reste non nul est <strong>12</strong>. PGCD(60, 84) = 12."
+      },
+      {
+        type: "Fraction irréductible", theme: "🔍 Simplification",
+        text: `Rends <span class='math'>72/90</span> irréductible.`,
+        answers: ["4/5", "8/10", "6/7,5", "2/3"],
+        correct: 0,
+        feedback: "PGCD(72, 90) = 18. Donc 72/90 = (72÷18)/(90÷18) = <strong>4/5</strong>. Une fraction est irréductible si numérateur et dénominateur sont premiers entre eux."
+      },
+      {
+        type: "Nombres premiers", theme: "🔍 Décomposition",
+        text: `Décompose 84 en produit de facteurs premiers.`,
+        answers: ["2² × 3 × 7", "4 × 21", "2 × 42", "2³ × 3 × 7"],
+        correct: 0,
+        feedback: "84 = 2 × 42 = 2 × 2 × 21 = 2 × 2 × 3 × 7 = <strong>2² × 3 × 7</strong>. Décomposition unique en facteurs premiers (théorème fondamental de l'arithmétique)."
+      }
+    ]
+  }
+};
+
+// Métadonnées d'affichage des chapitres (UI sélecteur)
+const CHAPTER_LABELS = {
+  '4e': {
+    'pythagore':              { emoji: '🔺', name: 'Théorème de Pythagore', desc: 'Calcul hypoténuse et côtés, réciproque' },
+    'puissances_scientifique':{ emoji: '🔬', name: 'Puissances & notation scientifique', desc: '10ⁿ, multiplication, division' },
+    'calcul_litteral_4e':     { emoji: '✏️', name: 'Calcul littéral', desc: 'Développement, factorisation simple' },
+    'equations_4e':           { emoji: '⚖️', name: 'Équations', desc: 'Avec variable des deux côtés' },
+    'statistiques_4e':        { emoji: '📊', name: 'Statistiques', desc: 'Médiane, étendue, moyenne pondérée' },
+    'transformations_4e':     { emoji: '🔄', name: 'Transformations', desc: 'Translation, rotation' }
+  },
+  '3e': {
+    'thales':                 { emoji: '📐', name: 'Théorème de Thalès', desc: 'Triangles emboîtés et réciproque' },
+    'trigonometrie':          { emoji: '📏', name: 'Trigonométrie', desc: 'Cos, sin, tan dans le triangle rectangle' },
+    'fonctions':              { emoji: '📈', name: 'Fonctions linéaires & affines', desc: 'Images, antécédents, expressions' },
+    'factorisation':          { emoji: '🔢', name: 'Identités & factorisation', desc: '(a+b)², a²−b², produit nul' },
+    'probabilites_arbre':     { emoji: '🌳', name: 'Probabilités', desc: 'Arbres, probas composées, conditionnelles' },
+    'arithmetique_3e':        { emoji: '🔍', name: 'Arithmétique', desc: 'PGCD, fractions irréductibles, premiers' }
+  }
+};
+
+// Helper : retourne le pool de questions d'un chapitre adapté à l'univers actif
+function getChapterQuestions(classe, chapitre) {
+  const raw = (QUESTIONS_BY_CHAPTER[classe] && QUESTIONS_BY_CHAPTER[classe][chapitre]) || [];
+  return raw.map(q => adaptQuestionToUniverse(q, currentUniverse));
+}
+
+// Helper : retourne le pool mélangé d'une classe entière (tous chapitres)
+function getClassMixPool(classe) {
+  const all = [];
+  const chapters = QUESTIONS_BY_CHAPTER[classe] || {};
+  Object.values(chapters).forEach(arr => all.push(...arr));
+  return all.map(q => adaptQuestionToUniverse(q, currentUniverse));
+}
+
 // ══════════════════════════════
 // ÉTAT DU JEU
 // ══════════════════════════════
@@ -3035,23 +3451,27 @@ function startGame(mode) {
   state.mode = mode;
   state.freeMode = (mode === 'libre');
   // Mode libre : pool de questions issu de tous les niveaux
-  let rawQs;
+  let rawQs, qs;
   if (state.freeMode) {
     const all = [
       ...(QUESTIONS['6e_facile'] || []),
       ...(QUESTIONS['5e_medium'] || []),
       ...(QUESTIONS['mixte_difficile'] || [])
     ];
-    // Échantillon de 20 questions au max
     for (let i = all.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [all[i], all[j]] = [all[j], all[i]];
     }
     rawQs = all.slice(0, 20);
+    qs = rawQs.map(q => adaptQuestionToUniverse(q, currentUniverse));
+  } else if (typeof mode === 'string' && mode.indexOf(':') > -1) {
+    // Mode "classe:chapitre" — banque ciblée par chapitre du programme
+    const [classe, chap] = mode.split(':');
+    qs = getChapterQuestions(classe, chap);
   } else {
     rawQs = QUESTIONS[mode] ? [...QUESTIONS[mode]] : [];
+    qs = rawQs.map(q => adaptQuestionToUniverse(q, currentUniverse));
   }
-  const qs = rawQs.map(q => adaptQuestionToUniverse(q, currentUniverse));
   // Mélange final
   for (let i = qs.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -3099,8 +3519,54 @@ function startGame(mode) {
 }
 
 function getModeLabel(mode) {
+  if (typeof mode === 'string' && mode.indexOf(':') > -1) {
+    const [classe, chap] = mode.split(':');
+    const meta = (CHAPTER_LABELS[classe] && CHAPTER_LABELS[classe][chap]) || null;
+    return meta ? `${meta.emoji} ${meta.name} (${classe})` : `${classe} - ${chap}`;
+  }
   const labels = { '6e_facile': 'Académie (6ème)', '5e_medium': 'Genin (5ème)', 'mixte_difficile': 'Chunin (Mix)', 'boss': 'Mode Boss', 'libre': 'Entraînement libre' };
   return labels[mode] || mode;
+}
+
+// ── Mode "chapitre" : démarre un QCM ciblé sur un chapitre du programme ──
+function startChapterQCM(classe, chapitre) {
+  startGame(`${classe}:${chapitre}`);
+}
+
+// ── Sélection de la classe dans les onglets chapitre ──
+let activeChapterClass = '4e';
+function selectChapterClass(classe) {
+  activeChapterClass = classe;
+  document.querySelectorAll('.chapter-tab').forEach(b => {
+    const isActive = b.dataset.class === classe;
+    b.classList.toggle('active', isActive);
+    b.setAttribute('aria-selected', isActive ? 'true' : 'false');
+  });
+  renderChapterGrid();
+}
+
+function renderChapterGrid() {
+  const grid = document.getElementById('chapter-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  const chapters = QUESTIONS_BY_CHAPTER[activeChapterClass] || {};
+  const meta = CHAPTER_LABELS[activeChapterClass] || {};
+  Object.keys(chapters).forEach(ch => {
+    const m = meta[ch] || { emoji: '📖', name: ch, desc: '' };
+    const count = chapters[ch].length;
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'chapter-card';
+    card.setAttribute('aria-label', `${m.name} — ${count} questions (niveau ${activeChapterClass})`);
+    card.onclick = () => startChapterQCM(activeChapterClass, ch);
+    card.innerHTML = `
+      <span class="ch-emoji" aria-hidden="true">${m.emoji}</span>
+      <div class="ch-name">${m.name}</div>
+      <div class="ch-desc">${m.desc}</div>
+      <div class="ch-meta">${count} questions · ${activeChapterClass}</div>
+    `;
+    grid.appendChild(card);
+  });
 }
 
 // ══════════════════════════════
@@ -5908,6 +6374,8 @@ if ('serviceWorker' in navigator) {
   // Re-render univers + persos avec l'état restauré
   if (typeof renderUniverseGrid === 'function') renderUniverseGrid();
   if (typeof renderCharGrid === 'function') renderCharGrid();
+  // Render la grille des chapitres 4e/3e
+  if (typeof renderChapterGrid === 'function') renderChapterGrid();
   maybeShowTutorialOnLoad();
 })();
 
