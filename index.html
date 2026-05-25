@@ -1883,6 +1883,9 @@
       <button type="button" class="btn-control home-action-btn" onclick="openModal('modal-legal')" aria-label="Mentions légales et informations">
         <span aria-hidden="true">⚖️</span> Mentions légales
       </button>
+      <a href="mailto:contact@acs-dataformation.fr?subject=Feedback%20Anime%20Math%20Academy&amp;body=Bonjour%2C%0A%0AVoici%20mon%20retour%20sur%20Anime%20Math%20Academy%20%3A%0A%0A" class="btn-control home-action-btn" aria-label="Envoyer un retour par email" style="text-decoration:none;display:inline-flex">
+        <span aria-hidden="true">✉️</span> Feedback
+      </a>
       <button type="button" class="btn-control home-action-btn" id="stats-btn" onclick="showStatsScreen()" aria-label="Voir mes statistiques de progression">
         <span aria-hidden="true">📈</span> Mes stats
       </button>
@@ -5582,6 +5585,15 @@ const DRAW_MISSIONS = [
     feedback_ok: "Excellent ! Un angle aigu mesure entre 0° et 90°. Contrairement à l'angle obtus (90°-180°) il est plus petit qu'un angle droit.",
     feedback_bad: "L'angle que tu as tracé est trop grand (≥ 90°). Un angle aigu doit être inférieur à 90° — comme les pointes d'une kunai !",
     xp: 110
+  },
+  {
+    title: "Bissectrice d'un angle",
+    instruction: "Trace la <strong>bissectrice</strong> de l'angle formé par les deux segments. Une bissectrice divise un angle en <strong>deux angles égaux</strong>.",
+    guide: { type: 'angle_free', max: 89 },
+    tolerance: 4,  /* tolérance en degrés sur la mesure */
+    feedback_ok: "Bravo ! La bissectrice partage l'angle en deux parties égales. C'est un outil indispensable en géométrie 5e/4e (notamment pour les médiatrices et triangles inscriptibles).",
+    feedback_bad: "Pas tout à fait. La bissectrice doit passer par le sommet ET diviser l'angle en deux parties égales. Astuce : avec un compas, on trace 2 arcs égaux puis on relie leur intersection au sommet.",
+    xp: 90
   }
 ];
 
@@ -8118,6 +8130,123 @@ const STORY_MISSIONS = [
         feedback: "PGCD(84, 126) = 42. Donc 84/126 = (84÷42)/(126÷42) = <strong>2/3</strong>. Une fraction est irréductible quand numérateur et dénominateur sont premiers entre eux."
       }
     ]
+  },
+  {
+    title: "🎌 Le tournoi des techniques secrètes",
+    decor: "🎌",
+    intro: "<em>Konoha</em> organise un grand tournoi annuel. <em>Iruka</em> est nommé arbitre et doit organiser les résultats des 6ème années. Aide-le à gérer les statistiques de manière équitable.",
+    steps: [
+      {
+        narrative: "Sur 24 candidats inscrits, on doit former des équipes de taille identique. <em>Iruka</em> veut le plus grand nombre d'équipiers possible.",
+        question: "Combien d'élèves dans chaque équipe (en utilisant tous les candidats) ?",
+        type: "Multiples",
+        answers: ["Toutes les divisions de 24", "1, 2, 3, 4, 6, 8, 12, 24", "12", "24"],
+        correct: 1,
+        feedback: "On cherche les <strong>diviseurs de 24</strong> : 1, 2, 3, 4, 6, 8, 12, 24. Chaque diviseur est une taille d'équipe possible. Pour des équipes nombreuses : 8 équipes de 3, 6 équipes de 4, 4 équipes de 6, 3 équipes de 8, 2 équipes de 12, 1 équipe de 24."
+      },
+      {
+        narrative: "Après le tournoi, voici les scores sur 100 des 5 finalistes : <span class='math'>72, 88, 65, 91, 84</span>.",
+        question: "Quelle est la moyenne ?",
+        type: "Moyenne",
+        answers: ["80", "84", "78", "85"],
+        correct: 0,
+        feedback: "Moyenne = somme / nombre = (72+88+65+91+84) / 5 = 400 / 5 = <strong>80</strong>."
+      },
+      {
+        narrative: "Pour récompenser, <em>Iruka</em> dispose de 60 médailles et veut les distribuer également entre les 12 meilleurs.",
+        question: "Combien de médailles par lauréat ?",
+        type: "Division",
+        answers: ["5", "6", "4", "12"],
+        correct: 0,
+        feedback: "60 ÷ 12 = <strong>5 médailles</strong> par lauréat. Division exacte."
+      },
+      {
+        narrative: "Chaque médaille pèse 80 g. Combien pèsent les 5 médailles d'un lauréat ?",
+        question: "Poids total :",
+        type: "Calcul mental",
+        answers: ["400 g", "85 g", "16 g", "350 g"],
+        correct: 0,
+        feedback: "5 × 80 g = <strong>400 g</strong>, soit 0,4 kg. Simple multiplication."
+      }
+    ]
+  },
+  {
+    title: "📐 Construction du pont d'Iruka",
+    decor: "📐",
+    intro: "<em>Iruka</em> doit construire un nouveau pont entre deux falaises. Il a besoin de tes compétences en <strong>géométrie 4e</strong> (Pythagore, équations, transformations) pour vérifier ses plans.",
+    steps: [
+      {
+        narrative: "Les deux piliers du pont mesurent <span class='math'>20 m</span> de haut. La distance horizontale entre eux est <span class='math'>15 m</span>. <em>Iruka</em> veut un câble droit du sommet d'un pilier au pied de l'autre.",
+        question: "Quelle longueur de câble lui faut-il ?",
+        type: "Pythagore",
+        answers: ["25 m", "35 m", "23 m", "Pas calculable"],
+        correct: 0,
+        feedback: "Triangle rectangle : câble² = 20² + 15² = 400 + 225 = 625. Câble = √625 = <strong>25 m</strong>. Triangle 15-20-25 (5 × (3-4-5))."
+      },
+      {
+        narrative: "Le coût du câble est de <span class='math'>8 ryos/mètre</span>. <em>Iruka</em> dispose d'un budget x.",
+        question: "Si 8x − 60 = 140, quel est le budget x ?",
+        type: "Équations",
+        answers: ["25 ryos", "20 ryos", "10 ryos", "100 ryos"],
+        correct: 0,
+        feedback: "8x − 60 = 140, donc 8x = 200, donc x = <strong>25 ryos</strong>. Vérif : 8 × 25 − 60 = 200 − 60 = 140 ✓."
+      },
+      {
+        narrative: "<em>Iruka</em> dispose le pont sur le plan : il translate l'image initiale du pont par un vecteur (3 ; −2) pour le placer correctement.",
+        question: "Si le pilier de gauche était en A(2 ; 5), où est-il maintenant ?",
+        type: "Translation",
+        answers: ["(5 ; 3)", "(5 ; 7)", "(−1 ; 7)", "(2 ; 3)"],
+        correct: 0,
+        feedback: "Translation par vecteur (3 ; −2) : on ajoute les coordonnées. A' = (2+3 ; 5−2) = <strong>(5 ; 3)</strong>."
+      },
+      {
+        narrative: "Pour estimer la distance Terre-Lune utilisée dans une démo, <em>Iruka</em> écrit : <span class='math'>3,84 × 10⁵ km</span>.",
+        question: "Combien de km en notation décimale ?",
+        type: "Notation scientifique",
+        answers: ["384 000 km", "38 400 km", "3 840 000 km", "384 km"],
+        correct: 0,
+        feedback: "3,84 × 10⁵ = 3,84 × 100 000 = <strong>384 000 km</strong>. On décale la virgule de 5 rangs vers la droite."
+      }
+    ]
+  },
+  {
+    title: "🏆 L'épreuve finale du Sannin",
+    decor: "🏆",
+    intro: "<em>Tsunade</em>, l'une des Sannin légendaires, propose une <strong>épreuve finale niveau DNB</strong> mêlant Thalès, trigonométrie et fonctions. Saurez-vous prouver votre maîtrise ?",
+    steps: [
+      {
+        narrative: "<em>Tsunade</em> dessine un triangle ABC, place M sur [AB] et N sur [AC]. Les valeurs : AM=4, MB=8, AN=3.",
+        question: "Si (MN) // (BC), combien vaut AC ?",
+        type: "Thalès",
+        answers: ["9", "11", "12", "5"],
+        correct: 0,
+        feedback: "Thalès : AM/AB = AN/AC. AB = AM + MB = 12. Donc 4/12 = 3/AC. Donc AC = (3 × 12) / 4 = 36/4 = <strong>9</strong>."
+      },
+      {
+        narrative: "Pour vérifier, elle mesure l'angle BAC et trouve cos(BAC) = 0,8.",
+        question: "Que vaut sin(BAC) ?",
+        type: "Trigonométrie",
+        answers: ["0,6", "0,8", "0,2", "1,8"],
+        correct: 0,
+        feedback: "Relation fondamentale : cos² + sin² = 1. Donc sin² = 1 − 0,64 = 0,36. sin = √0,36 = <strong>0,6</strong>. Triangle 3-4-5 reconnaissable (cos = 4/5 = 0,8, sin = 3/5 = 0,6)."
+      },
+      {
+        narrative: "<em>Tsunade</em> définit une fonction f par f(x) = 2x − 5 et demande son antécédent de 9.",
+        question: "Quel est l'antécédent de 9 par f ?",
+        type: "Fonctions",
+        answers: ["7", "13", "−7", "2"],
+        correct: 0,
+        feedback: "On résout f(x) = 9 : 2x − 5 = 9 → 2x = 14 → x = <strong>7</strong>. Vérif : f(7) = 14 − 5 = 9 ✓."
+      },
+      {
+        narrative: "Dernière épreuve : factorise <span class='math'>x² − 49</span>.",
+        question: "Forme factorisée :",
+        type: "Identités",
+        answers: ["(x − 7)(x + 7)", "(x − 7)²", "(x + 49)(x − 1)", "Impossible"],
+        correct: 0,
+        feedback: "Identité a² − b² = (a−b)(a+b). Ici x² − 7² = <strong>(x − 7)(x + 7)</strong>. Cette factorisation permet de résoudre les équations produit-nul comme x² − 49 = 0 → x = 7 ou x = −7."
+      }
+    ]
   }
 ];
 
@@ -9621,6 +9750,44 @@ const PROBA_SCENARIOS = [
       answers: ["2/9", "1/2", "2/3 + 1/3", "1/3"],
       correct: 0,
       feedback: "Événements indépendants → multiplication : P(pile et ≤2) = 2/3 × 1/3 = <strong>2/9</strong>. Sur un dé, P(≤2) = P(1 ou 2) = 2/6 = 1/3."
+    }
+  },
+  {
+    title: "Roue de la fortune",
+    context: "Une roue est divisée en <strong>6 secteurs égaux</strong> : 3 rouges (R), 2 bleus (B), 1 vert (V). On fait <strong>2 tours</strong> de roue indépendants.",
+    branches: {
+      'lvl1-A': { label: 'R', desc: '1er tour : rouge', prob: '3/6' },
+      'lvl1-B': { label: 'B+V', desc: '1er tour : non-rouge', prob: '3/6' },
+      'lvl2-AA': { label: 'RR', desc: 'puis rouge', prob: '3/6', parent: 'lvl1-A' },
+      'lvl2-AB': { label: 'R+autre', desc: 'puis non-rouge', prob: '3/6', parent: 'lvl1-A' },
+      'lvl2-BA': { label: 'autre+R', desc: 'puis rouge', prob: '3/6', parent: 'lvl1-B' },
+      'lvl2-BB': { label: 'autre×2', desc: 'puis non-rouge', prob: '3/6', parent: 'lvl1-B' }
+    },
+    pool: ['3/6', '3/6', '3/6', '3/6', '3/6', '3/6'],
+    question: {
+      text: "Quelle est la probabilité d'obtenir <strong>2 rouges d'affilée</strong> ?",
+      answers: ["9/36 = 1/4", "3/6 + 3/6", "6/12 = 1/2", "3/12"],
+      correct: 0,
+      feedback: "Tirages indépendants → multiplication : P(RR) = 3/6 × 3/6 = 9/36 = <strong>1/4</strong>. Note : 3/6 = 1/2, donc on a aussi 1/2 × 1/2 = 1/4."
+    }
+  },
+  {
+    title: "Boîte d'examens DNB",
+    context: "Dans une boîte, 5 examens du brevet 2026 + 3 examens 2027. <em>Naruto</em> en tire 2 <strong>sans remise</strong> pour s'entraîner.",
+    branches: {
+      'lvl1-A': { label: '2026', desc: '1er : brevet 2026', prob: '5/8' },
+      'lvl1-B': { label: '2027', desc: '1er : brevet 2027', prob: '3/8' },
+      'lvl2-AA': { label: '26-26', desc: 'puis 2026', prob: '4/7', parent: 'lvl1-A' },
+      'lvl2-AB': { label: '26-27', desc: 'puis 2027', prob: '3/7', parent: 'lvl1-A' },
+      'lvl2-BA': { label: '27-26', desc: 'puis 2026', prob: '5/7', parent: 'lvl1-B' },
+      'lvl2-BB': { label: '27-27', desc: 'puis 2027', prob: '2/7', parent: 'lvl1-B' }
+    },
+    pool: ['5/8', '3/8', '4/7', '3/7', '5/7', '2/7'],
+    question: {
+      text: "Probabilité que <em>Naruto</em> tire <strong>2 examens de 2027</strong> ?",
+      answers: ["6/56 = 3/28", "3/8 + 2/7", "1/4", "9/56"],
+      correct: 0,
+      feedback: "Sans remise : P(2027 puis 2027) = 3/8 × 2/7 = 6/56 = <strong>3/28</strong> ≈ 10,7%. Multiplication le long de la branche, mais la 2e proba change car on a retiré un examen."
     }
   }
 ];
