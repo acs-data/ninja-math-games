@@ -1360,9 +1360,11 @@
     <!-- NOUVEAU : Sélecteur par chapitre (4e/3e)            -->
     <!-- ═══════════════════════════════════════════════════ -->
     <div style="width:100%;max-width:560px">
-      <p class="section-label">📚 Réviser par chapitre <span style="background:var(--yellow);color:var(--dark);font-size:.55rem;padding:2px 7px;border-radius:6px;margin-left:6px;letter-spacing:1px;font-weight:900">NOUVEAU 4e/3e</span></p>
+      <p class="section-label">📚 Réviser par chapitre <span style="background:var(--yellow);color:var(--dark);font-size:.55rem;padding:2px 7px;border-radius:6px;margin-left:6px;letter-spacing:1px;font-weight:900">6e → 3e · DNB</span></p>
       <div class="chapter-tabs" role="tablist" aria-label="Niveau de classe">
-        <button type="button" class="chapter-tab active" data-class="4e" onclick="selectChapterClass('4e')" role="tab" aria-selected="true">📘 4ème</button>
+        <button type="button" class="chapter-tab active" data-class="6e" onclick="selectChapterClass('6e')" role="tab" aria-selected="true">🟢 6ème</button>
+        <button type="button" class="chapter-tab" data-class="5e" onclick="selectChapterClass('5e')" role="tab" aria-selected="false">🔵 5ème</button>
+        <button type="button" class="chapter-tab" data-class="4e" onclick="selectChapterClass('4e')" role="tab" aria-selected="false">📘 4ème</button>
         <button type="button" class="chapter-tab" data-class="3e" onclick="selectChapterClass('3e')" role="tab" aria-selected="false">📕 3ème (DNB)</button>
       </div>
       <div class="chapter-grid" id="chapter-grid" role="tabpanel">
@@ -3140,6 +3142,22 @@ const QUESTIONS_BY_CHAPTER = {
 
 // Métadonnées d'affichage des chapitres (UI sélecteur)
 const CHAPTER_LABELS = {
+  '6e': {
+    'decimaux_6e':       { emoji: '🔢', name: 'Décimaux', desc: 'Ordre, comparaisons, opérations' },
+    'fractions_6e':      { emoji: '🍰', name: 'Fractions', desc: 'Sens, équivalences, addition' },
+    'calcul_nombres_6e': { emoji: '🧮', name: 'Calcul & nombres', desc: 'Calcul mental, PGCD, multiples, division' },
+    'geometrie_6e':      { emoji: '📐', name: 'Géométrie', desc: 'Symétrie axiale, angles, aires, volumes, périmètres' },
+    'stats_probas_6e':   { emoji: '📊', name: 'Statistiques & probabilités', desc: 'Moyenne, probas initiation' },
+    'applications_6e':   { emoji: '⚖️', name: 'Proportionnalité & pré-algèbre', desc: 'Tableaux, énigmes, conversions' }
+  },
+  '5e': {
+    'relatifs':          { emoji: '➕', name: 'Nombres relatifs', desc: 'Addition, soustraction, produit' },
+    'fractions_5e':      { emoji: '🍰', name: 'Fractions (4 opérations)', desc: 'Addition, multiplication, division' },
+    'puissances_5e':     { emoji: '⚡', name: 'Puissances entières', desc: 'Exposants, puissances de 10' },
+    'algebre_5e':        { emoji: '✏️', name: 'Calcul littéral & équations', desc: 'Substitution, développement, équations 1er degré' },
+    'geometrie_5e':      { emoji: '📐', name: 'Géométrie', desc: 'Symétrie centrale, somme angles triangle' },
+    'applications_5e':   { emoji: '⚖️', name: 'Pourcentages, vitesse', desc: 'Proportionnalité, vitesse, %' }
+  },
   '4e': {
     'pythagore':              { emoji: '🔺', name: 'Théorème de Pythagore', desc: 'Calcul hypoténuse et côtés, réciproque' },
     'puissances_scientifique':{ emoji: '🔬', name: 'Puissances & notation scientifique', desc: '10ⁿ, multiplication, division' },
@@ -3157,6 +3175,107 @@ const CHAPTER_LABELS = {
     'arithmetique_3e':        { emoji: '🔍', name: 'Arithmétique', desc: 'PGCD, fractions irréductibles, premiers' }
   }
 };
+
+// ─── Auto-bucketing des questions legacy 6e/5e par chapitre (basé sur le champ `type`) ───
+// On évite de dupliquer le contenu : on indexe les banques 6e_facile et 5e_medium
+// dans QUESTIONS_BY_CHAPTER pour les exposer dans le sélecteur par chapitre.
+const TYPE_TO_CHAPTER_6E = {
+  // Décimaux
+  'Décimaux': 'decimaux_6e',
+  // Fractions
+  'Fractions': 'fractions_6e',
+  'Fractions équivalentes': 'fractions_6e',
+  'Fractions ×': 'fractions_6e',
+  // Calcul & nombres
+  'Calcul mental': 'calcul_nombres_6e',
+  'Calcul posé': 'calcul_nombres_6e',
+  'Multiples': 'calcul_nombres_6e',
+  'Divisibilité': 'calcul_nombres_6e',
+  'Division': 'calcul_nombres_6e',
+  'PGCD': 'calcul_nombres_6e',
+  'Conversions': 'calcul_nombres_6e',
+  'Conversion': 'calcul_nombres_6e',
+  // Géométrie
+  'Géométrie': 'geometrie_6e',
+  'Symétrie': 'geometrie_6e',
+  'Symétrie axiale': 'geometrie_6e',
+  'Angles': 'geometrie_6e',
+  'Aires': 'geometrie_6e',
+  'Volume': 'geometrie_6e',
+  'Volumes': 'geometrie_6e',
+  'Périmètre cercle': 'geometrie_6e',
+  'Triangle': 'geometrie_6e',
+  // Stats & probas
+  'Statistiques': 'stats_probas_6e',
+  'Moyenne': 'stats_probas_6e',
+  'Probabilités': 'stats_probas_6e',
+  // Applications
+  'Proportionnalité': 'applications_6e',
+  'Pré-algèbre': 'applications_6e'
+};
+
+const TYPE_TO_CHAPTER_5E = {
+  // Relatifs
+  'Nombres relatifs': 'relatifs',
+  'Relatifs ×': 'relatifs',
+  'Relatifs +/−': 'relatifs',
+  // Fractions
+  'Fractions': 'fractions_5e',
+  'Fractions ×': 'fractions_5e',
+  'Fractions ÷': 'fractions_5e',
+  'Fractions avancées': 'fractions_5e',
+  'Fractions +': 'fractions_5e',
+  'Fraction d\'un nombre': 'fractions_5e',
+  // Puissances
+  'Puissances': 'puissances_5e',
+  'Puissances de 10': 'puissances_5e',
+  'Puissances + relatifs': 'puissances_5e',
+  'Puissances ×': 'puissances_5e',
+  // Algèbre
+  'Calcul littéral': 'algebre_5e',
+  'Développement': 'algebre_5e',
+  'Priorités': 'algebre_5e',
+  'Priorités opératoires': 'algebre_5e',
+  'Équations': 'algebre_5e',
+  'Équations parenthèses': 'algebre_5e',
+  'Factorisation': 'algebre_5e',
+  // Géométrie
+  'Angles triangle': 'geometrie_5e',
+  'Angles': 'geometrie_5e',
+  'Triangle': 'geometrie_5e',
+  'Symétrie centrale': 'geometrie_5e',
+  'Pythagore': 'geometrie_5e',  // Présent dans le legacy 5e_medium (héritage). À déplacer en 4e éventuellement.
+  // Applications
+  'Pourcentages': 'applications_5e',
+  'Proportionnalité': 'applications_5e',
+  'Vitesse': 'applications_5e',
+  'Vitesse moyenne': 'applications_5e',
+  'Échelles': 'applications_5e',
+  'Fréquence': 'applications_5e',
+  // Probabilités (introduites dès la 5e)
+  'Probabilités': 'applications_5e',
+  'Probabilités composées': 'applications_5e'
+};
+
+(function buildChaptersFromLegacy() {
+  const buckets6 = {};
+  const buckets5 = {};
+  // Initialiser tous les chapitres pour qu'ils apparaissent même vides (mais on n'affichera que ceux non vides)
+  (QUESTIONS['6e_facile'] || []).forEach(q => {
+    const ch = TYPE_TO_CHAPTER_6E[q.type];
+    if (!ch) return; // type non mappé : on ignore (sécurité)
+    if (!buckets6[ch]) buckets6[ch] = [];
+    buckets6[ch].push(q);
+  });
+  (QUESTIONS['5e_medium'] || []).forEach(q => {
+    const ch = TYPE_TO_CHAPTER_5E[q.type];
+    if (!ch) return;
+    if (!buckets5[ch]) buckets5[ch] = [];
+    buckets5[ch].push(q);
+  });
+  QUESTIONS_BY_CHAPTER['6e'] = buckets6;
+  QUESTIONS_BY_CHAPTER['5e'] = buckets5;
+})();
 
 // Helper : retourne le pool de questions d'un chapitre adapté à l'univers actif
 function getChapterQuestions(classe, chapitre) {
@@ -3697,7 +3816,7 @@ function startChapterQCM(classe, chapitre) {
 }
 
 // ── Sélection de la classe dans les onglets chapitre ──
-let activeChapterClass = '4e';
+let activeChapterClass = '6e';
 function selectChapterClass(classe) {
   activeChapterClass = classe;
   document.querySelectorAll('.chapter-tab').forEach(b => {
