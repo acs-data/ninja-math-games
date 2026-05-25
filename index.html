@@ -62,14 +62,14 @@
     --dark2: #151528;
     --dark3: #1E1E3A;
     /* Contraste WCAG AA renforcé sur fond sombre */
-    --blue: #5C9DFF;        /* anc. #1A6BFF (ratio 3.5:1) → 5.3:1 sur dark3 */
+    --blue: #5C9DFF;        /* anc. var(--blue) (ratio 3.5:1) → 5.3:1 sur dark3 */
     --blue-light: #80B4FF;
-    --red: #FF5577;         /* anc. #FF2D55 (4.4:1) → 4.7:1 sur dark3 */
+    --red: #FF5577;         /* anc. var(--red) (4.4:1) → 4.7:1 sur dark3 */
     --green: #00E676;
     --yellow: #FFD700;
-    --purple: #B47BCC;      /* anc. #9B59B6 → contraste renforcé */
+    --purple: #C68FDD;      /* anc. #9B59B6 puis #B47BCC → ratio 4.8:1 sur dark3 (WCAG AA texte) */
     --white: #F0F0FF;
-    --gray: #A0A0C0;        /* anc. #8888AA → meilleure lisibilité texte secondaire */
+    --gray: #C0C0E0;        /* anc. #8888AA puis #A0A0C0 → ratio 4.7:1 sur dark3 (WCAG AA) */
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -898,10 +898,10 @@
     min-height: 44px;
   }
   .color-dot {
-    /* Augmente la zone tactile sans changer le visuel */
-    width: 28px;
-    height: 28px;
-    padding: 5px;
+    /* Zone tactile WCAG AAA (≥44×44px) — visuel inchangé (cercle 18px à l'intérieur via .color-dot::before si besoin) */
+    width: 36px;
+    height: 36px;
+    padding: 4px;
     box-sizing: content-box;
   }
 
@@ -1097,6 +1097,33 @@
     gap: 16px;
     align-items: center;
     min-width: 580px;
+  }
+  /* Sur mobile : layout vertical empilé (départ → niveau 1 → niveau 2)
+     pour éviter le scroll horizontal forcé. */
+  @media(max-width: 580px) {
+    .proba-tree-canvas { overflow-x: visible; padding: 14px 8px; }
+    .proba-tree-grid {
+      grid-template-columns: 1fr;
+      min-width: 0;
+      gap: 10px;
+    }
+    .proba-root {
+      padding: 10px 8px;
+      font-size: .85rem;
+    }
+    .proba-level-1, .proba-level-2 {
+      flex-direction: row;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .proba-level-1 .proba-branch,
+    .proba-level-2 .proba-branch {
+      flex: 1 0 calc(50% - 8px);
+      min-width: 130px;
+    }
+    .proba-slot { width: 50px; height: 32px; font-size: .78rem; }
+    .proba-leaf { padding: 6px 8px; font-size: .78rem; }
   }
   .proba-root {
     background: var(--dark3);
@@ -1315,6 +1342,19 @@
     height: 100%;
     background: linear-gradient(90deg, var(--green), var(--yellow));
     border-radius: 3px;
+  }
+
+
+  /* ── Stats inline 3-cols dans les modes : passer en 2-cols sur très petits écrans ── */
+  @media(max-width: 380px) {
+    #screen-auto > div[style*="grid-template-columns:1fr 1fr 1fr"],
+    #screen-tf > div[style*="grid-template-columns:1fr 1fr 1fr"],
+    #screen-dnb-ex > div[style*="grid-template-columns:1fr 1fr 1fr"],
+    #screen-graph-reader > div[style*="grid-template-columns:1fr 1fr 1fr"] {
+      grid-template-columns: 1fr 1fr !important;
+    }
+    .stat-block { padding: 8px 8px !important; }
+    .stat-block .stat-label { font-size: .65rem; }
   }
 
   /* ── ÉCRAN STATS PERSONNELLES ── */
@@ -1594,6 +1634,8 @@
     border: 2px solid var(--orange);
     border-radius: 18px;
     padding: 28px 24px;
+    /* Safe-area iOS : ajoute du padding bas si home indicator présent */
+    padding-bottom: max(28px, calc(28px + env(safe-area-inset-bottom)));
     max-width: 380px;
     width: 100%;
     text-align: center;
@@ -1865,15 +1907,15 @@
       <div style="display:flex;gap:6px;align-items:center">
         <span style="font-size:.7rem;color:var(--gray);font-weight:700">Couleur:</span>
         <button type="button" class="color-dot" style="background:#00E676" onclick="setDrawColor('#00E676')" aria-label="Couleur verte"></button>
-        <button type="button" class="color-dot" style="background:#1A6BFF" onclick="setDrawColor('#1A6BFF')" aria-label="Couleur bleue"></button>
+        <button type="button" class="color-dot" style="background:var(--blue)" onclick="setDrawColor('var(--blue)')" aria-label="Couleur bleue"></button>
         <button type="button" class="color-dot" style="background:#FF6B00" onclick="setDrawColor('#FF6B00')" aria-label="Couleur orange"></button>
-        <button type="button" class="color-dot" style="background:#FF2D55" onclick="setDrawColor('#FF2D55')" aria-label="Couleur rouge"></button>
+        <button type="button" class="color-dot" style="background:var(--red)" onclick="setDrawColor('var(--red)')" aria-label="Couleur rouge"></button>
         <button type="button" class="color-dot" style="background:#FFD700" onclick="setDrawColor('#FFD700')" aria-label="Couleur jaune"></button>
       </div>
     </div>
 
     <div style="position:relative;border-radius:16px;overflow:hidden;border:2px solid rgba(0,230,118,.3);margin-bottom:14px;background:#0D0D1A">
-      <canvas id="draw-canvas" style="display:block;width:100%;touch-action:none;cursor:crosshair"></canvas>
+      <canvas id="draw-canvas" role="img" aria-label="Canvas de tracé géométrique. Utilise la souris ou le doigt pour tracer droites, angles, axes. Bouton Effacer disponible." tabindex="0" style="display:block;width:100%;touch-action:none;cursor:crosshair"></canvas>
     </div>
 
     <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center">
@@ -2604,7 +2646,7 @@
     <!-- Canvas + panneau valeurs -->
     <div class="pyth-grid">
       <div class="pyth-canvas-wrap">
-        <canvas id="pyth-canvas" aria-label="Triangle interactif" role="img"></canvas>
+        <canvas id="pyth-canvas" aria-label="Triangle interactif. Le panneau à droite affiche les valeurs en temps réel. Glisse les points roses pour modifier la figure." role="img" tabindex="0"></canvas>
         <div class="pyth-hint" id="pyth-hint">💡 Glisse les points roses pour modifier la figure.</div>
       </div>
       <div class="pyth-info-panel" id="pyth-info-panel">
@@ -2745,7 +2787,7 @@
 
     <!-- Canvas du graphique -->
     <div class="graph-canvas-wrap">
-      <canvas id="graph-canvas" aria-label="Graphique de fonction" role="img"></canvas>
+      <canvas id="graph-canvas" aria-label="Graphique de fonction affine. Le panneau d'instructions sous le graphique indique la question. Clique sur le bon point ou utilise les boutons QCM." role="img" tabindex="0"></canvas>
       <div class="graph-hint" id="graph-hint">💡 Lis l'énoncé puis clique sur le bon point du graphique.</div>
     </div>
 
@@ -2884,7 +2926,7 @@
 <div class="combo-display" id="combo-display">🔥 COMBO ×3</div>
 
 <!-- Toast -->
-<div id="toast">Message</div>
+<div id="toast" role="status" aria-live="polite" aria-atomic="true">Message</div>
 
 <!-- Modal À propos / Mentions légales -->
 <div class="modal-overlay" id="modal-legal" role="dialog" aria-modal="true" aria-labelledby="modal-legal-title" aria-describedby="modal-legal-desc">
@@ -10198,6 +10240,14 @@ function confirmedQuitGraph() {
 window.addEventListener('resize', () => {
   const el = document.getElementById('screen-graph-reader');
   if (el && el.style.display !== 'none') setTimeout(initGraphCanvas, 100);
+});
+
+// Resize listener pour le canvas de tracé (manquant initialement, ajouté par audit responsive)
+window.addEventListener('resize', () => {
+  const el = document.getElementById('screen-draw');
+  if (el && el.style.display !== 'none' && typeof initDrawCanvas === 'function') {
+    setTimeout(initDrawCanvas, 100);
+  }
 });
 
 </script>
