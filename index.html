@@ -11314,26 +11314,16 @@ function selectMissionClass(classe) {
   renderMissionChips();
 }
 
-// Attache les listeners sur les onglets de classe via addEventListener
-// plutôt qu'avec des inline onclick — plus fiable sur iOS Safari où
-// certains taps semblaient ne pas déclencher les inline handlers.
-(function bindMissionTabs() {
-  function bind() {
-    document.querySelectorAll('.mission-tabs .mission-tab').forEach(btn => {
-      if (btn._bound) return;
-      btn._bound = true;
-      btn.addEventListener('click', () => {
-        const cls = btn.dataset.classe;
-        if (cls) selectMissionClass(cls);
-      });
-    });
+// Délégation d'événements au niveau document : intercepte tous les clics
+// sur .mission-tab[data-classe], y compris si le click cible un enfant
+// (emoji ou span). Impossible à bloquer par CSS pointer-events sur les
+// enfants. Fonctionne sur tous les navigateurs (desktop et mobile).
+document.addEventListener('click', function(e) {
+  const tab = e.target.closest && e.target.closest('.mission-tab[data-classe]');
+  if (tab && typeof selectMissionClass === 'function') {
+    selectMissionClass(tab.dataset.classe);
   }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bind);
-  } else {
-    bind();
-  }
-})();
+});
 
 function renderMissionChips() {
   const grid = document.getElementById('mission-chips');
