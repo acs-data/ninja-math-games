@@ -351,6 +351,170 @@
     text-shadow: 0 0 20px rgba(255,107,0,.6), 2px 2px 0 var(--dark);
   }
   .logo span { color: var(--white); }
+  /* Logo cliquable : reset style bouton, garde l'apparence Bangers */
+  .logo-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
+    color: var(--orange);
+    transition: transform var(--transition-fast);
+    text-align: left;
+  }
+  @media (hover: hover) {
+    .logo-btn:hover { transform: scale(1.04); }
+  }
+  .logo-btn:active { transform: scale(0.98); }
+  .logo-btn:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 4px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Icône compact dans la HUD (ex. ✉️ Feedback) */
+  .hud-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-pill);
+    background: var(--dark3);
+    border: 1px solid var(--border-soft);
+    color: var(--white);
+    text-decoration: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+  }
+  @media (hover: hover) {
+    .hud-icon-btn:hover {
+      border-color: var(--orange);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(255, 107, 0, 0.25);
+    }
+  }
+  .hud-icon-btn:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 3px;
+  }
+  /* Compact sur mobile : icône légèrement plus petite */
+  @media(max-width: 480px) {
+    .hud-icon-btn { width: 32px; height: 32px; font-size: 1rem; }
+  }
+  /* Burger menu : taille légèrement plus grande pour la lisibilité */
+  #topbar-menu-btn { font-size: 1.4rem; line-height: 1; }
+  @media(max-width: 480px) {
+    #topbar-menu-btn { font-size: 1.25rem; }
+  }
+
+  /* ─── Drawer latéral (menu burger) ─── */
+  .drawer-overlay {
+    /* Hérite de .modal-overlay : position:fixed, inset:0, backdrop, z-index 1000 */
+    /* On override l'alignement pour coller à droite */
+    justify-content: flex-end;
+    align-items: stretch;
+    padding: 0;
+  }
+  .drawer-panel {
+    background: var(--dark2);
+    width: min(340px, 88vw);
+    max-width: 340px;
+    height: 100vh;
+    box-shadow: -8px 0 32px rgba(0,0,0,.5);
+    border-left: 3px solid var(--orange);
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform var(--transition-base, .25s ease-out);
+    overflow-y: auto;
+  }
+  .drawer-overlay.show .drawer-panel { transform: translateX(0); }
+  .drawer-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border-soft);
+    background: linear-gradient(180deg, var(--dark3) 0%, var(--dark2) 100%);
+    flex-shrink: 0;
+  }
+  .drawer-head h3 {
+    margin: 0;
+    font-family: 'Bangers', Impact, 'Arial Black', cursive;
+    font-size: 1.4rem;
+    color: var(--orange);
+    letter-spacing: 1px;
+  }
+  .drawer-close {
+    background: transparent;
+    border: 1px solid var(--border-soft);
+    color: var(--white);
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-pill);
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+  }
+  @media (hover: hover) {
+    .drawer-close:hover { background: var(--orange); border-color: var(--orange); transform: rotate(90deg); }
+  }
+  .drawer-close:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 3px;
+  }
+  .drawer-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 12px 24px;
+  }
+  .drawer-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-md, 10px);
+    color: var(--white);
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    text-decoration: none;
+    transition: background var(--transition-fast), transform var(--transition-fast);
+    min-height: 48px;
+  }
+  @media (hover: hover) {
+    .drawer-item:hover {
+      background: var(--dark3);
+      transform: translateX(-4px);
+    }
+  }
+  .drawer-item:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: -2px;
+    background: var(--dark3);
+  }
+  .drawer-icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    width: 32px;
+    text-align: center;
+  }
+  .drawer-label {
+    flex: 1;
+    line-height: 1.3;
+  }
 
   .hud {
     display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
@@ -2050,7 +2214,7 @@
 <div id="app" role="application">
   <!-- HEADER HUD -->
   <header role="banner" aria-label="En-tête du jeu">
-    <div class="logo" id="main-logo" aria-label="Anime Math Academy">MATH<span>QUEST</span> 🎮</div>
+    <button type="button" class="logo logo-btn" id="main-logo" onclick="handleLogoClick()" aria-label="Anime Math Academy. Cliquer pour retourner à l'accueil.">MATH<span>QUEST</span> 🎮</button>
     <div class="hud" role="status" aria-label="Tableau de bord du joueur">
       <div class="hud-item" aria-label="Score"><span class="icon" aria-hidden="true">⭐</span><span class="val" id="hud-score" aria-live="polite">0</span></div>
       <div class="hud-item" aria-label="Combo"><span class="icon" aria-hidden="true">🔥</span><span class="val" id="hud-streak" aria-live="polite">×0</span></div>
@@ -2059,8 +2223,62 @@
         <div class="xp-bar"><div class="xp-fill" id="hud-xp" style="width:0%"></div></div>
         <span class="val" id="hud-level">Nv.1</span>
       </div>
+      <button type="button" class="hud-icon-btn" id="topbar-menu-btn" onclick="openTopbarMenu()" aria-label="Ouvrir le menu" aria-haspopup="dialog" aria-expanded="false" aria-controls="drawer-menu">
+        <span aria-hidden="true">☰</span>
+      </button>
     </div>
   </header>
+
+  <!-- Drawer latéral (menu burger) -->
+  <div class="modal-overlay drawer-overlay" id="drawer-menu" role="dialog" aria-modal="true" aria-labelledby="drawer-menu-title" onclick="if(event.target===this) closeTopbarMenu();">
+    <aside class="drawer-panel" aria-label="Menu principal">
+      <div class="drawer-head">
+        <h3 id="drawer-menu-title">Menu</h3>
+        <button type="button" class="drawer-close" onclick="closeTopbarMenu()" aria-label="Fermer le menu">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <nav class="drawer-body" aria-label="Actions du menu">
+        <button type="button" class="drawer-item" onclick="closeTopbarMenu(); openTutorial();">
+          <span class="drawer-icon" aria-hidden="true">❓</span>
+          <span class="drawer-label">Comment jouer</span>
+        </button>
+        <button type="button" class="drawer-item" onclick="closeTopbarMenu(); showStatsScreen();">
+          <span class="drawer-icon" aria-hidden="true">📈</span>
+          <span class="drawer-label">Mes statistiques</span>
+        </button>
+        <a class="drawer-item" href="mailto:contact@acs-dataformation.fr?subject=Feedback%20Anime%20Math%20Academy&amp;body=Bonjour%2C%0A%0AVoici%20mon%20retour%20sur%20Anime%20Math%20Academy%20%3A%0A%0A" onclick="closeTopbarMenu()">
+          <span class="drawer-icon" aria-hidden="true">✉️</span>
+          <span class="drawer-label">Envoyer un retour</span>
+        </a>
+        <button type="button" class="drawer-item" onclick="closeTopbarMenu(); openModal('modal-legal');">
+          <span class="drawer-icon" aria-hidden="true">⚖️</span>
+          <span class="drawer-label">À propos &amp; Mentions légales</span>
+        </button>
+        <button type="button" class="drawer-item" id="drawer-save-toggle" onclick="toggleSave(); updateDrawerSaveLabel();">
+          <span class="drawer-icon" aria-hidden="true" id="drawer-save-icon">💾</span>
+          <span class="drawer-label" id="drawer-save-label">Sauvegarde : OFF</span>
+        </button>
+        <button type="button" class="drawer-item" id="drawer-install-btn" onclick="closeTopbarMenu(); installPWA();" style="display:none">
+          <span class="drawer-icon" aria-hidden="true">📲</span>
+          <span class="drawer-label">Installer l'app</span>
+        </button>
+      </nav>
+    </aside>
+  </div>
+
+  <!-- Modal Retour à l'accueil (déclenché par le clic sur le logo en cours de partie) -->
+  <div class="modal-overlay" id="modal-back-home" role="dialog" aria-modal="true" aria-labelledby="modal-back-home-title" aria-describedby="modal-back-home-desc">
+    <div class="modal-card">
+      <div class="modal-emoji" aria-hidden="true">🏠</div>
+      <h3 id="modal-back-home-title">Retour à l'accueil ?</h3>
+      <p id="modal-back-home-desc">Tu vas quitter ta partie en cours. Ta progression de cette session ne sera pas conservée (sauf XP/niveau si sauvegarde activée).</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-main" onclick="closeModal('modal-back-home')" autofocus>↩️ NON, CONTINUER</button>
+        <button type="button" class="btn-sec btn-sec--danger" onclick="confirmedBackHome()">✓ Oui, retour accueil</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ÉCRAN ACCUEIL -->
   <main id="main-content" role="main">
@@ -4948,6 +5166,69 @@ function showHome() {
   showScreen('home');
 }
 
+// ─── Clic sur le logo (top bar) ───
+// Si on est sur l'écran d'accueil : scroll en haut (feedback visuel).
+// Sinon : ouvrir un modal de confirmation pour quitter la partie en cours.
+function handleLogoClick() {
+  const homeEl = document.getElementById('screen-home');
+  const onHome = homeEl && homeEl.style.display !== 'none';
+  if (onHome) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+  openModal('modal-back-home');
+}
+
+// Confirme et exécute le retour à l'accueil — gère les timers de tous les modes
+function confirmedBackHome() {
+  closeModal('modal-back-home');
+  // Nettoyage des timers actifs (selon le mode en cours)
+  if (typeof state !== 'undefined' && state.timer) { clearInterval(state.timer); state.timer = null; }
+  if (typeof autoState !== 'undefined') {
+    if (autoState.qTimer) clearInterval(autoState.qTimer);
+    if (autoState.globalTimer) clearInterval(autoState.globalTimer);
+  }
+  if (typeof tfState !== 'undefined' && tfState.timer) clearInterval(tfState.timer);
+  if (typeof puzzleState !== 'undefined' && puzzleState.timer) clearInterval(puzzleState.timer);
+  if (typeof dnbState !== 'undefined') dnbState.active = false;
+  showHome();
+  if (typeof track === 'function') track('logo_click_back_home');
+}
+
+// ─── Drawer (menu burger top bar) ───
+function openTopbarMenu() {
+  syncDrawerState();
+  const btn = document.getElementById('topbar-menu-btn');
+  if (btn) btn.setAttribute('aria-expanded', 'true');
+  openModal('drawer-menu');
+  if (typeof track === 'function') track('topbar_menu_open');
+}
+
+function closeTopbarMenu() {
+  const btn = document.getElementById('topbar-menu-btn');
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+  closeModal('drawer-menu');
+}
+
+// Met à jour le label "Sauvegarde : ON/OFF" et l'icône d'install PWA dans le drawer
+function syncDrawerState() {
+  updateDrawerSaveLabel();
+  const installBtn = document.getElementById('drawer-install-btn');
+  const homeInstallBtn = document.getElementById('install-pwa-btn');
+  if (installBtn && homeInstallBtn) {
+    installBtn.style.display = (homeInstallBtn.style.display === 'none' || !homeInstallBtn.style.display) ? 'none' : 'flex';
+  }
+}
+
+function updateDrawerSaveLabel() {
+  const label = document.getElementById('drawer-save-label');
+  const icon = document.getElementById('drawer-save-icon');
+  if (!label || !icon) return;
+  const on = typeof isSaveEnabled === 'function' && isSaveEnabled();
+  label.textContent = on ? 'Sauvegarde : ON' : 'Sauvegarde : OFF';
+  icon.textContent = on ? '💾' : '🚫';
+}
+
 function selectChar(el, char) {
   document.querySelectorAll('.char-card').forEach(c => {
     c.classList.remove('selected');
@@ -7292,6 +7573,8 @@ function trapFocus(e) {
     else if (modal.id === 'modal-reset-stats') closeModal('modal-reset-stats');
     else if (modal.id === 'modal-dnb-quit') closeModal('modal-dnb-quit');
     else if (modal.id === 'modal-graph-quit') closeModal('modal-graph-quit');
+    else if (modal.id === 'modal-back-home') closeModal('modal-back-home');
+    else if (modal.id === 'drawer-menu') closeTopbarMenu();
     return;
   }
   if (e.key !== 'Tab') return;
