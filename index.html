@@ -410,6 +410,33 @@
     #topbar-menu-btn { font-size: 1.25rem; }
   }
 
+  /* ─── Top bar — fix responsive mobile ─── */
+  /* Empêche le logo + HUD de wrapper sur plusieurs lignes */
+  header { flex-wrap: nowrap; gap: 8px; }
+  .logo { white-space: nowrap; }
+  .hud { flex-wrap: nowrap; }
+
+  @media(max-width: 600px) {
+    header {
+      padding: calc(8px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 8px calc(12px + env(safe-area-inset-left));
+      gap: 6px;
+    }
+    .logo { font-size: 1.25rem; letter-spacing: 1px; }
+    .hud { gap: 6px; }
+    .hud-item { padding: 3px 8px; font-size: .8rem; gap: 4px; }
+    .hud-item .icon { font-size: .85rem; }
+    .xp-bar { width: 50px; height: 6px; }
+    .xp-bar-wrap { gap: 5px; }
+  }
+  /* Sur mobile (<= 480px), on cache la barre XP visuelle —
+     on garde l'icône 💎 et le niveau "Nv.X". L'écran de stats
+     affiche la progression détaillée. */
+  @media(max-width: 480px) {
+    .xp-bar { display: none; }
+    .hud-item { padding: 3px 7px; font-size: .75rem; }
+    .logo { font-size: 1.15rem; letter-spacing: .5px; }
+  }
+
   /* ─── Drawer latéral (menu burger) ─── */
   .drawer-overlay {
     /* Hérite de .modal-overlay : position:fixed, inset:0, backdrop, z-index 1000 */
