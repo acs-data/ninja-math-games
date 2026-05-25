@@ -1057,6 +1057,113 @@
 
 
 
+
+  /* ── ARBRE DE PROBABILITÉS ── */
+  .proba-tree-canvas {
+    background: var(--dark2);
+    border: 2px solid rgba(155,89,182,.25);
+    border-radius: 14px;
+    padding: 20px 12px;
+    margin-bottom: 14px;
+    overflow-x: auto;
+  }
+  .proba-tree-grid {
+    display: grid;
+    grid-template-columns: 100px 1fr 1fr;
+    gap: 16px;
+    align-items: center;
+    min-width: 580px;
+  }
+  .proba-root {
+    background: var(--dark3);
+    border: 2px solid var(--purple);
+    color: var(--purple);
+    border-radius: 12px;
+    padding: 16px 12px;
+    font-family: 'Bangers', Impact, 'Arial Black', cursive;
+    font-size: .95rem;
+    text-align: center;
+    letter-spacing: 1px;
+  }
+  .proba-level-1, .proba-level-2 {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .proba-branch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+  }
+  .proba-slot {
+    width: 60px;
+    height: 36px;
+    background: var(--dark3);
+    border: 2px dashed rgba(155,89,182,.5);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bangers', Impact, 'Arial Black', cursive;
+    font-size: .85rem;
+    color: var(--gray);
+    cursor: pointer;
+    transition: all .2s;
+    flex-shrink: 0;
+  }
+  .proba-slot:hover { border-color: var(--purple); }
+  .proba-slot.drag-over { border-color: var(--yellow); background: rgba(255,215,0,.1); transform: scale(1.05); }
+  .proba-slot.filled { border-style: solid; border-color: var(--purple); background: rgba(155,89,182,.12); color: var(--white); }
+  .proba-slot.correct { border-color: var(--green); background: rgba(0,230,118,.12); color: var(--green); }
+  .proba-slot.wrong { border-color: var(--red); background: rgba(255,85,119,.12); color: var(--red); animation: wrongShake .4s; }
+  .proba-leaf {
+    background: var(--dark3);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-weight: 700;
+    font-size: .85rem;
+    color: var(--white);
+    flex: 1;
+  }
+  .proba-leaf .leaf-label { font-family: 'Bangers', Impact, 'Arial Black', cursive; color: var(--purple); margin-right: 6px; }
+  .proba-leaf .leaf-desc { color: var(--gray); font-size: .72rem; font-weight: 600; }
+  .proba-pool-label {
+    font-family: 'Bangers', Impact, 'Arial Black', cursive;
+    font-size: .9rem;
+    color: var(--purple);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .proba-pool {
+    background: var(--dark2);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 14px;
+    padding: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-height: 60px;
+  }
+  .proba-piece {
+    background: var(--dark3);
+    border: 2px solid rgba(155,89,182,.5);
+    color: var(--white);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-family: 'Bangers', Impact, 'Arial Black', cursive;
+    font-size: 1rem;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+    transition: all .2s;
+  }
+  .proba-piece:hover { border-color: var(--purple); transform: scale(1.05) rotate(-2deg); }
+  .proba-piece.dragging { opacity: .5; transform: scale(1.1); cursor: grabbing; }
+  .proba-piece.selected { border-color: var(--yellow); background: rgba(255,215,0,.12); }
+  .proba-piece.placed { opacity: .3; pointer-events: none; }
+
   /* ── ATELIER PYTHAGORE/THALÈS/TRIGO ── */
   .pyth-grid {
     display: grid;
@@ -1662,6 +1769,15 @@
             <span class="topic-badge" style="color:var(--green);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.1)">Pythagore</span>
             <span class="topic-badge" style="color:var(--green);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.1)">Thalès</span>
             <span class="topic-badge" style="color:var(--green);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.1)">Trigo</span>
+          </div>
+        </div>
+        <div class="level-card" onclick="startProbaTree()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startProbaTree();}" role="button" tabindex="0" style="border-color:rgba(155,89,182,.4);background:linear-gradient(135deg,var(--dark3),rgba(155,89,182,.04))">
+          <div class="lv" style="color:var(--purple)">🌳 Arbre</div>
+          <div class="lv-name">Arbre de probabilités</div>
+          <div class="lv-desc">Construis l'arbre, place les bonnes fractions, calcule la probabilité finale. Notion clé du DNB 2027.</div>
+          <div class="lv-topics">
+            <span class="topic-badge" style="color:var(--purple);border-color:rgba(155,89,182,.3);background:rgba(155,89,182,.1)">Drag &amp; Drop</span>
+            <span class="topic-badge" style="color:var(--purple);border-color:rgba(155,89,182,.3);background:rgba(155,89,182,.1)">Probas composées</span>
           </div>
         </div>
         <div class="level-card" onclick="startStoryMode()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startStoryMode();}" role="button" tabindex="0" style="border-color:rgba(255,215,0,.3)">
@@ -2481,6 +2597,84 @@
         <button type="button" class="btn-sec" onclick="newPythChallenge()" id="pyth-new-btn">🔄 NOUVEAU DÉFI</button>
       </div>
       <div class="pyth-challenge-feedback" id="pyth-challenge-feedback" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- ÉCRAN ARBRE DE PROBABILITÉS                        -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="screen-proba-tree" style="display:none;padding:16px;max-width:860px;margin:0 auto">
+    <div class="game-controls" role="toolbar" aria-label="Contrôles arbre">
+      <button type="button" class="btn-control" onclick="showHome()" aria-label="Retour à l'accueil">
+        <span aria-hidden="true">🏠</span> Accueil
+      </button>
+    </div>
+
+    <div class="mission-card" style="border-left-color:var(--purple)">
+      <div class="mission-label" style="color:var(--purple)">🌳 ARBRE DE PROBABILITÉS</div>
+      <div class="mission-title" id="proba-title">Scénario 1 sur 3</div>
+      <div class="mission-desc" id="proba-context">Charge en cours…</div>
+    </div>
+
+    <!-- Phase 1 : placement -->
+    <div id="proba-phase-placement">
+      <p style="font-size:.85rem;color:var(--gray);margin:8px 0 12px;line-height:1.4">📌 <strong>Étape 1 :</strong> glisse chaque fraction sur la bonne branche de l'arbre. Tu peux aussi cliquer sur une fraction puis cliquer sur la branche cible.</p>
+
+      <!-- Arbre -->
+      <div class="proba-tree-canvas" id="proba-tree-canvas">
+        <!-- Généré dynamiquement -->
+      </div>
+
+      <!-- Pool de fractions -->
+      <div class="proba-pool-label">🎲 Pool de fractions à placer</div>
+      <div class="proba-pool" id="proba-pool" role="list" aria-label="Fractions disponibles">
+        <!-- Généré dynamiquement -->
+      </div>
+
+      <!-- Actions -->
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px">
+        <button type="button" class="btn-main" onclick="validateProbaPlacement()" id="proba-validate-btn">✓ VÉRIFIER MON ARBRE</button>
+        <button type="button" class="btn-sec" onclick="resetProbaTree()">🔄 Recommencer</button>
+      </div>
+      <div id="proba-placement-feedback" style="display:none;margin-top:12px;padding:12px 14px;border-radius:10px;font-size:.9rem;line-height:1.5"></div>
+    </div>
+
+    <!-- Phase 2 : question finale (cachée jusqu'à validation) -->
+    <div id="proba-phase-question" style="display:none">
+      <p style="font-size:.85rem;color:var(--green);margin:14px 0 12px;line-height:1.4">✅ <strong>Arbre validé !</strong> Maintenant calcule la probabilité demandée.</p>
+      <div class="question-wrap" style="padding:18px 16px;background:linear-gradient(135deg,var(--dark2),rgba(155,89,182,.06));border:1px solid rgba(155,89,182,.3);border-radius:14px">
+        <div class="q-meta">
+          <span class="q-type" style="background:rgba(155,89,182,.15);color:var(--purple);border-color:rgba(155,89,182,.3)">Probabilité composée</span>
+        </div>
+        <div class="question-text" id="proba-question-text">…</div>
+        <div class="answers-grid" id="proba-question-answers"></div>
+        <div class="feedback-panel" id="proba-question-feedback">
+          <div class="feedback-title" id="proba-question-feedback-title">✅ Correct !</div>
+          <div class="feedback-text" id="proba-question-feedback-text"></div>
+          <button class="btn-next" onclick="nextProbaScenario()" id="proba-next-btn">SCÉNARIO SUIVANT →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Écran final arbre -->
+  <div id="screen-proba-tree-result" style="display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 64px);padding:32px 20px;text-align:center;gap:18px">
+    <div style="font-size:4rem" id="proba-result-emoji">🌳</div>
+    <h2 style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:clamp(1.6rem,5vw,2.4rem);color:var(--purple);letter-spacing:2px;margin:0">ARBRES TERMINÉS !</h2>
+    <p id="proba-result-msg" style="max-width:480px;color:var(--white);line-height:1.6"></p>
+    <div class="result-stats">
+      <div class="result-stat">
+        <div class="rs-val" id="proba-res-scenarios">0/3</div>
+        <div class="rs-label">Arbres construits</div>
+      </div>
+      <div class="result-stat">
+        <div class="rs-val" id="proba-res-questions">0/3</div>
+        <div class="rs-label">Questions justes</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-main" onclick="startProbaTree()">🔄 REJOUER</button>
+      <button class="btn-sec" onclick="showHome()">🏠 Accueil</button>
     </div>
   </div>
 
@@ -4226,7 +4420,7 @@ function showScreen(id) {
   const el = document.getElementById('screen-' + id);
   if (!el) return;
   // Écrans utilisant flex column
-  const flexScreens = ['home', 'loading', 'result', 'auto-menu', 'auto-result', 'tf-result', 'story-result', 'dnb-intro', 'dnb-transition', 'dnb-result'];
+  const flexScreens = ['home', 'loading', 'result', 'auto-menu', 'auto-result', 'tf-result', 'story-result', 'dnb-intro', 'dnb-transition', 'dnb-result', 'proba-tree-result'];
   el.style.display = flexScreens.includes(id) ? 'flex' : 'block';
 }
 
@@ -6758,6 +6952,8 @@ showScreen = function(id) {
     'dnb-ex': 'Exercice écrit du DNB Blanc',
     'dnb-result': 'Résultats finaux du DNB Blanc',
     'pythagore': 'Atelier interactif Pythagore, Thalès et trigonométrie',
+    'proba-tree': 'Mode arbre de probabilités',
+    'proba-tree-result': 'Résultats finaux des arbres de probabilités',
     'loading': 'Chargement'
   };
   if (announcements[id]) announceToScreenReader(announcements[id]);
@@ -9006,6 +9202,401 @@ window.addEventListener('resize', () => {
     setTimeout(initPythCanvas, 100);
   }
 });
+
+
+
+// ═══════════════════════════════════════════════════════════
+// ARBRE DE PROBABILITÉS — Drag&drop + calcul composé
+// ═══════════════════════════════════════════════════════════
+const PROBA_SCENARIOS = [
+  {
+    title: "Tirage sans remise",
+    context: "Une urne contient <strong>4 boules rouges (R) et 6 boules bleues (B)</strong>. On tire successivement 2 boules <strong>sans remise</strong>.",
+    branches: {
+      // niveau 1 : R ou B
+      'lvl1-A': { label: 'R', desc: '1re rouge', prob: '4/10' },
+      'lvl1-B': { label: 'B', desc: '1re bleue', prob: '6/10' },
+      // niveau 2 : selon branche parente
+      'lvl2-AA': { label: 'RR', desc: 'puis rouge', prob: '3/9', parent: 'lvl1-A' },
+      'lvl2-AB': { label: 'RB', desc: 'puis bleue', prob: '6/9', parent: 'lvl1-A' },
+      'lvl2-BA': { label: 'BR', desc: 'puis rouge', prob: '4/9', parent: 'lvl1-B' },
+      'lvl2-BB': { label: 'BB', desc: 'puis bleue', prob: '5/9', parent: 'lvl1-B' }
+    },
+    pool: ['4/10', '6/10', '3/9', '6/9', '4/9', '5/9'],
+    question: {
+      text: "Quelle est la probabilité <strong>P(RR)</strong> de tirer 2 rouges ?",
+      answers: ["12/90 = 2/15", "4/10 + 3/9", "4/10", "1/3"],
+      correct: 0,
+      feedback: "Sur l'arbre, on <strong>multiplie</strong> le long de la branche : P(RR) = 4/10 × 3/9 = 12/90 = <strong>2/15</strong>. Règle : sans remise, la 2e probabilité dépend de la 1re."
+    }
+  },
+  {
+    title: "Lancer de 2 dés",
+    context: "On lance <strong>2 dés équilibrés à 6 faces</strong>. On s'intéresse à la <strong>parité</strong> (pair P / impair I) de chaque lancer.",
+    branches: {
+      'lvl1-A': { label: 'P', desc: '1er dé pair', prob: '1/2' },
+      'lvl1-B': { label: 'I', desc: '1er dé impair', prob: '1/2' },
+      'lvl2-AA': { label: 'PP', desc: 'puis pair', prob: '1/2', parent: 'lvl1-A' },
+      'lvl2-AB': { label: 'PI', desc: 'puis impair', prob: '1/2', parent: 'lvl1-A' },
+      'lvl2-BA': { label: 'IP', desc: 'puis pair', prob: '1/2', parent: 'lvl1-B' },
+      'lvl2-BB': { label: 'II', desc: 'puis impair', prob: '1/2', parent: 'lvl1-B' }
+    },
+    pool: ['1/2', '1/2', '1/2', '1/2', '1/2', '1/2'],
+    question: {
+      text: "Probabilité d'obtenir <strong>2 pairs</strong> ?",
+      answers: ["1/4", "1/2", "1/3", "1/6"],
+      correct: 0,
+      feedback: "Les 2 lancers sont <strong>indépendants</strong> (avec remise théorique). P(PP) = 1/2 × 1/2 = <strong>1/4</strong>. Sur un dé : 3 faces paires sur 6 → 1/2."
+    }
+  },
+  {
+    title: "Pièce truquée + dé",
+    context: "On lance une <strong>pièce truquée</strong> (P(pile) = 2/3) puis un <strong>dé à 6 faces</strong>. On s'intéresse à : pile/face puis ≤2 (rare) ou ≥3 (commun).",
+    branches: {
+      'lvl1-A': { label: 'P', desc: 'pile', prob: '2/3' },
+      'lvl1-B': { label: 'F', desc: 'face', prob: '1/3' },
+      'lvl2-AA': { label: 'P+R', desc: 'puis ≤2', prob: '1/3', parent: 'lvl1-A' },
+      'lvl2-AB': { label: 'P+C', desc: 'puis ≥3', prob: '2/3', parent: 'lvl1-A' },
+      'lvl2-BA': { label: 'F+R', desc: 'puis ≤2', prob: '1/3', parent: 'lvl1-B' },
+      'lvl2-BB': { label: 'F+C', desc: 'puis ≥3', prob: '2/3', parent: 'lvl1-B' }
+    },
+    pool: ['2/3', '1/3', '1/3', '2/3', '1/3', '2/3'],
+    question: {
+      text: "Probabilité d'obtenir <strong>pile et ≤2 au dé</strong> ?",
+      answers: ["2/9", "1/2", "2/3 + 1/3", "1/3"],
+      correct: 0,
+      feedback: "Événements indépendants → multiplication : P(pile et ≤2) = 2/3 × 1/3 = <strong>2/9</strong>. Sur un dé, P(≤2) = P(1 ou 2) = 2/6 = 1/3."
+    }
+  }
+];
+
+let probaState = {
+  scenarioIdx: 0,
+  placements: {},        // slot_id → piece_value
+  selectedPiece: null,   // pour la sélection au clic (alternative au drag)
+  draggedPiece: null,    // pour le drag mouse
+  validated: false,
+  phaseQuestion: false,
+  questionAnswered: false,
+  scenarioValidated: [false, false, false],
+  scenarioCorrect: [false, false, false]
+};
+
+function startProbaTree() {
+  if (typeof recordGameStart === 'function') recordGameStart('proba_tree');
+  probaState = {
+    scenarioIdx: 0,
+    placements: {},
+    selectedPiece: null,
+    draggedPiece: null,
+    validated: false,
+    phaseQuestion: false,
+    questionAnswered: false,
+    scenarioValidated: [false, false, false],
+    scenarioCorrect: [false, false, false]
+  };
+  showScreen('proba-tree');
+  loadProbaScenario();
+}
+
+function loadProbaScenario() {
+  const sc = PROBA_SCENARIOS[probaState.scenarioIdx];
+  if (!sc) { endProbaTree(); return; }
+  probaState.placements = {};
+  probaState.selectedPiece = null;
+  probaState.draggedPiece = null;
+  probaState.validated = false;
+  probaState.phaseQuestion = false;
+  probaState.questionAnswered = false;
+  document.getElementById('proba-title').textContent = `Scénario ${probaState.scenarioIdx + 1} sur ${PROBA_SCENARIOS.length} — ${sc.title}`;
+  document.getElementById('proba-context').innerHTML = sc.context;
+  document.getElementById('proba-phase-placement').style.display = '';
+  document.getElementById('proba-phase-question').style.display = 'none';
+  document.getElementById('proba-placement-feedback').style.display = 'none';
+  renderProbaTree();
+  renderProbaPool();
+}
+
+function renderProbaTree() {
+  const sc = PROBA_SCENARIOS[probaState.scenarioIdx];
+  const c = document.getElementById('proba-tree-canvas');
+  const slot = (id) => {
+    const placed = probaState.placements[id];
+    const displayVal = placed ? placed.value : '?';
+    const cls = placed ? 'proba-slot filled' : 'proba-slot';
+    return `<div class="${cls}" data-slot="${id}" role="button" tabindex="0" aria-label="Emplacement probabilité branche ${id}">${displayVal}</div>`;
+  };
+  const leaf = (id) => {
+    const b = sc.branches[id];
+    return `<div class="proba-leaf"><span class="leaf-label">${b.label}</span><span class="leaf-desc">${b.desc}</span></div>`;
+  };
+  c.innerHTML = `
+    <div class="proba-tree-grid">
+      <div class="proba-root">DÉPART</div>
+      <div class="proba-level-1">
+        <div class="proba-branch">${slot('lvl1-A')} ${leaf('lvl1-A')}</div>
+        <div class="proba-branch">${slot('lvl1-B')} ${leaf('lvl1-B')}</div>
+      </div>
+      <div class="proba-level-2">
+        <div class="proba-branch">${slot('lvl2-AA')} ${leaf('lvl2-AA')}</div>
+        <div class="proba-branch">${slot('lvl2-AB')} ${leaf('lvl2-AB')}</div>
+        <div class="proba-branch">${slot('lvl2-BA')} ${leaf('lvl2-BA')}</div>
+        <div class="proba-branch">${slot('lvl2-BB')} ${leaf('lvl2-BB')}</div>
+      </div>
+    </div>
+  `;
+  attachProbaSlotEvents();
+}
+
+function renderProbaPool() {
+  const sc = PROBA_SCENARIOS[probaState.scenarioIdx];
+  const pool = document.getElementById('proba-pool');
+  pool.innerHTML = '';
+  // On affiche TOUTES les pièces du pool. Les pièces déjà placées sont marquées 'placed'.
+  const placedValues = Object.values(probaState.placements);
+  sc.pool.forEach((val, i) => {
+    // On compte combien de fois cette valeur a déjà été placée
+    const id = 'piece-' + i;
+    const isPlaced = isPieceUsedByIdx(i, val);
+    const p = document.createElement('div');
+    p.className = 'proba-piece' + (isPlaced ? ' placed' : '');
+    p.draggable = !isPlaced;
+    p.dataset.pieceIdx = i;
+    p.dataset.value = val;
+    p.setAttribute('role', 'listitem');
+    p.setAttribute('aria-label', `Fraction ${val}` + (isPlaced ? ' (placée)' : ''));
+    p.tabIndex = 0;
+    p.textContent = val;
+    pool.appendChild(p);
+  });
+  attachProbaPieceEvents();
+}
+
+// Détermine si la pièce à l'index `i` est actuellement placée (en tenant compte des doublons).
+function isPieceUsedByIdx(i, val) {
+  // Indices placés dont la valeur correspond à `val`
+  const placedIndices = Object.values(probaState.placements);
+  // On suit l'usage par index — chaque slot stocke {pieceIdx, value}
+  return placedIndices.some(p => p && p.pieceIdx === i);
+}
+
+function attachProbaSlotEvents() {
+  document.querySelectorAll('#proba-tree-canvas .proba-slot').forEach(slot => {
+    slot.addEventListener('dragover', (e) => { e.preventDefault(); slot.classList.add('drag-over'); });
+    slot.addEventListener('dragleave', () => slot.classList.remove('drag-over'));
+    slot.addEventListener('drop', (e) => {
+      e.preventDefault();
+      slot.classList.remove('drag-over');
+      const pieceIdx = e.dataTransfer.getData('pieceIdx');
+      const value = e.dataTransfer.getData('value');
+      if (pieceIdx !== '' && value !== '') {
+        placeProbaPiece(slot.dataset.slot, parseInt(pieceIdx, 10), value);
+      }
+    });
+    slot.addEventListener('click', () => {
+      if (probaState.selectedPiece !== null) {
+        placeProbaPiece(slot.dataset.slot, probaState.selectedPiece.idx, probaState.selectedPiece.value);
+        probaState.selectedPiece = null;
+      } else if (probaState.placements[slot.dataset.slot]) {
+        // Click sur slot rempli : libère la pièce
+        delete probaState.placements[slot.dataset.slot];
+        probaState.validated = false;
+        renderProbaTree();
+        renderProbaPool();
+      }
+    });
+    slot.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); slot.click(); }
+    });
+  });
+}
+
+function attachProbaPieceEvents() {
+  document.querySelectorAll('#proba-pool .proba-piece').forEach(piece => {
+    if (piece.classList.contains('placed')) return;
+    piece.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('pieceIdx', piece.dataset.pieceIdx);
+      e.dataTransfer.setData('value', piece.dataset.value);
+      piece.classList.add('dragging');
+    });
+    piece.addEventListener('dragend', () => piece.classList.remove('dragging'));
+    piece.addEventListener('click', () => {
+      // Sélection alternative au drag (utile au clavier / mobile)
+      document.querySelectorAll('#proba-pool .proba-piece.selected').forEach(p => p.classList.remove('selected'));
+      if (probaState.selectedPiece && probaState.selectedPiece.idx === parseInt(piece.dataset.pieceIdx, 10)) {
+        probaState.selectedPiece = null;
+      } else {
+        piece.classList.add('selected');
+        probaState.selectedPiece = { idx: parseInt(piece.dataset.pieceIdx, 10), value: piece.dataset.value };
+      }
+    });
+    piece.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); piece.click(); }
+    });
+  });
+}
+
+function placeProbaPiece(slotId, pieceIdx, value) {
+  // Si le slot était déjà rempli, on libère son ancienne pièce
+  if (probaState.placements[slotId]) {
+    // L'ancienne pièce retourne dans le pool (rien à faire : le re-render la rendra dispo)
+  }
+  // Si cette pièce était placée ailleurs, on la retire de là
+  Object.keys(probaState.placements).forEach(sid => {
+    if (probaState.placements[sid] && probaState.placements[sid].pieceIdx === pieceIdx) {
+      delete probaState.placements[sid];
+    }
+  });
+  probaState.placements[slotId] = { pieceIdx, value };
+  probaState.validated = false;
+  // Stockage pour l'affichage : on remplace le rendu de la valeur par la valeur uniquement
+  renderProbaTree();
+  renderProbaPool();
+}
+
+// Le rendu utilise probaState.placements[slotId].value. Adapter renderProbaTree.
+function validateProbaPlacement() {
+  const sc = PROBA_SCENARIOS[probaState.scenarioIdx];
+  // Vérifie chaque slot
+  let allCorrect = true;
+  let placedCount = 0;
+  const results = {};
+  Object.keys(sc.branches).forEach(slotId => {
+    const expected = sc.branches[slotId].prob;
+    const placed = probaState.placements[slotId];
+    if (!placed) { allCorrect = false; results[slotId] = 'missing'; return; }
+    placedCount++;
+    if (placed.value === expected) results[slotId] = 'correct';
+    else { allCorrect = false; results[slotId] = 'wrong'; }
+  });
+  // Applique les classes visuelles
+  document.querySelectorAll('#proba-tree-canvas .proba-slot').forEach(slot => {
+    const sid = slot.dataset.slot;
+    slot.classList.remove('correct', 'wrong');
+    if (results[sid] === 'correct') slot.classList.add('correct');
+    else if (results[sid] === 'wrong') slot.classList.add('wrong');
+  });
+  // Feedback global
+  const fb = document.getElementById('proba-placement-feedback');
+  fb.style.display = 'block';
+  if (allCorrect) {
+    fb.style.background = 'rgba(0,230,118,.12)';
+    fb.style.border = '1px solid var(--green)';
+    fb.style.color = 'var(--white)';
+    fb.innerHTML = `<strong style="color:var(--green)">🎉 Arbre parfait !</strong> Toutes les probabilités sont à la bonne place. Tu peux maintenant calculer une probabilité composée.`;
+    probaState.validated = true;
+    probaState.scenarioValidated[probaState.scenarioIdx] = true;
+    if (typeof addXP === 'function') addXP(40);
+    if (typeof announceToScreenReader === 'function') announceToScreenReader("Arbre parfait ! Question de calcul disponible.");
+    // Passe en phase question après un court délai
+    setTimeout(() => {
+      probaState.phaseQuestion = true;
+      document.getElementById('proba-phase-placement').style.display = 'none';
+      document.getElementById('proba-phase-question').style.display = 'block';
+      renderProbaQuestion();
+    }, 1500);
+  } else {
+    const placed = placedCount, total = Object.keys(sc.branches).length;
+    fb.style.background = 'rgba(255,85,119,.12)';
+    fb.style.border = '1px solid var(--red)';
+    fb.style.color = 'var(--white)';
+    const wrongCount = Object.values(results).filter(r => r === 'wrong').length;
+    const missingCount = Object.values(results).filter(r => r === 'missing').length;
+    let msg = `<strong style="color:var(--red)">❌ Pas encore.</strong> `;
+    if (missingCount > 0) msg += `Il manque ${missingCount} probabilité(s). `;
+    if (wrongCount > 0) msg += `${wrongCount} placement(s) à corriger (en rouge). `;
+    msg += `<br><small>💡 Sur l'arbre, chaque branche porte sa propre probabilité. Sans remise, la 2e probabilité change selon la 1re tirée.</small>`;
+    fb.innerHTML = msg;
+    if (typeof announceToScreenReader === 'function') announceToScreenReader(`Pas encore. ${missingCount} probabilités manquantes, ${wrongCount} placements incorrects.`);
+  }
+}
+
+function resetProbaTree() {
+  probaState.placements = {};
+  probaState.selectedPiece = null;
+  probaState.validated = false;
+  document.getElementById('proba-placement-feedback').style.display = 'none';
+  renderProbaTree();
+  renderProbaPool();
+}
+
+function renderProbaQuestion() {
+  const sc = PROBA_SCENARIOS[probaState.scenarioIdx];
+  const q = sc.question;
+  document.getElementById('proba-question-text').innerHTML = q.text;
+  const grid = document.getElementById('proba-question-answers');
+  grid.innerHTML = '';
+  const letters = ['A', 'B', 'C', 'D'];
+  q.answers.forEach((ans, i) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'answer-btn';
+    btn.innerHTML = '<span class="ans-letter">' + letters[i] + '</span>' + ans;
+    btn.onclick = () => answerProbaQuestion(i);
+    grid.appendChild(btn);
+  });
+  document.getElementById('proba-question-feedback').style.display = 'none';
+  document.getElementById('proba-question-feedback').classList.remove('wrong-fb');
+}
+
+function answerProbaQuestion(idx) {
+  if (probaState.questionAnswered) return;
+  probaState.questionAnswered = true;
+  const sc = PROBA_SCENARIOS[probaState.scenarioIdx];
+  const q = sc.question;
+  const btns = document.querySelectorAll('#proba-question-answers .answer-btn');
+  btns.forEach(b => b.disabled = true);
+  const ok = idx === q.correct;
+  btns[idx].classList.add(ok ? 'correct' : 'wrong');
+  if (!ok) btns[q.correct].classList.add('correct');
+  const fb = document.getElementById('proba-question-feedback');
+  fb.style.display = 'block';
+  if (ok) {
+    probaState.scenarioCorrect[probaState.scenarioIdx] = true;
+    fb.classList.remove('wrong-fb');
+    document.getElementById('proba-question-feedback-title').textContent = '✅ Correct !';
+    if (typeof addXP === 'function') addXP(50);
+    if (typeof announceToScreenReader === 'function') announceToScreenReader('Correct ! ' + stripHtml(q.feedback));
+  } else {
+    fb.classList.add('wrong-fb');
+    document.getElementById('proba-question-feedback-title').textContent = '❌ Pas tout à fait...';
+    if (typeof announceToScreenReader === 'function') announceToScreenReader('Faux. La bonne réponse était ' + q.answers[q.correct] + '. ' + stripHtml(q.feedback));
+  }
+  document.getElementById('proba-question-feedback-text').innerHTML = q.feedback;
+  const isLast = probaState.scenarioIdx + 1 >= PROBA_SCENARIOS.length;
+  document.getElementById('proba-next-btn').textContent = isLast ? '🏆 VOIR LE RÉSULTAT FINAL →' : 'SCÉNARIO SUIVANT →';
+}
+
+function nextProbaScenario() {
+  probaState.scenarioIdx++;
+  loadProbaScenario();
+}
+
+function endProbaTree() {
+  const validated = probaState.scenarioValidated.filter(Boolean).length;
+  const correct = probaState.scenarioCorrect.filter(Boolean).length;
+  const total = PROBA_SCENARIOS.length;
+  // Note finale
+  if (typeof recordGameComplete === 'function') {
+    recordGameComplete('proba_tree', correct + validated, total * 2);
+  }
+  let emoji, msg;
+  if (correct === total && validated === total) {
+    emoji = '🏆'; msg = 'Sans-faute parfait ! Tu maîtrises les arbres de probabilités, prêt pour le DNB.';
+  } else if (correct >= 2) {
+    emoji = '⭐'; msg = 'Très bon niveau. Les arbres n\'ont presque plus de secret pour toi.';
+  } else if (correct >= 1 || validated >= 2) {
+    emoji = '🥷'; msg = 'Bon début. Reviens t\'entraîner pour bien intégrer la règle de multiplication sur les branches.';
+  } else {
+    emoji = '💪'; msg = 'Pas évident. Revois la règle : sur un arbre, on MULTIPLIE le long d\'une branche.';
+  }
+  document.getElementById('proba-result-emoji').textContent = emoji;
+  document.getElementById('proba-result-msg').textContent = msg;
+  document.getElementById('proba-res-scenarios').textContent = validated + '/' + total;
+  document.getElementById('proba-res-questions').textContent = correct + '/' + total;
+  if (typeof addXP === 'function' && correct >= 2) addXP(80);
+  showScreen('proba-tree-result');
+}
 
 </script>
 </body>
