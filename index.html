@@ -137,7 +137,69 @@
     100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
   }
 
-  /* ── LAYOUT ── */
+
+  /* ═══════════════════════════════════════════════════════
+     COMPOSANTS STANDARDISÉS (R2) — éviter inline-styles
+     ═══════════════════════════════════════════════════════ */
+
+  /* Variantes de topic-badge (déclinaisons couleur des badges) */
+  .topic-badge--green {
+    color: var(--green);
+    border-color: rgba(0, 230, 118, 0.3);
+    background: rgba(0, 230, 118, 0.1);
+  }
+  .topic-badge--yellow {
+    color: var(--yellow);
+    border-color: rgba(255, 215, 0, 0.3);
+    background: rgba(255, 215, 0, 0.08);
+  }
+  .topic-badge--purple {
+    color: var(--purple);
+    border-color: rgba(155, 89, 182, 0.3);
+    background: rgba(155, 89, 182, 0.1);
+  }
+  .topic-badge--blue {
+    color: var(--blue);
+    border-color: rgba(26, 107, 255, 0.3);
+    background: rgba(26, 107, 255, 0.1);
+  }
+  .topic-badge--red {
+    color: var(--red);
+    border-color: rgba(255, 85, 119, 0.3);
+    background: rgba(255, 85, 119, 0.1);
+  }
+
+  /* Émoji décoratif au sommet d'un modal ou d'un écran résultat */
+  .modal-emoji { font-size: 3rem; margin-bottom: var(--space-2); }
+  .result-emoji { font-size: 4rem; }
+
+  /* Variante destructive du bouton secondaire */
+  .btn-sec--danger { border-color: var(--red); color: var(--red); }
+
+  /* Variante du level-card pour le mode "DNB Blanc complet" (mise en avant) */
+  .level-card--featured-dnb {
+    border-color: var(--red);
+    background: linear-gradient(135deg, rgba(255, 85, 119, 0.12), rgba(255, 215, 0, 0.08));
+    grid-column: span 2;
+  }
+
+  /* Containers de largeur limitée — réutilisés sur tous les écrans */
+  .container-narrow { width: 100%; max-width: 520px; }
+  .container-medium { width: 100%; max-width: 560px; }
+  .container-wide { width: 100%; max-width: 720px; }
+
+  /* Utilities couleur de texte (à utiliser sparingly, sinon préférer composant) */
+  .text-orange { color: var(--orange); }
+  .text-red { color: var(--red); }
+  .text-green { color: var(--green); }
+  .text-yellow { color: var(--yellow); }
+  .text-blue { color: var(--blue); }
+  .text-purple { color: var(--purple); }
+  .text-gray { color: var(--gray); }
+  .text-white { color: var(--white); }
+
+
+    /* ── LAYOUT ── */
   #app { position: relative; z-index: 1; }
 
   /* ── HEADER ── */
@@ -1747,21 +1809,21 @@
       </button>
     </div>
 
-    <div style="width:100%;max-width:560px">
+    <div class="container-medium">
       <p class="section-label">🌍 Choisis ton univers</p>
       <div class="universe-grid" id="universe-grid">
         <!-- Généré dynamiquement -->
       </div>
     </div>
 
-    <div style="width:100%;max-width:560px">
+    <div class="container-medium">
       <p class="section-label" id="char-section-label">🎭 Choisis ton personnage</p>
       <div class="char-grid" id="char-grid">
         <!-- Généré dynamiquement -->
       </div>
     </div>
 
-    <div style="width:100%;max-width:520px">
+    <div class="container-narrow">
       <p class="section-label">📚 Choisir la mission</p>
       <div class="level-grid">
         <div class="level-card" onclick="startGame('6e_facile')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startGame('6e_facile');}" role="button" tabindex="0">
@@ -1807,8 +1869,8 @@
           <div class="lv-name">Entraînement libre</div>
           <div class="lv-desc">Sans timer, sans vies perdues. Apprends à ton rythme.</div>
           <div class="lv-topics">
-            <span class="topic-badge" style="color:var(--green);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.1)">Sans pression</span>
-            <span class="topic-badge" style="color:var(--green);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.1)">Mix 6e + 5e</span>
+            <span class="topic-badge topic-badge--green">Sans pression</span>
+            <span class="topic-badge topic-badge--green">Mix 6e + 5e</span>
           </div>
         </div>
       </div>
@@ -1817,7 +1879,7 @@
     <!-- ═══════════════════════════════════════════════════ -->
     <!-- NOUVEAU : Sélecteur par chapitre (4e/3e)            -->
     <!-- ═══════════════════════════════════════════════════ -->
-    <div style="width:100%;max-width:560px">
+    <div class="container-medium">
       <p class="section-label">📚 Réviser par chapitre <span style="background:var(--yellow);color:var(--dark);font-size:.55rem;padding:2px 7px;border-radius:6px;margin-left:6px;letter-spacing:1px;font-weight:900">6e → 3e · DNB</span></p>
       <div class="chapter-tabs" role="tablist" aria-label="Niveau de classe">
         <button type="button" class="chapter-tab active" data-class="6e" onclick="selectChapterClass('6e')" role="tab" aria-selected="true">🟢 6ème</button>
@@ -1831,7 +1893,7 @@
       <p style="font-size:.7rem;color:var(--gray);margin-top:8px;text-align:center;line-height:1.4">💡 Astuce : chaque chapitre = 8 questions ciblées sur une notion précise du programme.</p>
     </div>
 
-    <div style="width:100%;max-width:520px">
+    <div class="container-narrow">
       <p class="section-label">✏️ Missions interactives</p>
       <div class="level-grid">
         <div class="level-card" onclick="startDrawMode()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startDrawMode();}" role="button" tabindex="0" style="border-color:rgba(0,230,118,.3)">
@@ -1839,9 +1901,9 @@
           <div class="lv-name">Géométrie épique</div>
           <div class="lv-desc">Trace droites, angles et axes de symétrie au doigt</div>
           <div class="lv-topics">
-            <span class="topic-badge" style="color:var(--green);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.1)">Symétrie</span>
-            <span class="topic-badge" style="color:var(--green);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.1)">Angles</span>
-            <span class="topic-badge" style="color:var(--green);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.1)">Libre</span>
+            <span class="topic-badge topic-badge--green">Symétrie</span>
+            <span class="topic-badge topic-badge--green">Angles</span>
+            <span class="topic-badge topic-badge--green">Libre</span>
           </div>
         </div>
         <div class="level-card" onclick="startPuzzleMode()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startPuzzleMode();}" role="button" tabindex="0" style="border-color:rgba(155,89,182,.3)">
@@ -1849,9 +1911,9 @@
           <div class="lv-name">Emboîtement</div>
           <div class="lv-desc">Glisse chaque pièce dans la bonne case : fractions, formes, équations</div>
           <div class="lv-topics">
-            <span class="topic-badge" style="color:var(--purple);border-color:rgba(155,89,182,.3);background:rgba(155,89,182,.1)">Drag & Drop</span>
-            <span class="topic-badge" style="color:var(--purple);border-color:rgba(155,89,182,.3);background:rgba(155,89,182,.1)">Fractions</span>
-            <span class="topic-badge" style="color:var(--purple);border-color:rgba(155,89,182,.3);background:rgba(155,89,182,.1)">Formes</span>
+            <span class="topic-badge topic-badge--purple">Drag & Drop</span>
+            <span class="topic-badge topic-badge--purple">Fractions</span>
+            <span class="topic-badge topic-badge--purple">Formes</span>
           </div>
         </div>
         <div class="level-card" onclick="startTrueFalse()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startTrueFalse();}" role="button" tabindex="0" style="border-color:rgba(26,107,255,.3)">
@@ -1859,8 +1921,8 @@
           <div class="lv-name">Vrai / Faux Rapide</div>
           <div class="lv-desc">20 affirmations math, 7 sec chacune. Vrai ou faux ? Tape vite !</div>
           <div class="lv-topics">
-            <span class="topic-badge" style="color:var(--blue);border-color:rgba(26,107,255,.3);background:rgba(26,107,255,.1)">Réflexes</span>
-            <span class="topic-badge" style="color:var(--blue);border-color:rgba(26,107,255,.3);background:rgba(26,107,255,.1)">Binaire</span>
+            <span class="topic-badge topic-badge--blue">Réflexes</span>
+            <span class="topic-badge topic-badge--blue">Binaire</span>
           </div>
         </div>
         <div class="level-card" onclick="startPythMode()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startPythMode();}" role="button" tabindex="0" style="border-color:rgba(0,230,118,.4);background:linear-gradient(135deg,var(--dark3),rgba(0,230,118,.04))">
@@ -1868,9 +1930,9 @@
           <div class="lv-name">Pythagore, Thalès & Trigo</div>
           <div class="lv-desc">Manipule un triangle au doigt et vois les théorèmes prendre vie. 3 ateliers interactifs (4e/3e).</div>
           <div class="lv-topics">
-            <span class="topic-badge" style="color:var(--green);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.1)">Pythagore</span>
-            <span class="topic-badge" style="color:var(--green);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.1)">Thalès</span>
-            <span class="topic-badge" style="color:var(--green);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.1)">Trigo</span>
+            <span class="topic-badge topic-badge--green">Pythagore</span>
+            <span class="topic-badge topic-badge--green">Thalès</span>
+            <span class="topic-badge topic-badge--green">Trigo</span>
           </div>
         </div>
         <div class="level-card" onclick="startGraphReader()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startGraphReader();}" role="button" tabindex="0" style="border-color:rgba(26,107,255,.4);background:linear-gradient(135deg,var(--dark3),rgba(26,107,255,.04))">
@@ -1878,8 +1940,8 @@
           <div class="lv-name">Lecteur de graphique</div>
           <div class="lv-desc">Lis les images, les antécédents, identifie une fonction affine. 10 défis chronométrés sur le programme de 3e.</div>
           <div class="lv-topics">
-            <span class="topic-badge" style="color:var(--blue);border-color:rgba(26,107,255,.3);background:rgba(26,107,255,.1)">Fonctions</span>
-            <span class="topic-badge" style="color:var(--blue);border-color:rgba(26,107,255,.3);background:rgba(26,107,255,.1)">Lecture graphique</span>
+            <span class="topic-badge topic-badge--blue">Fonctions</span>
+            <span class="topic-badge topic-badge--blue">Lecture graphique</span>
           </div>
         </div>
         <div class="level-card" onclick="startProbaTree()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startProbaTree();}" role="button" tabindex="0" style="border-color:rgba(155,89,182,.4);background:linear-gradient(135deg,var(--dark3),rgba(155,89,182,.04))">
@@ -1887,8 +1949,8 @@
           <div class="lv-name">Arbre de probabilités</div>
           <div class="lv-desc">Construis l'arbre, place les bonnes fractions, calcule la probabilité finale. Notion clé du DNB 2027.</div>
           <div class="lv-topics">
-            <span class="topic-badge" style="color:var(--purple);border-color:rgba(155,89,182,.3);background:rgba(155,89,182,.1)">Drag &amp; Drop</span>
-            <span class="topic-badge" style="color:var(--purple);border-color:rgba(155,89,182,.3);background:rgba(155,89,182,.1)">Probas composées</span>
+            <span class="topic-badge topic-badge--purple">Drag &amp; Drop</span>
+            <span class="topic-badge topic-badge--purple">Probas composées</span>
           </div>
         </div>
         <div class="level-card" onclick="startStoryMode()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startStoryMode();}" role="button" tabindex="0" style="border-color:rgba(255,215,0,.3)">
@@ -1896,14 +1958,14 @@
           <div class="lv-name">Aventure narrative</div>
           <div class="lv-desc">Plonge dans une histoire anime et résous les énigmes étape par étape</div>
           <div class="lv-topics">
-            <span class="topic-badge" style="color:var(--yellow);border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.1)">Multi-étapes</span>
-            <span class="topic-badge" style="color:var(--yellow);border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.1)">Récit</span>
+            <span class="topic-badge topic-badge--yellow">Multi-étapes</span>
+            <span class="topic-badge topic-badge--yellow">Récit</span>
           </div>
         </div>
       </div>
     </div>
 
-    <div style="width:100%;max-width:520px">
+    <div class="container-narrow">
       <p class="section-label">⚡ Entraînement DNB 2027</p>
       <div class="level-grid" style="grid-template-columns:1fr">
         <div class="level-card" onclick="showAutoMenu()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showAutoMenu();}" role="button" tabindex="0" style="border-color:rgba(255,215,0,.4);background:linear-gradient(135deg,var(--dark3),rgba(255,215,0,.05))">
@@ -1914,9 +1976,9 @@
           <div class="lv-name">Mode "Choc des Savoirs"</div>
           <div class="lv-desc">20 calculs en 20 min, sans calculatrice. Format exact de la nouvelle épreuve d'automatismes du DNB 2027 (6 pts sur 40).</div>
           <div class="lv-topics">
-            <span class="topic-badge" style="color:var(--yellow);border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.08)">Calcul mental</span>
-            <span class="topic-badge" style="color:var(--yellow);border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.08)">Fluidité</span>
-            <span class="topic-badge" style="color:var(--yellow);border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.08)">Sans pause</span>
+            <span class="topic-badge topic-badge--yellow">Calcul mental</span>
+            <span class="topic-badge topic-badge--yellow">Fluidité</span>
+            <span class="topic-badge topic-badge--yellow">Sans pause</span>
           </div>
         </div>
       </div>
@@ -2025,7 +2087,7 @@
       </p>
     </div>
 
-    <div style="width:100%;max-width:520px">
+    <div class="container-narrow">
       <p class="section-label">🎯 Choisis ton niveau</p>
       <div class="level-grid">
         <div class="level-card" onclick="startAutoMode('auto_6e')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startAutoMode('auto_6e');}" role="button" tabindex="0" style="border-color:rgba(0,230,118,.3)">
@@ -2066,12 +2128,12 @@
           <div class="lv-name">Automatismes DNB 2027 (4e + 3e)</div>
           <div class="lv-desc">Juste la phase d'automatismes : 20 calculs en 20 min, sans calculatrice.</div>
           <div class="lv-topics">
-            <span class="topic-badge" style="color:var(--yellow);border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.08)">Pythagore</span>
-            <span class="topic-badge" style="color:var(--yellow);border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.08)">Thalès</span>
-            <span class="topic-badge" style="color:var(--yellow);border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.08)">Trigo</span>
+            <span class="topic-badge topic-badge--yellow">Pythagore</span>
+            <span class="topic-badge topic-badge--yellow">Thalès</span>
+            <span class="topic-badge topic-badge--yellow">Trigo</span>
           </div>
         </div>
-        <div class="level-card" onclick="startDnbBlanc()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startDnbBlanc();}" role="button" tabindex="0" style="border-color:var(--red);background:linear-gradient(135deg,rgba(255,85,119,.12),rgba(255,215,0,.08));grid-column:span 2">
+        <div class="level-card level-card--featured-dnb" onclick="startDnbBlanc()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startDnbBlanc();}" role="button" tabindex="0">
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
             <div class="lv" style="color:var(--red)">🏆 DNB BLANC COMPLET</div>
             <span style="font-size:.62rem;font-weight:900;background:var(--red);color:white;padding:3px 8px;border-radius:8px">~1h45</span>
@@ -2079,9 +2141,9 @@
           <div class="lv-name">Épreuve complète simulée /40</div>
           <div class="lv-desc">Conditions réelles : 20 min d'automatismes + 4 exercices écrits (1h25). Format DNB 2027 exact, note convertie sur 40.</div>
           <div class="lv-topics">
-            <span class="topic-badge" style="color:var(--red);border-color:rgba(255,85,119,.3);background:rgba(255,85,119,.1)">Examen</span>
-            <span class="topic-badge" style="color:var(--red);border-color:rgba(255,85,119,.3);background:rgba(255,85,119,.1)">Note /40</span>
-            <span class="topic-badge" style="color:var(--red);border-color:rgba(255,85,119,.3);background:rgba(255,85,119,.1)">Conditions réelles</span>
+            <span class="topic-badge topic-badge--red">Examen</span>
+            <span class="topic-badge topic-badge--red">Note /40</span>
+            <span class="topic-badge topic-badge--red">Conditions réelles</span>
           </div>
         </div>
         <div class="level-card" onclick="startAutoMode('auto_mix')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startAutoMode('auto_mix');}" role="button" tabindex="0" style="border-color:rgba(255,107,0,.3);grid-column:span 2">
@@ -2161,7 +2223,7 @@
   <!-- ÉCRAN AUTOMATISMES — Résultat                     -->
   <!-- ═══════════════════════════════════════════════════ -->
   <div id="screen-auto-result" style="display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 64px);padding:32px 20px;text-align:center;gap:22px">
-    <div style="font-size:4rem" id="auto-result-emoji">🏅</div>
+    <div class="result-emoji" id="auto-result-emoji">🏅</div>
     <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:clamp(1.8rem,6vw,2.8rem);color:var(--yellow);letter-spacing:2px;text-shadow:3px 3px 0 var(--dark2)" id="auto-result-msg">ÉPREUVE TERMINÉE !</div>
 
     <!-- Note convertie DNB -->
@@ -2370,7 +2432,7 @@
   <!-- ÉCRAN VRAI / FAUX — RÉSULTAT                       -->
   <!-- ═══════════════════════════════════════════════════ -->
   <div id="screen-tf-result" style="display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 64px);padding:32px 20px;text-align:center;gap:22px">
-    <div style="font-size:4rem" id="tf-result-emoji">⚡</div>
+    <div class="result-emoji" id="tf-result-emoji">⚡</div>
     <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:clamp(1.8rem,6vw,2.8rem);color:var(--blue);letter-spacing:2px;text-shadow:3px 3px 0 var(--dark2)" id="tf-result-msg">SPEED TERMINÉ !</div>
     <p id="tf-result-comment" style="font-size:.9rem;color:var(--gray);max-width:420px;line-height:1.6"></p>
     <div class="result-stats">
@@ -2434,7 +2496,7 @@
   <!-- ÉCRAN HISTOIRE — RÉSULTAT                          -->
   <!-- ═══════════════════════════════════════════════════ -->
   <div id="screen-story-result" style="display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 64px);padding:32px 20px;text-align:center;gap:22px">
-    <div style="font-size:4rem" id="story-result-emoji">📖</div>
+    <div class="result-emoji" id="story-result-emoji">📖</div>
     <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:clamp(1.8rem,6vw,2.8rem);color:var(--yellow);letter-spacing:2px;text-shadow:3px 3px 0 var(--dark2)" id="story-result-title">AVENTURE TERMINÉE !</div>
     <p id="story-result-msg" style="font-size:1rem;color:var(--white);max-width:480px;line-height:1.6"></p>
     <div class="result-stats">
@@ -2634,7 +2696,7 @@
   <!-- DNB BLANC — Résultat final                         -->
   <!-- ═══════════════════════════════════════════════════ -->
   <div id="screen-dnb-result" style="display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 64px);padding:32px 20px;text-align:center;gap:20px">
-    <div style="font-size:4rem" id="dnb-result-emoji">🏆</div>
+    <div class="result-emoji" id="dnb-result-emoji">🏆</div>
     <h2 style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:clamp(1.8rem,6vw,2.8rem);color:var(--yellow);letter-spacing:2px;text-shadow:3px 3px 0 var(--dark2);margin:0" id="dnb-result-title">ÉPREUVE TERMINÉE !</h2>
 
     <!-- Note finale -->
@@ -2770,7 +2832,7 @@
 
   <!-- Écran final arbre -->
   <div id="screen-proba-tree-result" style="display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 64px);padding:32px 20px;text-align:center;gap:18px">
-    <div style="font-size:4rem" id="proba-result-emoji">🌳</div>
+    <div class="result-emoji" id="proba-result-emoji">🌳</div>
     <h2 style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:clamp(1.6rem,5vw,2.4rem);color:var(--purple);letter-spacing:2px;margin:0">ARBRES TERMINÉS !</h2>
     <p id="proba-result-msg" style="max-width:480px;color:var(--white);line-height:1.6"></p>
     <div class="result-stats">
@@ -2852,7 +2914,7 @@
 
   <!-- Résultat final lecteur de graphique -->
   <div id="screen-graph-reader-result" style="display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 64px);padding:32px 20px;text-align:center;gap:18px">
-    <div style="font-size:4rem" id="graph-result-emoji">📈</div>
+    <div class="result-emoji" id="graph-result-emoji">📈</div>
     <h2 style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:clamp(1.6rem,5vw,2.4rem);color:var(--blue);letter-spacing:2px;margin:0">DÉFIS TERMINÉS !</h2>
     <p id="graph-result-msg" style="max-width:480px;color:var(--white);line-height:1.6"></p>
     <div class="result-stats">
@@ -2874,12 +2936,12 @@
   <!-- Modal confirmation quitter -->
   <div class="modal-overlay" id="modal-graph-quit" role="dialog" aria-modal="true" aria-labelledby="modal-graph-quit-title">
     <div class="modal-card">
-      <div style="font-size:3rem;margin-bottom:8px" aria-hidden="true">⚠️</div>
+      <div class="modal-emoji" aria-hidden="true">⚠️</div>
       <h3 id="modal-graph-quit-title" style="color:var(--red)">Quitter les défis ?</h3>
       <p>Tu vas perdre ta progression de cette session.</p>
       <div class="modal-actions">
         <button type="button" class="btn-main" onclick="closeModal('modal-graph-quit')" autofocus>↩️ NON, CONTINUER</button>
-        <button type="button" class="btn-sec" style="border-color:var(--red);color:var(--red)" onclick="confirmedQuitGraph()">✓ Oui, quitter</button>
+        <button type="button" class="btn-sec btn-sec--danger" onclick="confirmedQuitGraph()">✓ Oui, quitter</button>
       </div>
     </div>
   </div>
@@ -2889,7 +2951,7 @@
 <!-- Modal Pause / Quitter -->
 <div class="modal-overlay" id="modal-pause" role="dialog" aria-modal="true" aria-labelledby="modal-pause-title" aria-describedby="modal-pause-desc">
   <div class="modal-card">
-    <div style="font-size:3rem;margin-bottom:8px" aria-hidden="true">⏸️</div>
+    <div class="modal-emoji" aria-hidden="true">⏸️</div>
     <h3 id="modal-pause-title">PAUSE</h3>
     <p id="modal-pause-desc">Le timer est arrêté. Tu peux reprendre, recommencer ou retourner à l'accueil.</p>
     <div class="modal-actions">
@@ -2902,12 +2964,12 @@
 
 <div class="modal-overlay" id="modal-quit" role="dialog" aria-modal="true" aria-labelledby="modal-quit-title" aria-describedby="modal-quit-desc">
   <div class="modal-card">
-    <div style="font-size:3rem;margin-bottom:8px" aria-hidden="true">⚠️</div>
+    <div class="modal-emoji" aria-hidden="true">⚠️</div>
     <h3 id="modal-quit-title" style="color:var(--red)">Quitter la partie ?</h3>
     <p id="modal-quit-desc">Ta progression dans cette partie sera perdue. Tes points XP totaux restent acquis.</p>
     <div class="modal-actions">
       <button type="button" class="btn-main" onclick="closeQuitModal()" autofocus>↩️ NON, CONTINUER</button>
-      <button type="button" class="btn-sec" style="border-color:var(--red);color:var(--red)" onclick="confirmedQuit()">✓ Oui, retour accueil</button>
+      <button type="button" class="btn-sec btn-sec--danger" onclick="confirmedQuit()">✓ Oui, retour accueil</button>
     </div>
   </div>
 </div>
@@ -2915,7 +2977,7 @@
 <!-- Modal Pause / Quitter — Mode automatismes -->
 <div class="modal-overlay" id="modal-auto-pause" role="dialog" aria-modal="true" aria-labelledby="modal-auto-pause-title" aria-describedby="modal-auto-pause-desc">
   <div class="modal-card">
-    <div style="font-size:3rem;margin-bottom:8px" aria-hidden="true">⏸️</div>
+    <div class="modal-emoji" aria-hidden="true">⏸️</div>
     <h3 id="modal-auto-pause-title">PAUSE</h3>
     <p id="modal-auto-pause-desc">Les deux timers (question et total) sont arrêtés. Tu peux reprendre, recommencer ou retourner à l'accueil.</p>
     <div class="modal-actions">
@@ -2928,12 +2990,12 @@
 
 <div class="modal-overlay" id="modal-auto-quit" role="dialog" aria-modal="true" aria-labelledby="modal-auto-quit-title" aria-describedby="modal-auto-quit-desc">
   <div class="modal-card">
-    <div style="font-size:3rem;margin-bottom:8px" aria-hidden="true">⚠️</div>
+    <div class="modal-emoji" aria-hidden="true">⚠️</div>
     <h3 id="modal-auto-quit-title" style="color:var(--red)">Quitter l'épreuve ?</h3>
     <p id="modal-auto-quit-desc">Les questions déjà répondues seront perdues. Tu pourras recommencer une nouvelle épreuve.</p>
     <div class="modal-actions">
       <button type="button" class="btn-main" onclick="closeAutoQuitModal()" autofocus>↩️ NON, CONTINUER</button>
-      <button type="button" class="btn-sec" style="border-color:var(--red);color:var(--red)" onclick="confirmedQuitAuto()">✓ Oui, retour accueil</button>
+      <button type="button" class="btn-sec btn-sec--danger" onclick="confirmedQuitAuto()">✓ Oui, retour accueil</button>
     </div>
   </div>
 </div>
@@ -2941,7 +3003,7 @@
 <!-- Modal Tutoriel premier lancement -->
 <div class="modal-overlay" id="modal-tutorial" role="dialog" aria-modal="true" aria-labelledby="modal-tutorial-title" aria-describedby="modal-tutorial-desc">
   <div class="modal-card" style="max-width:480px;text-align:left">
-    <div style="text-align:center;font-size:3rem;margin-bottom:8px" aria-hidden="true">🥷</div>
+    <div class="modal-emoji" style="text-align:center" aria-hidden="true">🥷</div>
     <h3 id="modal-tutorial-title" style="text-align:center">BIENVENUE NINJA !</h3>
     <div id="modal-tutorial-desc" style="font-size:.9rem;line-height:1.6;color:var(--white);margin:14px 0">
       <p style="margin-bottom:12px"><strong style="color:var(--orange)">🎯 Le but :</strong> réviser les maths de 6e / 5e en t'amusant dans 6 univers anime.</p>
@@ -2967,7 +3029,7 @@
 <!-- Modal À propos / Mentions légales -->
 <div class="modal-overlay" id="modal-legal" role="dialog" aria-modal="true" aria-labelledby="modal-legal-title" aria-describedby="modal-legal-desc">
   <div class="modal-card" style="max-width:560px;text-align:left;max-height:90vh;overflow-y:auto">
-    <div style="text-align:center;font-size:3rem;margin-bottom:8px" aria-hidden="true">⚖️</div>
+    <div class="modal-emoji" style="text-align:center" aria-hidden="true">⚖️</div>
     <h3 id="modal-legal-title" style="text-align:center">À propos &amp; Mentions légales</h3>
     <div id="modal-legal-desc" style="font-size:.88rem;line-height:1.55;color:var(--white);margin:14px 0">
       <p style="margin-bottom:10px"><strong style="color:var(--orange)">📚 Projet pédagogique</strong></p>
@@ -2996,24 +3058,24 @@
 <!-- Modal confirmation reset stats -->
 <div class="modal-overlay" id="modal-reset-stats" role="dialog" aria-modal="true" aria-labelledby="modal-reset-title">
   <div class="modal-card">
-    <div style="font-size:3rem;margin-bottom:8px" aria-hidden="true">⚠️</div>
+    <div class="modal-emoji" aria-hidden="true">⚠️</div>
     <h3 id="modal-reset-title" style="color:var(--red)">Réinitialiser ?</h3>
     <p>Toutes tes statistiques (parties, chapitres, série) seront effacées définitivement. Cette action est irréversible.</p>
     <div class="modal-actions">
       <button type="button" class="btn-main" onclick="closeModal('modal-reset-stats')" autofocus>↩️ NON, GARDER</button>
-      <button type="button" class="btn-sec" style="border-color:var(--red);color:var(--red)" onclick="resetPlayerStats()">✓ Oui, tout effacer</button>
+      <button type="button" class="btn-sec btn-sec--danger" onclick="resetPlayerStats()">✓ Oui, tout effacer</button>
     </div>
   </div>
 </div>
 <!-- Modal de confirmation quitter DNB Blanc -->
 <div class="modal-overlay" id="modal-dnb-quit" role="dialog" aria-modal="true" aria-labelledby="modal-dnb-quit-title">
   <div class="modal-card">
-    <div style="font-size:3rem;margin-bottom:8px" aria-hidden="true">⚠️</div>
+    <div class="modal-emoji" aria-hidden="true">⚠️</div>
     <h3 id="modal-dnb-quit-title" style="color:var(--red)">Abandonner le DNB Blanc ?</h3>
     <p>Tu vas perdre toute la progression de cette épreuve. Tu peux reprendre depuis le début à tout moment.</p>
     <div class="modal-actions">
       <button type="button" class="btn-main" onclick="closeModal('modal-dnb-quit')" autofocus>↩️ NON, CONTINUER</button>
-      <button type="button" class="btn-sec" style="border-color:var(--red);color:var(--red)" onclick="confirmedQuitDnb()">✓ Oui, abandonner</button>
+      <button type="button" class="btn-sec btn-sec--danger" onclick="confirmedQuitDnb()">✓ Oui, abandonner</button>
     </div>
   </div>
 </div>
