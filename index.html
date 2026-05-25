@@ -10059,6 +10059,71 @@ function setupGraphCanvasEvents(canvas) {
 
   newC.addEventListener('click', onTap);
   newC.addEventListener('touchend', onTap);
+
+  // ─── Navigation clavier (R4 — a11y) ───
+  // Flèches ←/→ : déplace x (mode image) ; ↑/↓ : déplace y (mode antécédent).
+  // Entrée : valide la réponse. Échap : enlève le focus.
+  newC.addEventListener('keydown', (e) => {
+    if (!graphState.current || graphState.answered) return;
+    if (graphState.current.mode !== 'click') return;
+    const type = graphState.current.type;
+    const fn = graphState.current.fn;
+    let handled = false;
+
+    if (e.key === 'Enter' || e.key === ' ') {
+      if (graphState.clickedPoint) {
+        e.preventDefault();
+        validateGraphAnswer();
+      }
+      return;
+    }
+
+    if (type === 'image') {
+      // Déplacement x avec ← / →
+      let x = (graphState.clickedPoint && graphState.clickedPoint.x) || 0;
+      if (e.key === 'ArrowLeft')  { x = Math.max(graphState.xRange[0], x - 1); handled = true; }
+      else if (e.key === 'ArrowRight') { x = Math.min(graphState.xRange[1], x + 1); handled = true; }
+      if (handled) {
+        const y = evalGraphFn(fn, x);
+        graphState.clickedPoint = { x, y, fromKeyboard: true };
+        document.getElementById('graph-clicked-point').textContent = '(' + x + ' ; ' + formatNum(y) + ')';
+        document.getElementById('graph-validate-btn').disabled = false;
+        if (typeof announceToScreenReader === 'function') {
+          announceToScreenReader('Curseur à x égale ' + x + ', image y égale ' + formatNum(y));
+        }
+        renderGraph();
+      }
+    } else if (type === 'antecedent') {
+      // Déplacement y avec ↑ / ↓
+      let y = (graphState.clickedPoint && graphState.clickedPoint.y) || 0;
+      if (e.key === 'ArrowUp')   { y = Math.min(graphState.yRange[1], y + 1); handled = true; }
+      else if (e.key === 'ArrowDown') { y = Math.max(graphState.yRange[0], y - 1); handled = true; }
+      if (handled) {
+        const x = Math.abs(fn.a) < 0.001 ? 0 : (y - fn.b) / fn.a;
+        graphState.clickedPoint = { x, y, fromKeyboard: true };
+        document.getElementById('graph-clicked-point').textContent = '(' + formatNum(x) + ' ; ' + y + ')';
+        document.getElementById('graph-validate-btn').disabled = false;
+        if (typeof announceToScreenReader === 'function') {
+          announceToScreenReader('Curseur à y égale ' + y + ', antécédent x égale ' + formatNum(x));
+        }
+        renderGraph();
+      }
+    }
+
+    if (handled) e.preventDefault();
+  });
+
+  // Annonce SR lors du focus
+  newC.addEventListener('focus', () => {
+    if (typeof announceToScreenReader === 'function' && graphState.current) {
+      const type = graphState.current.type;
+      if (type === 'image') {
+        announceToScreenReader('Canvas focus. Utilise les flèches gauche et droite pour choisir l\'abscisse, puis Entrée pour valider.');
+      } else if (type === 'antecedent') {
+        announceToScreenReader('Canvas focus. Utilise les flèches haut et bas pour choisir l\'ordonnée, puis Entrée pour valider.');
+      }
+    }
+  });
 }
 
 function formatNum(n) {
@@ -10119,7 +10184,7 @@ function loadGraphChallenge() {
     if (x === 0) x = 1;  // pour éviter f(0)=b trivial
     challenge.target = { x, y: evalGraphFn(fn, x) };
     challenge.question = `Quelle est l'<strong>image de ${x}</strong> par cette fonction ?<br><span style="font-size:.85rem;color:var(--gray);font-weight:600">💡 Trouve le point de la droite dont l'<strong>abscisse</strong> (axe horizontal) vaut <strong>${x}</strong>, puis clique dessus pour révéler sa hauteur.</span>`;
-    challenge.hint = 'Monte ou descends verticalement depuis l\'abscisse ' + x + ' jusqu\'à la droite.';
+    challenge.hint = 'Monte/descends verticalement depuis l\'abscisse ' + x + ' jusqu\'à la droite (souris/doigt) — ou utilise ←→ au clavier puis Entrée.';
   } else if (type === 'antecedent') {
     // Choisis un y entier dans la portée verticale
     // Pour que ce soit faisable, y doit être atteint par f sur entier
@@ -10128,7 +10193,7 @@ function loadGraphChallenge() {
     const y = evalGraphFn(fn, xTarget);
     challenge.target = { x: xTarget, y };
     challenge.question = `Quel est l'<strong>antécédent de ${y}</strong> par cette fonction ?<br><span style="font-size:.85rem;color:var(--gray);font-weight:600">💡 Trouve le point de la droite dont l'<strong>ordonnée</strong> (axe vertical) vaut <strong>${y}</strong>, puis clique dessus pour révéler son abscisse.</span>`;
-    challenge.hint = 'Avance horizontalement depuis l\'ordonnée ' + y + ' jusqu\'à la droite.';
+    challenge.hint = 'Avance horizontalement depuis l\'ordonnée ' + y + ' jusqu\'à la droite (souris/doigt) — ou utilise ↑↓ au clavier puis Entrée.';
   } else if (type === 'identif_expr') {
     challenge.mode = 'qcm';
     // Génère 4 expressions, la bonne + 3 leurres
@@ -10292,12 +10357,15 @@ function renderGraph() {
     ctx.stroke();
   }
 
-  // Point cliqué
+  // Point cliqué (ou navigué au clavier — affiché en orange dans ce cas pour distinguer)
   if (graphState.clickedPoint) {
     const p = mathToPx(graphState.clickedPoint.x, graphState.clickedPoint.y);
+    const isKb = graphState.clickedPoint.fromKeyboard === true;
+    const mainColor = isKb ? '#FF6B00' : '#FFD700';
+    const lineColor = isKb ? 'rgba(255,107,0,0.5)' : 'rgba(255,215,0,0.35)';
     // Ligne pointillée vers les axes
-    ctx.strokeStyle = 'rgba(255,215,0,0.35)';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = lineColor;
+    ctx.lineWidth = isKb ? 1.5 : 1;
     ctx.setLineDash([3, 4]);
     ctx.beginPath();
     ctx.moveTo(p.x, p.y); ctx.lineTo(p.x, graphState.origin.y);
@@ -10305,14 +10373,21 @@ function renderGraph() {
     ctx.stroke();
     ctx.setLineDash([]);
     // Cercle
-    ctx.fillStyle = '#FFD700';
+    ctx.fillStyle = mainColor;
     ctx.beginPath();
-    ctx.arc(p.x, p.y, 7, 0, Math.PI * 2);
+    ctx.arc(p.x, p.y, isKb ? 9 : 7, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#0D0D1A';
     ctx.beginPath();
     ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
     ctx.fill();
+    // Annotation textuelle si keyboard (aide visuelle)
+    if (isKb) {
+      ctx.fillStyle = '#FF6B00';
+      ctx.font = 'bold 11px Nunito, sans-serif';
+      const label = '(' + formatNum(graphState.clickedPoint.x) + ' ; ' + formatNum(graphState.clickedPoint.y) + ')';
+      ctx.fillText(label, p.x + 12, p.y - 8);
+    }
   }
 }
 
