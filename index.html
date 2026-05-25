@@ -1560,6 +1560,30 @@
             <span class="topic-badge">Équations</span>
           </div>
         </div>
+                <div class="level-card" onclick="startAutoMode('auto_3e')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startAutoMode('auto_3e');}" role="button" tabindex="0" style="border-color:rgba(255,45,85,.3)">
+          <div class="lv" style="color:var(--red)">📕 3ème</div>
+          <div class="lv-name">Automatismes 3ème (DNB)</div>
+          <div class="lv-desc">Thalès, trigonométrie, fonctions, factorisation, probabilités</div>
+          <div class="lv-topics">
+            <span class="topic-badge">Thalès</span>
+            <span class="topic-badge">Trigo</span>
+            <span class="topic-badge">Fonctions</span>
+          </div>
+        </div>
+        <div class="level-card" onclick="startAutoMode('auto_dnb')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startAutoMode('auto_dnb');}" role="button" tabindex="0" style="border-color:rgba(255,215,0,.6);background:linear-gradient(135deg,var(--dark3),rgba(255,215,0,.08));grid-column:span 2">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+            <div class="lv" style="color:var(--yellow)">🏆 SPÉCIAL DNB</div>
+            <span style="font-size:.62rem;font-weight:900;background:var(--yellow);color:var(--dark);padding:3px 8px;border-radius:8px">CYCLE 4 COMPLET</span>
+          </div>
+          <div class="lv-name">Automatismes DNB 2027 (4e + 3e)</div>
+          <div class="lv-desc">Format exact de l'épreuve d'automatismes du brevet : pool des chapitres 4e et 3e mélangés.</div>
+          <div class="lv-topics">
+            <span class="topic-badge" style="color:var(--yellow);border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.08)">Pythagore</span>
+            <span class="topic-badge" style="color:var(--yellow);border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.08)">Thalès</span>
+            <span class="topic-badge" style="color:var(--yellow);border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.08)">Trigo</span>
+            <span class="topic-badge" style="color:var(--yellow);border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.08)">Fonctions</span>
+          </div>
+        </div>
         <div class="level-card" onclick="startAutoMode('auto_mix')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startAutoMode('auto_mix');}" role="button" tabindex="0" style="border-color:rgba(255,107,0,.3);grid-column:span 2">
           <div class="lv" style="color:var(--orange)">🟠 Chunin Mix</div>
           <div class="lv-name">Niveau Mix — 6ème + 5ème</div>
@@ -3018,7 +3042,43 @@ const QUESTIONS_BY_CHAPTER = {
         answers: ["Oui, car AM/AB = AN/AC", "Non", "Oui, car même triangle", "Impossible à dire"],
         correct: 0,
         feedback: "On vérifie : AM/AB = 3/5 = 0,6 et AN/AC = 6/10 = 0,6. <strong>Les rapports sont égaux ET les points sont dans le même ordre</strong> → réciproque de Thalès : (MN) ∥ (BC)."
+      }      ,
+      {
+        type: "Thalès configuration papillon", theme: "📐 Triangles opposés",
+        text: `Deux droites sécantes en O. Sur l'une, A et A'. Sur l'autre, B et B'. Si OA=3, OA'=6, OB=4, et (AB)∥(A'B'), combien vaut OB' ?`,
+        answers: ["8", "12", "2", "10"],
+        correct: 0,
+        feedback: "Configuration papillon (Thalès). OA/OA' = OB/OB' donne 3/6 = 4/OB'. Donc OB' = (4 × 6) / 3 = <strong>8</strong>."
+      },
+      {
+        type: "Application Thalès", theme: "🏔️ Largeur d'une rivière",
+        text: `Pour mesurer la largeur d'une rivière, on utilise Thalès. Schéma : un arbre A, repère B sur l'autre rive, repère C visible depuis P. PA=10, PB=15, PC=20. Largeur AB ?`,
+        answers: ["30", "5", "75", "6"],
+        correct: 0,
+        feedback: "Thalès : PA/PC × longueur réelle. Si la configuration est conforme : largeur = (PB × distance_repère) / PA = (15 × 20) / 10 = <strong>30 m</strong>."
+      },
+      {
+        type: "Sens de Thalès", theme: "📐 Direction",
+        text: `Sur la figure, M est entre A et B (M ∈ [AB]) et N est entre A et C. Le rapport AM/AB se calcule en parcourant le segment dans quel sens ?`,
+        answers: ["Du sommet commun A vers les pieds B et C", "B vers A", "Peu importe le sens", "A vers M seulement"],
+        correct: 0,
+        feedback: "On part toujours du <strong>sommet commun (A)</strong> et on va vers les pieds. Égalité : AM/AB = AN/AC = MN/BC. Ordre crucial pour éviter les erreurs !"
+      },
+      {
+        type: "Réciproque Thalès strict", theme: "📐 Vérification",
+        text: `Dans un triangle ABC, M sur [AB] et N sur [AC]. AM=2, MB=3, AN=4, NC=6. Les droites (MN) et (BC) sont-elles parallèles ?`,
+        answers: ["Oui, car AM/AB = AN/AC = 2/5", "Non", "On ne peut pas savoir", "Oui, car même triangle"],
+        correct: 0,
+        feedback: "AB = AM + MB = 5. AC = AN + NC = 10. AM/AB = 2/5 et AN/AC = 4/10 = 2/5. <strong>Rapports égaux ET points dans le même ordre</strong> → réciproque de Thalès s'applique : (MN) ∥ (BC)."
+      },
+      {
+        type: "Contre-exemple Thalès", theme: "📐 Piège classique",
+        text: `Triangle ABC, M ∈ [AB], N ∈ [AC]. AM=3, AB=8, AN=4, AC=12. (MN) et (BC) sont-elles parallèles ?`,
+        answers: ["Non, car les rapports diffèrent", "Oui", "Oui par approximation", "Impossible à dire"],
+        correct: 0,
+        feedback: "AM/AB = 3/8 = 0,375. AN/AC = 4/12 = 1/3 ≈ 0,333. <strong>Rapports différents</strong> → réciproque NE s'applique PAS, donc (MN) ∦ (BC)."
       }
+
     ],
     'trigonometrie': [
       {
@@ -3041,7 +3101,43 @@ const QUESTIONS_BY_CHAPTER = {
         answers: ["≈ 28,9 m", "≈ 25 m", "≈ 43,3 m", "≈ 100 m"],
         correct: 0,
         feedback: "tan(30°) = hauteur / 50, donc hauteur = 50 × tan(30°) ≈ 50 × 0,577 ≈ <strong>28,9 m</strong>. La hauteur est inférieure à la distance car l'angle est inférieur à 45°."
+      }      ,
+      {
+        type: "Cosinus exact", theme: "📏 Triangle remarquable",
+        text: `Dans un triangle rectangle, cos(30°) ≈ 0,866. L'hypoténuse mesure 8 cm. Côté adjacent à l'angle de 30° ?`,
+        answers: ["≈ 6,93 cm", "≈ 4 cm", "≈ 9,24 cm", "8 cm"],
+        correct: 0,
+        feedback: "cos(30°) = adjacent / hypoténuse. Donc adjacent = cos(30°) × 8 = 0,866 × 8 ≈ <strong>6,93 cm</strong>."
+      },
+      {
+        type: "Choisir le bon rapport", theme: "📏 SOH-CAH-TOA",
+        text: `Triangle rectangle : on connaît l'opposé (5 cm) et l'hypoténuse (10 cm). Quel rapport trigo donne l'angle ?`,
+        answers: ["sinus", "cosinus", "tangente", "Pythagore"],
+        correct: 0,
+        feedback: "<strong>Sinus</strong> = Opposé / Hypoténuse (SOH dans SOH-CAH-TOA). Ici sin = 5/10 = 0,5 → angle = 30°."
+      },
+      {
+        type: "Sinus calcul", theme: "📏 Angle à trouver",
+        text: `Si sin(θ) = 0,5 et θ est un angle aigu d'un triangle rectangle, θ vaut ?`,
+        answers: ["30°", "45°", "60°", "90°"],
+        correct: 0,
+        feedback: "sin(30°) = 0,5 (à connaître par cœur ou avec sin⁻¹ de la calculatrice). Angles remarquables : sin(30°)=0,5, sin(45°)=√2/2≈0,707, sin(60°)=√3/2≈0,866."
+      },
+      {
+        type: "Tangente application", theme: "📏 Hauteur d'arbre",
+        text: `Pour mesurer un arbre, on se place à 10 m de sa base, on lève les yeux avec un angle de 35°. Hauteur estimée (tan(35°) ≈ 0,70) ?`,
+        answers: ["≈ 7 m", "≈ 3,5 m", "≈ 14 m", "≈ 10,7 m"],
+        correct: 0,
+        feedback: "tan(35°) = hauteur / 10, donc hauteur = 10 × 0,70 = <strong>7 m</strong>. La tangente relie l'opposé et l'adjacent."
+      },
+      {
+        type: "Vérification trigo", theme: "📏 Cohérence",
+        text: `Si dans un triangle rectangle cos(θ)=0,6, que vaut sin(θ) ?`,
+        answers: ["0,8", "0,4", "1,6", "0,36"],
+        correct: 0,
+        feedback: "Relation fondamentale : cos²(θ) + sin²(θ) = 1. Donc sin² = 1 − 0,36 = 0,64, sin = √0,64 = <strong>0,8</strong>. Triangle 3-4-5 reconnaissable : cos=3/5=0,6 et sin=4/5=0,8."
       }
+
     ],
     'fonctions': [
       {
@@ -3064,7 +3160,36 @@ const QUESTIONS_BY_CHAPTER = {
         answers: ["f(x) = 4x + 3", "f(x) = 8x + 3", "f(x) = 2x + 7", "f(x) = 3x + 5"],
         correct: 0,
         feedback: "f(0) = b = 3. Coefficient directeur a = (11 − 3) ÷ (2 − 0) = 8 ÷ 2 = 4. Donc f(x) = <strong>4x + 3</strong>. Toute fonction affine a la forme ax + b."
+      }      ,
+      {
+        type: "Calcul d'image", theme: "📈 Fonction simple",
+        text: `Soit f(x) = 2x − 5. Combien vaut f(−3) ?`,
+        answers: ["−11", "−1", "1", "11"],
+        correct: 0,
+        feedback: "On substitue : f(−3) = 2 × (−3) − 5 = −6 − 5 = <strong>−11</strong>. Attention à la règle des signes."
+      },
+      {
+        type: "Détermination affine", theme: "📈 Deux points",
+        text: `Une fonction affine vérifie f(1) = 5 et f(4) = 14. Quelle est son expression ?`,
+        answers: ["f(x) = 3x + 2", "f(x) = 2x + 3", "f(x) = 9x + 5", "f(x) = 3x + 5"],
+        correct: 0,
+        feedback: "Coefficient directeur a = (14 − 5) / (4 − 1) = 9/3 = 3. f(x) = 3x + b. f(1) = 5 → 3 + b = 5 → b = 2. Donc f(x) = <strong>3x + 2</strong>."
+      },
+      {
+        type: "Représentation graphique", theme: "📈 Lecture",
+        text: `Sur un graphique, une droite passe par O(0;0) et A(2;6). Cette fonction est ?`,
+        answers: ["Linéaire de coefficient 3", "Affine de coefficient 3 et ordonnée 0", "Linéaire de coefficient 6", "Affine f(x)=2x+6"],
+        correct: 0,
+        feedback: "Passe par O → fonction <strong>linéaire</strong> (f(x) = ax). a = 6/2 = 3 → f(x) = 3x. Note : une fonction linéaire est un cas particulier de fonction affine (avec b=0)."
+      },
+      {
+        type: "Antécédent inverse", theme: "📈 Résolution",
+        text: `f(x) = −2x + 7. Antécédent de 1 ?`,
+        answers: ["3", "−3", "5", "−5"],
+        correct: 0,
+        feedback: "On résout f(x) = 1 : −2x + 7 = 1, donc −2x = −6, donc x = <strong>3</strong>. Vérif : f(3) = −6+7 = 1 ✓."
       }
+
     ],
     'factorisation': [
       {
@@ -3087,7 +3212,29 @@ const QUESTIONS_BY_CHAPTER = {
         answers: ["x = 3 ou x = −5", "x = −3 ou x = 5", "x = 15", "Aucune solution"],
         correct: 0,
         feedback: "Règle du produit nul : un produit est nul si et seulement si l'un des facteurs est nul. Donc x − 3 = 0 (x = 3) <strong>ou</strong> x + 5 = 0 (x = −5)."
+      }      ,
+      {
+        type: "(a−b)²", theme: "🔢 Identité 2",
+        text: `Développe : <span class='math'>(2x − 3)²</span>.`,
+        answers: ["4x² − 12x + 9", "4x² − 9", "4x² + 9", "2x² − 6x + 9"],
+        correct: 0,
+        feedback: "Identité : (a − b)² = a² − 2ab + b². Ici (2x)² − 2 × 2x × 3 + 3² = <strong>4x² − 12x + 9</strong>. Le double produit est négatif."
+      },
+      {
+        type: "Identité (a+b)(a−b)", theme: "🔢 Conjugué",
+        text: `Calcule sans calculatrice : <span class='math'>102 × 98</span>.`,
+        answers: ["9996", "10000", "9990", "10004"],
+        correct: 0,
+        feedback: "Astuce : 102 × 98 = (100+2)(100−2) = 100² − 2² = 10000 − 4 = <strong>9996</strong>. Identité a² − b² appliquée numériquement."
+      },
+      {
+        type: "Factorisation par regroupement", theme: "🔢 Stratégie",
+        text: `Factorise : <span class='math'>x² − 4 + 3(x − 2)</span>.`,
+        answers: ["(x − 2)(x + 5)", "(x − 2)(x + 2)", "(x + 2)(x + 3)", "Impossible"],
+        correct: 0,
+        feedback: "x² − 4 = (x−2)(x+2) [a² − b²]. Donc l'expression = (x−2)(x+2) + 3(x−2) = (x−2)((x+2) + 3) = <strong>(x − 2)(x + 5)</strong>."
       }
+
     ],
     'probabilites_arbre': [
       {
@@ -3110,7 +3257,29 @@ const QUESTIONS_BY_CHAPTER = {
         answers: ["12/90 = 2/15", "16/100", "4/10", "1/2"],
         correct: 0,
         feedback: "1re jaune : 4/10. 2e jaune (3 jaunes restantes / 9 total) : 3/9 = 1/3. P(2 jaunes) = 4/10 × 1/3 = 4/30 = <strong>2/15</strong>. Sans remise → 2e proba dépend de la 1re."
+      }      ,
+      {
+        type: "Arbre 2 niveaux", theme: "🌳 Tirages successifs",
+        text: `Pièce truquée : P(pile)=0,7 et P(face)=0,3. On lance 2 fois (indépendant). Probabilité d'obtenir pile puis face ?`,
+        answers: ["0,21", "0,49", "0,4", "0,5"],
+        correct: 0,
+        feedback: "Indépendants → multiplication : P(pile) × P(face) = 0,7 × 0,3 = <strong>0,21</strong>. Sur l'arbre on multiplie le long d'une branche."
+      },
+      {
+        type: "Probabilité union", theme: "🌳 Au moins un",
+        text: `On lance 2 dés. Probabilité d'obtenir AU MOINS un 6 ?`,
+        answers: ["11/36", "1/6", "1/3", "2/6"],
+        correct: 0,
+        feedback: "Méthode complémentaire : P(au moins un 6) = 1 − P(aucun 6) = 1 − (5/6)² = 1 − 25/36 = <strong>11/36</strong>. Ou compter : 6 paires avec 1er=6, plus 5 paires avec 2nd=6 (sans répéter (6,6))."
+      },
+      {
+        type: "Probabilités équiprobables", theme: "🌳 Boules colorées",
+        text: `Sac : 5 rouges, 3 vertes, 2 bleues. Probabilité de tirer une non-rouge ?`,
+        answers: ["1/2", "5/10", "3/5", "2/10"],
+        correct: 0,
+        feedback: "Non-rouges = 3 + 2 = 5. Total = 10. P(non-rouge) = 5/10 = <strong>1/2</strong> = 50%. Ou P(non-rouge) = 1 − P(rouge) = 1 − 1/2 = 1/2."
       }
+
     ],
     'arithmetique_3e': [
       {
@@ -3133,7 +3302,22 @@ const QUESTIONS_BY_CHAPTER = {
         answers: ["2² × 3 × 7", "4 × 21", "2 × 42", "2³ × 3 × 7"],
         correct: 0,
         feedback: "84 = 2 × 42 = 2 × 2 × 21 = 2 × 2 × 3 × 7 = <strong>2² × 3 × 7</strong>. Décomposition unique en facteurs premiers (théorème fondamental de l'arithmétique)."
+      }      ,
+      {
+        type: "PGCD application", theme: "🔍 Cadeau de Tsunade",
+        text: `On veut faire des sachets identiques avec 48 kunais et 36 shurikens. Quel est le maximum de sachets ?`,
+        answers: ["12 sachets", "6 sachets", "4 sachets", "84 sachets"],
+        correct: 0,
+        feedback: "PGCD(48, 36). Euclide : 48 = 36×1+12 ; 36 = 12×3+0. Donc PGCD = <strong>12 sachets</strong> (chacun avec 4 kunais et 3 shurikens)."
+      },
+      {
+        type: "Nombres premiers", theme: "🔍 Décomposition",
+        text: `Décompose 360 en produit de facteurs premiers.`,
+        answers: ["2³ × 3² × 5", "2 × 180", "4 × 90", "2² × 90"],
+        correct: 0,
+        feedback: "360 = 2 × 180 = 2 × 2 × 90 = 2 × 2 × 2 × 45 = 2³ × 45 = 2³ × 9 × 5 = <strong>2³ × 3² × 5</strong>. Décomposition unique."
       }
+
     ]
   }
 };
@@ -3687,7 +3871,7 @@ function getModeLabel(mode) {
     const meta = (CHAPTER_LABELS[classe] && CHAPTER_LABELS[classe][chap]) || null;
     return meta ? `${meta.emoji} ${meta.name} (${classe})` : `${classe} - ${chap}`;
   }
-  const labels = { '6e_facile': 'Académie (6ème)', '5e_medium': 'Genin (5ème)', 'mixte_difficile': 'Chunin (Mix)', 'boss': 'Mode Boss', 'libre': 'Entraînement libre' };
+  const labels = { '6e_facile': 'Académie (6ème)', '5e_medium': 'Genin (5ème)', 'mixte_difficile': 'Chunin (Mix)', 'boss': 'Mode Boss', 'libre': 'Entraînement libre', 'auto_3e': 'Automatismes 3ème', 'auto_dnb': 'Automatismes DNB 2027' };
   return labels[mode] || mode;
 }
 
@@ -5230,6 +5414,96 @@ const AUTO_GENERATORS = {
     const med = arr[2]; // médiane d'une liste de 5
     return { q: `Médiane de : ${arr.join(', ')}`, a: String(med), theme: 'Statistiques' };
   },
+
+  // ─── NIVEAU 3ème ───
+  '3e_thales_long': () => {
+    // Thalès : configuration triangle. On connaît 3 longueurs, on cherche la 4e.
+    const k = Math.floor(Math.random()*5+2);
+    const AM = Math.floor(Math.random()*4+2);
+    const AB = AM + Math.floor(Math.random()*4+2);
+    const AC = AB * k;
+    const AN = AM * k;
+    // On affiche 3 valeurs et demande la 4e (AN)
+    return { q: `Thalès : AM=${AM}, AB=${AB}, AC=${AC}, AN=?`, a: String(AN), theme: 'Thalès' };
+  },
+  '3e_pythagore_pyth': () => {
+    // Rappel Pythagore en 3e (souvent revu dans contexte trigo)
+    const pairs = [[3,4,5],[5,12,13],[8,15,17],[7,24,25],[9,40,41]];
+    const [a, b, h] = pairs[Math.floor(Math.random()*pairs.length)];
+    return { q: `Pythagore : ${a}² + ${b}² = ?² (hypoténuse)`, a: String(h), theme: 'Pythagore (rappel)' };
+  },
+  '3e_trigo_cos': () => {
+    const angles = [
+      { a: 30, cos: '0,866', sin: '0,5', tan: '0,577' },
+      { a: 45, cos: '0,707', sin: '0,707', tan: '1' },
+      { a: 60, cos: '0,5', sin: '0,866', tan: '1,732' }
+    ];
+    const ag = angles[Math.floor(Math.random()*3)];
+    return { q: `cos(${ag.a}°) ≈ ? (3 décimales)`, a: ag.cos, theme: 'Trigonométrie' };
+  },
+  '3e_trigo_calc': () => {
+    // hypoténuse connue, angle connu, trouver côté adjacent ou opposé
+    const h = Math.floor(Math.random()*8+4);
+    const ang = [30, 45, 60][Math.floor(Math.random()*3)];
+    const cosVal = { 30: 0.866, 45: 0.707, 60: 0.5 }[ang];
+    const adj = Math.round(h * cosVal * 10) / 10;
+    return { q: `Triangle rectangle : hypoténuse=${h}, angle=${ang}°. Côté adjacent ?`,
+             a: frFr(adj), theme: 'Trigonométrie' };
+  },
+  '3e_image_affine': () => {
+    const a = Math.floor(Math.random()*8-3);
+    const b = Math.floor(Math.random()*10-5);
+    const x = Math.floor(Math.random()*10-5);
+    const ans = a * x + b;
+    return { q: `f(x) = ${a}x ${b>=0?'+ ':'− '}${Math.abs(b)}, f(${signedFr(x)}) = ?`,
+             a: signedFr(ans), accept: [String(ans)], theme: 'Fonctions' };
+  },
+  '3e_antecedent': () => {
+    const a = Math.floor(Math.random()*7+2);
+    const b = Math.floor(Math.random()*10-5);
+    const x = Math.floor(Math.random()*7-3);
+    const y = a * x + b;
+    return { q: `f(x) = ${a}x ${b>=0?'+ ':'− '}${Math.abs(b)}. Antécédent de ${signedFr(y)} ?`,
+             a: signedFr(x), accept: [String(x)], theme: 'Fonctions' };
+  },
+  '3e_developpe_carre': () => {
+    const a = Math.floor(Math.random()*5+2);
+    const isMinus = Math.random() < 0.5;
+    const sign = isMinus ? '−' : '+';
+    const dpSign = isMinus ? '−' : '+';
+    // (x ± a)² = x² ± 2ax + a²
+    return { q: `Développe : (x ${sign} ${a})²`,
+             a: `x²${dpSign}${2*a}x+${a*a}`,
+             accept: [`x² ${dpSign} ${2*a}x + ${a*a}`, `x^2${dpSign}${2*a}x+${a*a}`],
+             theme: 'Identités' };
+  },
+  '3e_fact_diff': () => {
+    const a = Math.floor(Math.random()*9+2);
+    return { q: `Factorise : x² − ${a*a}`,
+             a: `(x−${a})(x+${a})`,
+             accept: [`(x-${a})(x+${a})`, `(x+${a})(x−${a})`, `(x+${a})(x-${a})`],
+             theme: 'Factorisation' };
+  },
+  '3e_pgcd': () => {
+    // Génère des paires non triviales
+    const k = Math.floor(Math.random()*7+3);
+    const a1 = Math.floor(Math.random()*8+2);
+    const b1 = Math.floor(Math.random()*8+2);
+    return { q: `PGCD(${k*a1}, ${k*b1})`, a: String(k*pgcd(a1, b1)), theme: 'Arithmétique' };
+  },
+  '3e_proba_indep': () => {
+    // 2 événements indépendants avec proba fractionnaires
+    const p1n = Math.floor(Math.random()*4+1);
+    const p1d = p1n + Math.floor(Math.random()*4+2);
+    const p2n = Math.floor(Math.random()*4+1);
+    const p2d = p2n + Math.floor(Math.random()*4+2);
+    const num = p1n * p2n;
+    const den = p1d * p2d;
+    return { q: `P(A)=${p1n}/${p1d}, P(B)=${p2n}/${p2d}, indépendants. P(A et B) ?`,
+             a: simpFrac(num, den),
+             accept: [`${num}/${den}`, simpFrac(num,den)],
+             theme: 'Probabilités' };
+  },
 };
 
 // Helpers
@@ -5254,9 +5528,12 @@ const AUTO_POOLS = {
   'auto_6e': ['6e_add_dec','6e_sub_dec','6e_mult_simple','6e_mult_10_100','6e_div_10_100','6e_frac_add_same','6e_percent_easy','6e_double_half','6e_perim_rect','6e_complement_100'],
   'auto_5e': ['5e_relat_add','5e_relat_sub','5e_relat_mult','5e_powers','5e_priorities','5e_priorities_par','5e_calc_litt','5e_frac_mult','5e_percent_full','5e_propor','5e_angle_tri'],
   'auto_4e': ['4e_pyth_hyp','4e_pyth_cote','4e_notation_sci','4e_powers_mult','4e_powers_div','4e_developpe','4e_eq_membres','4e_mediane'],
-  'auto_mix': null  // initialisé dynamiquement
+  'auto_3e': ['3e_thales_long','3e_pythagore_pyth','3e_trigo_cos','3e_trigo_calc','3e_image_affine','3e_antecedent','3e_developpe_carre','3e_fact_diff','3e_pgcd','3e_proba_indep'],
+  'auto_mix': null,  // initialisé dynamiquement
+  'auto_dnb': null   // automatismes type DNB 2027 (auto_4e + auto_3e)
 };
-AUTO_POOLS['auto_mix'] = [...AUTO_POOLS.auto_6e, ...AUTO_POOLS.auto_5e, ...AUTO_POOLS.auto_4e];
+AUTO_POOLS['auto_mix'] = [...AUTO_POOLS.auto_6e, ...AUTO_POOLS.auto_5e, ...AUTO_POOLS.auto_4e, ...AUTO_POOLS.auto_3e];
+AUTO_POOLS['auto_dnb'] = [...AUTO_POOLS.auto_4e, ...AUTO_POOLS.auto_3e];
 
 // État
 let autoState = {
@@ -6057,7 +6334,18 @@ const TRUEFALSE_STATEMENTS = [
   { text: "Une équation 2x + 3 = 2x − 1 a une infinité de solutions", isTrue: false, explain: "Faux ! 2x + 3 = 2x − 1 donne 3 = −1, impossible. <strong>Aucune solution</strong>." },
   { text: "La médiane de 5, 8, 12, 14, 20 est 12", isTrue: true, explain: "Liste triée, 5 valeurs : médiane = 3e valeur = 12. Vrai." },
   { text: "L'étendue d'une série de notes 10, 14, 18 est 8", isTrue: true, explain: "Étendue = max − min = 18 − 10 = 8. Vrai." },
-  { text: "Une rotation conserve les longueurs", isTrue: true, explain: "Vrai ! Translation, rotation et symétrie centrale sont des ISOMÉTRIES — elles préservent toutes les longueurs et angles." }
+  { text: "Une rotation conserve les longueurs", isTrue: true, explain: "Vrai ! Translation, rotation et symétrie centrale sont des ISOMÉTRIES — elles préservent toutes les longueurs et angles." },
+  // 3e — Thalès, trigo, fonctions, factorisation, probas
+  { text: "Thalès s'applique seulement aux triangles rectangles", isTrue: false, explain: "Faux ! Thalès s'applique à TOUS les triangles (avec parallèles découpant les côtés). Pythagore, lui, est réservé aux triangles rectangles." },
+  { text: "cos(60°) = 0,5", isTrue: true, explain: "Vrai. Angles remarquables : cos(60°)=0,5, sin(60°)=√3/2≈0,866, tan(60°)=√3≈1,732." },
+  { text: "Dans un triangle rectangle, sin² + cos² = 1", isTrue: true, explain: "Vrai. Relation fondamentale de la trigonométrie qui découle de Pythagore." },
+  { text: "Une fonction affine f(x) = 3x + 5 a pour ordonnée à l'origine 3", isTrue: false, explain: "Faux ! L'ordonnée à l'origine est b = 5 (f(0) = 5). Le coefficient directeur est a = 3." },
+  { text: "Une fonction linéaire passe forcément par l'origine", isTrue: true, explain: "Vrai. Linéaire : f(x) = ax, donc f(0) = 0. Toute droite linéaire passe par l'origine (0;0). L'affine ax+b ne passe par O que si b=0." },
+  { text: "(a + b)² = a² + b²", isTrue: false, explain: "FAUX, le piège classique ! (a + b)² = a² + 2ab + b² (n'oublie pas le double produit 2ab). À distinguer de Pythagore qui parle de longueurs au carré." },
+  { text: "a² − b² = (a − b)(a + b)", isTrue: true, explain: "Vrai. Identité remarquable très utile pour factoriser et faire des calculs astucieux (102 × 98 = (100+2)(100-2) = 9996)." },
+  { text: "Si (x − 3)(x + 5) = 0, alors x = 3 ou x = −5", isTrue: true, explain: "Vrai. Règle du produit nul : un produit est nul si ET SEULEMENT SI l'un de ses facteurs est nul. Donc x − 3 = 0 OU x + 5 = 0." },
+  { text: "Quand on tire 2 boules sans remise, les tirages sont indépendants", isTrue: false, explain: "Faux ! SANS remise, la 2e probabilité change car la composition de l'urne a changé. Les tirages sont DÉPENDANTS." },
+  { text: "PGCD(15, 20) = 5", isTrue: true, explain: "Vrai. Diviseurs communs : 1 et 5. Le plus grand = 5. Vérif via Euclide : 20 = 15×1 + 5 ; 15 = 5×3 + 0." }
 ];
 
 let tfState = {
@@ -6497,6 +6785,84 @@ const STORY_MISSIONS = [
         answers: ["17", "16", "15", "18"],
         correct: 0,
         feedback: "On cherche x tel que (12×3 + 2x)/5 ≥ 14. Donc 36 + 2x ≥ 70, soit 2x ≥ 34, soit x ≥ <strong>17</strong>. Mise en équation : transformer un mot en lettre."
+      }
+    ]
+  },
+  {
+    title: "🔺 La forêt mystérieuse",
+    decor: "🔺",
+    intro: "<em>Tanjiro</em> doit traverser une forêt dangereuse pour atteindre le sommet d'une montagne. Il a besoin de <strong>Thalès</strong>, <strong>Pythagore</strong> et la <strong>trigonométrie</strong> pour calculer ses distances et trouver le bon chemin.",
+    steps: [
+      {
+        narrative: "Au pied de la montagne, <em>Tanjiro</em> voit son sommet sous un angle de 30°. Il est à 200 m horizontalement du pied.",
+        question: "Quelle est la hauteur de la montagne (tan(30°) ≈ 0,577) ?",
+        type: "Trigonométrie",
+        answers: ["≈ 115,5 m", "≈ 346 m", "≈ 100 m", "≈ 60 m"],
+        correct: 0,
+        feedback: "tan(30°) = hauteur / 200. Donc hauteur = 200 × tan(30°) ≈ 200 × 0,577 = <strong>115,5 m</strong>. La tangente relie l'opposé (hauteur) et l'adjacent (distance horizontale)."
+      },
+      {
+        narrative: "Il marche en diagonale vers le sommet. Sa trajectoire forme un triangle rectangle.",
+        question: "Quelle est la distance directe au sommet (Pythagore) ?",
+        type: "Pythagore",
+        answers: ["≈ 230,9 m", "≈ 315,5 m", "≈ 84,5 m", "Pas calculable"],
+        correct: 0,
+        feedback: "Distance² = 200² + 115,5² = 40 000 + 13 340 ≈ 53 340. Distance = √53 340 ≈ <strong>230,9 m</strong>. C'est l'hypoténuse du triangle rectangle."
+      },
+      {
+        narrative: "À mi-chemin, <em>Tanjiro</em> rencontre un pont délabré formant un triangle parallèle à la pente principale.",
+        question: "Si la grande pente fait 230 m et la mini-pente du pont 50 m, le pont est à quel rapport ?",
+        type: "Thalès",
+        answers: ["50/230 ≈ 0,217", "230/50 = 4,6", "Pas de rapport", "1/2"],
+        correct: 0,
+        feedback: "Avec Thalès, les segments parallèles forment des triangles proportionnels. Rapport = 50/230 ≈ <strong>0,217</strong> ou ≈ 21,7 %. Le petit triangle est environ 5x plus petit."
+      },
+      {
+        narrative: "Au sommet, <em>Tanjiro</em> trouve un coffre verrouillé par un mot de passe : « x est l'antécédent de 5 par la fonction f(x) = 2x − 3 ».",
+        question: "Quel est x ?",
+        type: "Fonctions",
+        answers: ["4", "7", "10", "−4"],
+        correct: 0,
+        feedback: "On résout f(x) = 5 : 2x − 3 = 5, donc 2x = 8, donc x = <strong>4</strong>. Vérif : f(4) = 8 − 3 = 5 ✓. L'antécédent, c'est l'entrée x qui donne la valeur 5."
+      }
+    ]
+  },
+  {
+    title: "💎 Le brevet du Hokage",
+    decor: "💎",
+    intro: "<em>Naruto</em> passe son brevet final pour devenir <strong>Hokage</strong>. <em>Tsunade</em> l'évalue sur des questions type DNB 2027 mélangeant <strong>factorisation</strong>, <strong>probabilités</strong> et <strong>arithmétique</strong>.",
+    steps: [
+      {
+        narrative: "Première épreuve : <em>Tsunade</em> écrit au tableau : « x² − 100 ».",
+        question: "Comment factoriser ?",
+        type: "Identités",
+        answers: ["(x − 10)(x + 10)", "(x − 10)²", "(x + 100)(x − 1)", "Impossible"],
+        correct: 0,
+        feedback: "Identité a² − b² = (a−b)(a+b). Ici x² − 10² = <strong>(x − 10)(x + 10)</strong>. Indispensable pour résoudre les équations produit-nul."
+      },
+      {
+        narrative: "Deuxième épreuve : <em>Tsunade</em> propose un sac avec 4 boules rouges et 6 bleues.",
+        question: "Quelle est la probabilité de tirer une bleue ?",
+        type: "Probabilités",
+        answers: ["3/5", "2/5", "1/2", "6/4"],
+        correct: 0,
+        feedback: "P(bleue) = nb_bleues / total = 6/10 = <strong>3/5</strong>. Pour une expérience équiprobable, on divise les cas favorables par le total."
+      },
+      {
+        narrative: "Troisième épreuve : sans remise, <em>Naruto</em> tire 2 boules.",
+        question: "Probabilité de tirer 2 bleues d'affilée ?",
+        type: "Probabilités composées",
+        answers: ["6/10 × 5/9 = 1/3", "6/10 × 6/10", "1/4", "2/5"],
+        correct: 0,
+        feedback: "Sans remise : 1re bleue = 6/10. Après tirage : reste 5 bleues sur 9 boules. P(2 bleues) = 6/10 × 5/9 = 30/90 = <strong>1/3</strong>. La 2e probabilité dépend du 1er tirage !"
+      },
+      {
+        narrative: "Dernière épreuve : <em>Tsunade</em> dit « réduis la fraction 84/126 ».",
+        question: "Forme irréductible ?",
+        type: "Arithmétique",
+        answers: ["2/3", "4/6", "12/18", "42/63"],
+        correct: 0,
+        feedback: "PGCD(84, 126) = 42. Donc 84/126 = (84÷42)/(126÷42) = <strong>2/3</strong>. Une fraction est irréductible quand numérateur et dénominateur sont premiers entre eux."
       }
     ]
   }
