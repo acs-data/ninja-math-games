@@ -8992,9 +8992,11 @@ function validatePythChallenge() {
     pythState.challengeAnswered = true;
     if (typeof addXP === 'function') addXP(40);
     if (typeof recordGameComplete === 'function') recordGameComplete('pythagore_atelier_' + c.type, 1, 1);
-    if (typeof announceToScreenReader === 'function') announceToScreenReader('Défi réussi ! ' + msg.replace(/<[^>]+>/g, ''));
+    // msg est construit en interne à partir de littéraux et de valeurs numériques :
+    // pas de HTML utilisateur, on passe directement au SR via stripHtml par sécurité.
+    if (typeof announceToScreenReader === 'function') announceToScreenReader('Défi réussi ! ' + stripHtml(msg));
   } else {
-    if (typeof announceToScreenReader === 'function') announceToScreenReader(msg.replace(/<[^>]+>/g, ''));
+    if (typeof announceToScreenReader === 'function') announceToScreenReader(stripHtml(msg));
   }
 }
 
