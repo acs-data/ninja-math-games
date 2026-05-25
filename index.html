@@ -1058,6 +1058,30 @@
 
 
 
+
+  /* ── LECTEUR DE GRAPHIQUE ── */
+  .graph-canvas-wrap {
+    background: var(--dark2);
+    border: 2px solid rgba(26,107,255,.25);
+    border-radius: 14px;
+    padding: 10px;
+  }
+  #graph-canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 8px;
+    background: #0A0A14;
+    cursor: crosshair;
+    touch-action: none;
+  }
+  .graph-hint {
+    font-size: .72rem;
+    color: var(--gray);
+    text-align: center;
+    margin-top: 6px;
+  }
+
   /* ── ARBRE DE PROBABILITÉS ── */
   .proba-tree-canvas {
     background: var(--dark2);
@@ -1769,6 +1793,15 @@
             <span class="topic-badge" style="color:var(--green);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.1)">Pythagore</span>
             <span class="topic-badge" style="color:var(--green);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.1)">Thalès</span>
             <span class="topic-badge" style="color:var(--green);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.1)">Trigo</span>
+          </div>
+        </div>
+        <div class="level-card" onclick="startGraphReader()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startGraphReader();}" role="button" tabindex="0" style="border-color:rgba(26,107,255,.4);background:linear-gradient(135deg,var(--dark3),rgba(26,107,255,.04))">
+          <div class="lv" style="color:var(--blue)">📈 Lecteur</div>
+          <div class="lv-name">Lecteur de graphique</div>
+          <div class="lv-desc">Lis les images, les antécédents, identifie une fonction affine. 10 défis chronométrés sur le programme de 3e.</div>
+          <div class="lv-topics">
+            <span class="topic-badge" style="color:var(--blue);border-color:rgba(26,107,255,.3);background:rgba(26,107,255,.1)">Fonctions</span>
+            <span class="topic-badge" style="color:var(--blue);border-color:rgba(26,107,255,.3);background:rgba(26,107,255,.1)">Lecture graphique</span>
           </div>
         </div>
         <div class="level-card" onclick="startProbaTree()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startProbaTree();}" role="button" tabindex="0" style="border-color:rgba(155,89,182,.4);background:linear-gradient(135deg,var(--dark3),rgba(155,89,182,.04))">
@@ -2675,6 +2708,101 @@
     <div class="btn-row">
       <button class="btn-main" onclick="startProbaTree()">🔄 REJOUER</button>
       <button class="btn-sec" onclick="showHome()">🏠 Accueil</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- ÉCRAN LECTEUR DE GRAPHIQUE DE FONCTION              -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="screen-graph-reader" style="display:none;padding:16px;max-width:860px;margin:0 auto">
+    <div class="game-controls" role="toolbar" aria-label="Contrôles lecture de graphique">
+      <button type="button" class="btn-control" onclick="confirmQuitGraph()" aria-label="Quitter le mode lecteur de graphique">
+        <span aria-hidden="true">🏠</span> Accueil
+      </button>
+    </div>
+
+    <div class="mission-card" style="border-left-color:var(--blue)">
+      <div class="mission-label" style="color:var(--blue)">📈 LECTEUR DE GRAPHIQUE</div>
+      <div class="mission-title" id="graph-title">Défi 1 sur 10</div>
+      <div class="mission-desc" id="graph-instruction">Charge en cours…</div>
+    </div>
+
+    <!-- Stats compactes -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+      <div class="stat-block" style="padding:8px 10px">
+        <div class="stat-label">📈 Défi</div>
+        <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:1.2rem;color:var(--yellow)" id="graph-progress">1 / 10</div>
+      </div>
+      <div class="stat-block" style="padding:8px 10px">
+        <div class="stat-label">✅ Justes</div>
+        <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:1.2rem;color:var(--green)" id="graph-correct">0</div>
+      </div>
+      <div class="stat-block" style="padding:8px 10px">
+        <div class="stat-label">🔥 Combo</div>
+        <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:1.2rem;color:var(--orange)" id="graph-combo">0</div>
+      </div>
+    </div>
+
+    <!-- Canvas du graphique -->
+    <div class="graph-canvas-wrap">
+      <canvas id="graph-canvas" aria-label="Graphique de fonction" role="img"></canvas>
+      <div class="graph-hint" id="graph-hint">💡 Lis l'énoncé puis clique sur le bon point du graphique.</div>
+    </div>
+
+    <!-- Zone de réponse : soit clic sur graph (lecture/antécédent), soit QCM (identif/coeff) -->
+    <div id="graph-answer-wrap" style="margin-top:12px">
+      <!-- Pour clic-graphique -->
+      <div id="graph-click-mode" style="display:none">
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;align-items:center">
+          <span style="font-size:.9rem;color:var(--gray)">Point cliqué :</span>
+          <span id="graph-clicked-point" style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:1.2rem;color:var(--yellow)">aucun</span>
+          <button type="button" class="btn-main" id="graph-validate-btn" onclick="validateGraphAnswer()" disabled>✓ VALIDER</button>
+        </div>
+      </div>
+      <!-- Pour QCM -->
+      <div id="graph-qcm-mode" style="display:none">
+        <div class="answers-grid" id="graph-qcm-answers"></div>
+      </div>
+    </div>
+
+    <!-- Feedback -->
+    <div id="graph-feedback" style="display:none;margin-top:12px;padding:12px 14px;border-radius:10px;font-size:.9rem;line-height:1.5"></div>
+    <div style="text-align:center;margin-top:12px;display:none" id="graph-next-wrap">
+      <button type="button" class="btn-main" onclick="nextGraphChallenge()" id="graph-next-btn">DÉFI SUIVANT →</button>
+    </div>
+  </div>
+
+  <!-- Résultat final lecteur de graphique -->
+  <div id="screen-graph-reader-result" style="display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 64px);padding:32px 20px;text-align:center;gap:18px">
+    <div style="font-size:4rem" id="graph-result-emoji">📈</div>
+    <h2 style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:clamp(1.6rem,5vw,2.4rem);color:var(--blue);letter-spacing:2px;margin:0">DÉFIS TERMINÉS !</h2>
+    <p id="graph-result-msg" style="max-width:480px;color:var(--white);line-height:1.6"></p>
+    <div class="result-stats">
+      <div class="result-stat">
+        <div class="rs-val" id="graph-res-correct">0/10</div>
+        <div class="rs-label">Bonnes réponses</div>
+      </div>
+      <div class="result-stat">
+        <div class="rs-val" id="graph-res-streak">×0</div>
+        <div class="rs-label">Meilleur combo</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-main" onclick="startGraphReader()">🔄 REJOUER</button>
+      <button class="btn-sec" onclick="showHome()">🏠 Accueil</button>
+    </div>
+  </div>
+
+  <!-- Modal confirmation quitter -->
+  <div class="modal-overlay" id="modal-graph-quit" role="dialog" aria-modal="true" aria-labelledby="modal-graph-quit-title">
+    <div class="modal-card">
+      <div style="font-size:3rem;margin-bottom:8px" aria-hidden="true">⚠️</div>
+      <h3 id="modal-graph-quit-title" style="color:var(--red)">Quitter les défis ?</h3>
+      <p>Tu vas perdre ta progression de cette session.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-main" onclick="closeModal('modal-graph-quit')" autofocus>↩️ NON, CONTINUER</button>
+        <button type="button" class="btn-sec" style="border-color:var(--red);color:var(--red)" onclick="confirmedQuitGraph()">✓ Oui, quitter</button>
+      </div>
     </div>
   </div>
 
@@ -4420,7 +4548,7 @@ function showScreen(id) {
   const el = document.getElementById('screen-' + id);
   if (!el) return;
   // Écrans utilisant flex column
-  const flexScreens = ['home', 'loading', 'result', 'auto-menu', 'auto-result', 'tf-result', 'story-result', 'dnb-intro', 'dnb-transition', 'dnb-result', 'proba-tree-result'];
+  const flexScreens = ['home', 'loading', 'result', 'auto-menu', 'auto-result', 'tf-result', 'story-result', 'dnb-intro', 'dnb-transition', 'dnb-result', 'proba-tree-result', 'graph-reader-result'];
   el.style.display = flexScreens.includes(id) ? 'flex' : 'block';
 }
 
@@ -6778,6 +6906,7 @@ function trapFocus(e) {
     else if (modal.id === 'modal-legal') closeModal('modal-legal');
     else if (modal.id === 'modal-reset-stats') closeModal('modal-reset-stats');
     else if (modal.id === 'modal-dnb-quit') closeModal('modal-dnb-quit');
+    else if (modal.id === 'modal-graph-quit') closeModal('modal-graph-quit');
     return;
   }
   if (e.key !== 'Tab') return;
@@ -6923,6 +7052,7 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
       else if (m.id === 'modal-legal') closeModal('modal-legal');
       else if (m.id === 'modal-reset-stats') closeModal('modal-reset-stats');
       else if (m.id === 'modal-dnb-quit') closeModal('modal-dnb-quit');
+      else if (m.id === 'modal-graph-quit') closeModal('modal-graph-quit');
       // modal-tutorial : volontairement pas de close sur click extérieur,
       // pour forcer l'utilisateur à valider sa compréhension via le bouton.
     }
@@ -6954,6 +7084,8 @@ showScreen = function(id) {
     'pythagore': 'Atelier interactif Pythagore, Thalès et trigonométrie',
     'proba-tree': 'Mode arbre de probabilités',
     'proba-tree-result': 'Résultats finaux des arbres de probabilités',
+    'graph-reader': 'Mode lecteur de graphique de fonction',
+    'graph-reader-result': 'Résultats finaux des défis de lecture graphique',
     'loading': 'Chargement'
   };
   if (announcements[id]) announceToScreenReader(announcements[id]);
@@ -9597,6 +9729,476 @@ function endProbaTree() {
   if (typeof addXP === 'function' && correct >= 2) addXP(80);
   showScreen('proba-tree-result');
 }
+
+
+
+// ═══════════════════════════════════════════════════════════
+// LECTEUR DE GRAPHIQUE DE FONCTION (Canvas + clic-coord)
+// ═══════════════════════════════════════════════════════════
+let graphState = {
+  canvas: null,
+  ctx: null,
+  W: 0, H: 0,
+  // Repère : origine centrée, scale = pixels par unité
+  origin: { x: 0, y: 0 },
+  scale: 30,  // pixels par unité
+  xRange: [-7, 7],
+  yRange: [-5, 5],
+  // Session
+  totalChallenges: 10,
+  challengeIdx: 0,
+  correct: 0,
+  combo: 0,
+  bestCombo: 0,
+  // Défi en cours
+  current: null,
+  clickedPoint: null,
+  answered: false
+};
+
+function startGraphReader() {
+  if (typeof recordGameStart === 'function') recordGameStart('graph_reader');
+  graphState.challengeIdx = 0;
+  graphState.correct = 0;
+  graphState.combo = 0;
+  graphState.bestCombo = 0;
+  showScreen('graph-reader');
+  setTimeout(initGraphCanvas, 60);
+}
+
+function initGraphCanvas() {
+  const c = document.getElementById('graph-canvas');
+  if (!c) return;
+  const parent = c.parentElement;
+  c.width = parent.clientWidth - 20;
+  c.height = Math.min(c.width * 0.7, 380);
+  graphState.canvas = c;
+  graphState.ctx = c.getContext('2d');
+  graphState.W = c.width;
+  graphState.H = c.height;
+  graphState.origin = { x: c.width / 2, y: c.height / 2 };
+  // Scale auto : ~ 10 unités en largeur
+  graphState.scale = c.width / 14;
+  graphState.xRange = [-Math.floor(c.width / 2 / graphState.scale), Math.floor(c.width / 2 / graphState.scale)];
+  graphState.yRange = [-Math.floor(c.height / 2 / graphState.scale), Math.floor(c.height / 2 / graphState.scale)];
+  setupGraphCanvasEvents(c);
+  loadGraphChallenge();
+}
+
+function setupGraphCanvasEvents(canvas) {
+  const newC = canvas.cloneNode(true);
+  canvas.parentNode.replaceChild(newC, canvas);
+  graphState.canvas = newC;
+  graphState.ctx = newC.getContext('2d');
+
+  const getPos = (e) => {
+    const r = newC.getBoundingClientRect();
+    const sx = newC.width / r.width;
+    const sy = newC.height / r.height;
+    let cx, cy;
+    if (e.touches) {
+      cx = (e.touches[0].clientX - r.left) * sx;
+      cy = (e.touches[0].clientY - r.top) * sy;
+    } else {
+      cx = (e.clientX - r.left) * sx;
+      cy = (e.clientY - r.top) * sy;
+    }
+    return { x: cx, y: cy };
+  };
+
+  const onTap = (e) => {
+    e.preventDefault();
+    if (graphState.answered || !graphState.current) return;
+    if (graphState.current.mode !== 'click') return;
+    const p = getPos(e);
+    const math = pxToMath(p.x, p.y);
+    // Snap : si défi 'image', snap x sur entier proche, y calculé par f(x)
+    if (graphState.current.type === 'image') {
+      const snapX = Math.round(math.x);
+      const snapY = evalGraphFn(graphState.current.fn, snapX);
+      graphState.clickedPoint = { x: snapX, y: snapY };
+    } else if (graphState.current.type === 'antecedent') {
+      // Snap y sur entier ; x calculé en inversant la fonction (pour affine)
+      const snapY = Math.round(math.y);
+      const fn = graphState.current.fn;
+      // y = ax + b → x = (y - b) / a
+      if (Math.abs(fn.a) < 0.001) {
+        graphState.clickedPoint = { x: math.x, y: snapY };  // pas inversible
+      } else {
+        const xCalc = (snapY - fn.b) / fn.a;
+        graphState.clickedPoint = { x: xCalc, y: snapY };
+      }
+    }
+    document.getElementById('graph-clicked-point').textContent = '(' + formatNum(graphState.clickedPoint.x) + ' ; ' + formatNum(graphState.clickedPoint.y) + ')';
+    document.getElementById('graph-validate-btn').disabled = false;
+    renderGraph();
+  };
+
+  newC.addEventListener('click', onTap);
+  newC.addEventListener('touchend', onTap);
+}
+
+function formatNum(n) {
+  if (Number.isInteger(n)) return String(n);
+  return n.toFixed(2).replace(/\.?0+$/, '');
+}
+
+// ─── Conversion coordonnées ───
+function mathToPx(mx, my) {
+  return { x: graphState.origin.x + mx * graphState.scale, y: graphState.origin.y - my * graphState.scale };
+}
+
+function pxToMath(px, py) {
+  return { x: (px - graphState.origin.x) / graphState.scale, y: -(py - graphState.origin.y) / graphState.scale };
+}
+
+function evalGraphFn(fn, x) {
+  if (fn.type === 'affine') return fn.a * x + fn.b;
+  if (fn.type === 'parabole') return x * x;  // simple
+  return 0;
+}
+
+// ─── Génération de défis ───
+function loadGraphChallenge() {
+  if (graphState.challengeIdx >= graphState.totalChallenges) {
+    endGraphReader();
+    return;
+  }
+  graphState.answered = false;
+  graphState.clickedPoint = null;
+  document.getElementById('graph-feedback').style.display = 'none';
+  document.getElementById('graph-next-wrap').style.display = 'none';
+  document.getElementById('graph-progress').textContent = (graphState.challengeIdx + 1) + ' / ' + graphState.totalChallenges;
+  document.getElementById('graph-correct').textContent = graphState.correct;
+  document.getElementById('graph-combo').textContent = graphState.combo;
+
+  // Type aléatoire : image / antecedent / identif_expr / coeff_directeur
+  // Distribution : 40% image, 30% antécédent, 15% identif, 15% coeff
+  const r = Math.random();
+  let type;
+  if (r < 0.4) type = 'image';
+  else if (r < 0.7) type = 'antecedent';
+  else if (r < 0.85) type = 'identif_expr';
+  else type = 'coeff_directeur';
+
+  // Génère une fonction affine f(x) = ax + b
+  const aChoices = [-3, -2, -1, 1, 2, 3];
+  const bChoices = [-3, -2, -1, 0, 1, 2, 3];
+  const a = aChoices[Math.floor(Math.random() * aChoices.length)];
+  const b = bChoices[Math.floor(Math.random() * bChoices.length)];
+  const fn = { type: 'affine', a, b };
+
+  let challenge = { fn, type, mode: 'click' };
+
+  if (type === 'image') {
+    // Choisis un x entier dans [-4, 4]
+    let x = Math.floor(Math.random() * 7) - 3;
+    if (x === 0) x = 1;  // pour éviter f(0)=b trivial
+    challenge.target = { x, y: evalGraphFn(fn, x) };
+    challenge.question = `Quelle est l'<strong>image de ${x}</strong> par cette fonction ? Clique sur le point correspondant.`;
+  } else if (type === 'antecedent') {
+    // Choisis un y entier dans la portée verticale
+    // Pour que ce soit faisable, y doit être atteint par f sur entier
+    let xTarget = Math.floor(Math.random() * 7) - 3;
+    if (xTarget === 0) xTarget = 1;
+    const y = evalGraphFn(fn, xTarget);
+    challenge.target = { x: xTarget, y };
+    challenge.question = `Quel est l'<strong>antécédent de ${y}</strong> par cette fonction ? Clique sur le point correspondant.`;
+  } else if (type === 'identif_expr') {
+    challenge.mode = 'qcm';
+    // Génère 4 expressions, la bonne + 3 leurres
+    const correct = `f(x) = ${a >= 0 ? '' : '−'}${Math.abs(a) === 1 ? '' : Math.abs(a)}x ${b >= 0 ? '+ ' : '− '}${Math.abs(b)}`;
+    const variants = new Set([correct]);
+    // Leurres : changer le signe de a, b, ou les valeurs
+    while (variants.size < 4) {
+      const aMod = aChoices[Math.floor(Math.random() * aChoices.length)];
+      const bMod = bChoices[Math.floor(Math.random() * bChoices.length)];
+      if (aMod === a && bMod === b) continue;
+      const candidate = `f(x) = ${aMod >= 0 ? '' : '−'}${Math.abs(aMod) === 1 ? '' : Math.abs(aMod)}x ${bMod >= 0 ? '+ ' : '− '}${Math.abs(bMod)}`;
+      variants.add(candidate);
+    }
+    const variantList = Array.from(variants);
+    // Mélange
+    for (let i = variantList.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [variantList[i], variantList[j]] = [variantList[j], variantList[i]];
+    }
+    challenge.answers = variantList;
+    challenge.correctIdx = variantList.indexOf(correct);
+    challenge.question = `Quelle expression correspond à <strong>cette droite</strong> ?`;
+  } else if (type === 'coeff_directeur') {
+    challenge.mode = 'qcm';
+    const distractors = aChoices.filter(x => x !== a).slice(0, 3);
+    const opts = [a, ...distractors];
+    // Mélange
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    challenge.answers = opts.map(v => 'a = ' + signedFr(v));
+    challenge.correctIdx = opts.indexOf(a);
+    challenge.question = `Quel est le <strong>coefficient directeur</strong> de cette droite ?`;
+  }
+
+  graphState.current = challenge;
+  document.getElementById('graph-title').textContent = 'Défi ' + (graphState.challengeIdx + 1) + ' sur ' + graphState.totalChallenges;
+  document.getElementById('graph-instruction').innerHTML = challenge.question;
+
+  // Mode UI
+  document.getElementById('graph-click-mode').style.display = (challenge.mode === 'click') ? 'block' : 'none';
+  document.getElementById('graph-qcm-mode').style.display = (challenge.mode === 'qcm') ? 'block' : 'none';
+  if (challenge.mode === 'click') {
+    document.getElementById('graph-clicked-point').textContent = 'aucun';
+    document.getElementById('graph-validate-btn').disabled = true;
+    document.getElementById('graph-hint').textContent = '💡 Clique sur le bon point de la droite.';
+  } else {
+    document.getElementById('graph-hint').textContent = '💡 Observe la droite et choisis la bonne réponse parmi les 4.';
+    renderGraphQcm();
+  }
+  renderGraph();
+}
+
+function renderGraphQcm() {
+  const c = graphState.current;
+  const grid = document.getElementById('graph-qcm-answers');
+  grid.innerHTML = '';
+  const letters = ['A', 'B', 'C', 'D'];
+  c.answers.forEach((ans, i) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'answer-btn';
+    btn.innerHTML = '<span class="ans-letter">' + letters[i] + '</span>' + ans;
+    btn.onclick = () => answerGraphQcm(i);
+    grid.appendChild(btn);
+  });
+}
+
+// ─── Rendu canvas ───
+function renderGraph() {
+  const ctx = graphState.ctx;
+  if (!ctx) return;
+  const W = graphState.W, H = graphState.H;
+  ctx.clearRect(0, 0, W, H);
+
+  // Fond
+  ctx.fillStyle = '#0A0A14';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grille
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.lineWidth = 1;
+  const s = graphState.scale;
+  for (let x = graphState.xRange[0]; x <= graphState.xRange[1]; x++) {
+    const px = mathToPx(x, 0).x;
+    ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, H); ctx.stroke();
+  }
+  for (let y = graphState.yRange[0]; y <= graphState.yRange[1]; y++) {
+    const py = mathToPx(0, y).y;
+    ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(W, py); ctx.stroke();
+  }
+
+  // Axes
+  ctx.strokeStyle = '#FFFFFF';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(0, graphState.origin.y); ctx.lineTo(W, graphState.origin.y);
+  ctx.moveTo(graphState.origin.x, 0); ctx.lineTo(graphState.origin.x, H);
+  ctx.stroke();
+
+  // Flèches axes
+  ctx.fillStyle = '#FFFFFF';
+  // X →
+  ctx.beginPath();
+  ctx.moveTo(W - 8, graphState.origin.y - 4);
+  ctx.lineTo(W, graphState.origin.y);
+  ctx.lineTo(W - 8, graphState.origin.y + 4);
+  ctx.closePath(); ctx.fill();
+  // Y ↑
+  ctx.beginPath();
+  ctx.moveTo(graphState.origin.x - 4, 8);
+  ctx.lineTo(graphState.origin.x, 0);
+  ctx.lineTo(graphState.origin.x + 4, 8);
+  ctx.closePath(); ctx.fill();
+
+  // Labels axes
+  ctx.fillStyle = '#F0F0FF';
+  ctx.font = 'bold 11px Nunito, sans-serif';
+  ctx.fillText('x', W - 14, graphState.origin.y + 18);
+  ctx.fillText('y', graphState.origin.x + 8, 14);
+
+  // Graduations + labels numériques
+  ctx.font = '10px Nunito, sans-serif';
+  ctx.fillStyle = '#A0A0C0';
+  for (let x = graphState.xRange[0]; x <= graphState.xRange[1]; x++) {
+    if (x === 0) continue;
+    const px = mathToPx(x, 0).x;
+    ctx.beginPath();
+    ctx.moveTo(px, graphState.origin.y - 4);
+    ctx.lineTo(px, graphState.origin.y + 4);
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.stroke();
+    ctx.fillText(x, px - 4, graphState.origin.y + 16);
+  }
+  for (let y = graphState.yRange[0]; y <= graphState.yRange[1]; y++) {
+    if (y === 0) continue;
+    const py = mathToPx(0, y).y;
+    ctx.beginPath();
+    ctx.moveTo(graphState.origin.x - 4, py);
+    ctx.lineTo(graphState.origin.x + 4, py);
+    ctx.stroke();
+    ctx.fillText(y, graphState.origin.x + 6, py + 4);
+  }
+
+  // Courbe (fonction affine)
+  if (graphState.current && graphState.current.fn) {
+    ctx.strokeStyle = '#5C9DFF';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    const xMin = graphState.xRange[0], xMax = graphState.xRange[1];
+    const fn = graphState.current.fn;
+    const start = mathToPx(xMin, evalGraphFn(fn, xMin));
+    ctx.moveTo(start.x, start.y);
+    for (let xx = xMin; xx <= xMax; xx += 0.1) {
+      const p = mathToPx(xx, evalGraphFn(fn, xx));
+      ctx.lineTo(p.x, p.y);
+    }
+    ctx.stroke();
+  }
+
+  // Point cliqué
+  if (graphState.clickedPoint) {
+    const p = mathToPx(graphState.clickedPoint.x, graphState.clickedPoint.y);
+    // Ligne pointillée vers les axes
+    ctx.strokeStyle = 'rgba(255,215,0,0.35)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 4]);
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y); ctx.lineTo(p.x, graphState.origin.y);
+    ctx.moveTo(p.x, p.y); ctx.lineTo(graphState.origin.x, p.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // Cercle
+    ctx.fillStyle = '#FFD700';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#0D0D1A';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+// ─── Validation ───
+function validateGraphAnswer() {
+  if (graphState.answered) return;
+  if (!graphState.clickedPoint) return;
+  graphState.answered = true;
+  const c = graphState.current;
+  const fb = document.getElementById('graph-feedback');
+  let ok = false;
+  let msg = '';
+  if (c.type === 'image') {
+    const cx = graphState.clickedPoint.x;
+    const cy = graphState.clickedPoint.y;
+    ok = Math.abs(cx - c.target.x) < 0.5 && Math.abs(cy - c.target.y) < 0.5;
+    msg = ok
+      ? `✅ <strong>Correct !</strong> L'image de ${c.target.x} par f(x) = ${c.fn.a}x ${c.fn.b >= 0 ? '+ ' : '− '}${Math.abs(c.fn.b)} est <strong>${c.target.y}</strong>.`
+      : `❌ Pas tout à fait. Tu as cliqué (${formatNum(cx)} ; ${formatNum(cy)}). La bonne réponse était (${c.target.x} ; ${c.target.y}). Astuce : pour trouver l'image de ${c.target.x}, monte verticalement depuis l'axe des x jusqu'à la droite.`;
+  } else if (c.type === 'antecedent') {
+    const cx = graphState.clickedPoint.x;
+    const cy = graphState.clickedPoint.y;
+    ok = Math.abs(cx - c.target.x) < 0.5 && Math.abs(cy - c.target.y) < 0.5;
+    msg = ok
+      ? `✅ <strong>Correct !</strong> L'antécédent de ${c.target.y} est <strong>${c.target.x}</strong> (vérif : ${c.fn.a}×${c.target.x} ${c.fn.b >= 0 ? '+ ' : '− '}${Math.abs(c.fn.b)} = ${c.target.y}).`
+      : `❌ Pas tout à fait. La bonne réponse était (${c.target.x} ; ${c.target.y}). Astuce : pour trouver l'antécédent de ${c.target.y}, va horizontalement depuis l'axe des y jusqu'à la droite, puis lis l'abscisse.`;
+  }
+  finalizeGraphAnswer(ok, msg);
+}
+
+function answerGraphQcm(idx) {
+  if (graphState.answered) return;
+  graphState.answered = true;
+  const c = graphState.current;
+  const ok = idx === c.correctIdx;
+  const btns = document.querySelectorAll('#graph-qcm-answers .answer-btn');
+  btns.forEach(b => b.disabled = true);
+  btns[idx].classList.add(ok ? 'correct' : 'wrong');
+  if (!ok) btns[c.correctIdx].classList.add('correct');
+  let msg = '';
+  if (c.type === 'identif_expr') {
+    msg = ok
+      ? `✅ <strong>Correct !</strong> Cette droite passe par les points qui correspondent à f(x) = ${c.fn.a}x ${c.fn.b >= 0 ? '+ ' : '− '}${Math.abs(c.fn.b)}.`
+      : `❌ La bonne expression était : ${c.answers[c.correctIdx]}. Repère le coefficient directeur (pente) et l'ordonnée à l'origine (intersection avec l'axe y).`;
+  } else if (c.type === 'coeff_directeur') {
+    msg = ok
+      ? `✅ <strong>Correct !</strong> La pente est <strong>a = ${signedFr(c.fn.a)}</strong>. Quand on avance d'1 sur x, on monte (ou descend) de ${c.fn.a} sur y.`
+      : `❌ Le bon coefficient était a = ${signedFr(c.fn.a)}. Méthode : choisis 2 points connus et calcule (y₂ − y₁) / (x₂ − x₁).`;
+  }
+  finalizeGraphAnswer(ok, msg);
+}
+
+function finalizeGraphAnswer(ok, msg) {
+  const fb = document.getElementById('graph-feedback');
+  fb.style.display = 'block';
+  if (ok) {
+    fb.style.background = 'rgba(0,230,118,.12)';
+    fb.style.border = '1px solid var(--green)';
+    fb.style.color = 'var(--white)';
+    graphState.correct++;
+    graphState.combo++;
+    if (graphState.combo > graphState.bestCombo) graphState.bestCombo = graphState.combo;
+    if (typeof addXP === 'function') addXP(30 + graphState.combo * 5);
+    if (typeof announceToScreenReader === 'function') announceToScreenReader('Correct ! ' + stripHtml(msg));
+  } else {
+    fb.style.background = 'rgba(255,85,119,.12)';
+    fb.style.border = '1px solid var(--red)';
+    fb.style.color = 'var(--white)';
+    graphState.combo = 0;
+    if (typeof announceToScreenReader === 'function') announceToScreenReader('Faux. ' + stripHtml(msg));
+  }
+  fb.innerHTML = msg;
+  document.getElementById('graph-correct').textContent = graphState.correct;
+  document.getElementById('graph-combo').textContent = graphState.combo;
+  document.getElementById('graph-next-wrap').style.display = 'block';
+  const isLast = graphState.challengeIdx + 1 >= graphState.totalChallenges;
+  document.getElementById('graph-next-btn').textContent = isLast ? '🏆 VOIR LE RÉSULTAT FINAL →' : 'DÉFI SUIVANT →';
+}
+
+function nextGraphChallenge() {
+  graphState.challengeIdx++;
+  loadGraphChallenge();
+}
+
+function endGraphReader() {
+  const total = graphState.totalChallenges;
+  const correct = graphState.correct;
+  if (typeof recordGameComplete === 'function') recordGameComplete('graph_reader', correct, total);
+  let emoji, msg;
+  const pct = correct / total;
+  if (pct >= 0.9) { emoji = '🏆'; msg = 'Maîtrise exceptionnelle de la lecture graphique ! Tu es prêt pour le brevet.'; }
+  else if (pct >= 0.7) { emoji = '⭐'; msg = 'Très bon niveau. Lecture d\'images et d\'antécédents fluide.'; }
+  else if (pct >= 0.5) { emoji = '🥷'; msg = 'Bon début. Continue à pratiquer la méthode "monter verticalement → lire horizontalement".'; }
+  else { emoji = '💪'; msg = 'À retravailler. Astuce : image = je pars de x sur l\'axe horizontal. Antécédent = je pars de y sur l\'axe vertical.'; }
+  document.getElementById('graph-result-emoji').textContent = emoji;
+  document.getElementById('graph-result-msg').textContent = msg;
+  document.getElementById('graph-res-correct').textContent = correct + '/' + total;
+  document.getElementById('graph-res-streak').textContent = '×' + graphState.bestCombo;
+  if (typeof addXP === 'function' && pct >= 0.7) addXP(100);
+  if (typeof addXP === 'function' && pct >= 0.9) addXP(200);
+  showScreen('graph-reader-result');
+}
+
+function confirmQuitGraph() { openModal('modal-graph-quit'); }
+function confirmedQuitGraph() {
+  closeModal('modal-graph-quit');
+  showHome();
+}
+
+window.addEventListener('resize', () => {
+  const el = document.getElementById('screen-graph-reader');
+  if (el && el.style.display !== 'none') setTimeout(initGraphCanvas, 100);
+});
 
 </script>
 </body>
