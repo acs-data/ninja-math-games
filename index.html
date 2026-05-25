@@ -138,6 +138,81 @@
   }
 
 
+
+  /* ═══════════════════════════════════════════════════════
+     UTILITIES & COMPOSANTS — Phase R3 cleanup
+     ═══════════════════════════════════════════════════════ */
+
+  /* Layout utilities */
+  .w-full { width: 100%; }
+  .hidden { display: none; }
+
+  /* Margin utilities (alignés sur les tokens --space-*) */
+  .mb-2 { margin-bottom: var(--space-2); }    /* 8px */
+  .mb-3 { margin-bottom: var(--space-3); }    /* 12px */
+  .mb-4 { margin-bottom: var(--space-4); }    /* 16px */
+  .mt-3 { margin-top: var(--space-3); }       /* 12px */
+
+  /* Variantes de mission-card par couleur d'accent (border-left) */
+  .mission-card--green { border-left-color: var(--green); }
+  .mission-card--blue { border-left-color: var(--blue); }
+  .mission-card--purple { border-left-color: var(--purple); }
+  .mission-card--yellow { border-left-color: var(--yellow); }
+  .mission-card--red { border-left-color: var(--red); }
+
+  /* Variantes de level-card par accent border */
+  .level-card--accent-green { border-color: rgba(0, 230, 118, 0.3); }
+  .level-card--accent-blue { border-color: rgba(26, 107, 255, 0.3); }
+  .level-card--accent-purple { border-color: rgba(155, 89, 182, 0.3); }
+  .level-card--accent-yellow { border-color: rgba(255, 215, 0, 0.3); }
+  .level-card--accent-red { border-color: rgba(255, 85, 119, 0.3); }
+
+  /* Pill badge "NOUVEAU" (jaune sur fond sombre) */
+  .pill-badge {
+    font-size: .62rem;
+    font-weight: 900;
+    background: var(--yellow);
+    color: var(--dark);
+    padding: 3px var(--space-2);
+    border-radius: var(--radius-sm);
+    letter-spacing: 1px;
+  }
+
+  /* Layout des écrans : page standard et écran de résultat */
+  .screen-page {
+    display: none;
+    padding: var(--space-4);
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  .screen-result {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    min-height: calc(100vh - 64px);
+    padding: 32px 20px;
+    text-align: center;
+  }
+  .screen-result--gap-22 { gap: 22px; }
+  .screen-result--gap-18 { gap: 18px; }
+  .screen-result--gap-20 { gap: 20px; }
+
+  /* Display flex avec alignement standard (très répété en inline) */
+  .flex-between-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* Titre Bangers compact (jaune, 1.2rem) — pattern auto-result */
+  .display-jaune-1-2 {
+    font-family: 'Bangers', Impact, 'Arial Black', cursive;
+    font-size: 1.2rem;
+    color: var(--yellow);
+  }
+
   /* ═══════════════════════════════════════════════════════
      COMPOSANTS STANDARDISÉS (R2) — éviter inline-styles
      ═══════════════════════════════════════════════════════ */
@@ -1869,7 +1944,7 @@
           </div>
         </div>
         <div class="level-card" onclick="startGame('libre')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startGame('libre');}" role="button" tabindex="0" style="border-color:rgba(0,230,118,.3)">
-          <div class="lv" style="color:var(--green)">🧘 Zen</div>
+          <div class="lv text-green">🧘 Zen</div>
           <div class="lv-name">Entraînement libre</div>
           <div class="lv-desc">Sans timer, sans vies perdues. Apprends à ton rythme.</div>
           <div class="lv-topics">
@@ -1900,8 +1975,8 @@
     <div class="container-narrow">
       <p class="section-label">✏️ Missions interactives</p>
       <div class="level-grid">
-        <div class="level-card" onclick="startDrawMode()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startDrawMode();}" role="button" tabindex="0" style="border-color:rgba(0,230,118,.3)">
-          <div class="lv" style="color:var(--green)">✏️ Tracé</div>
+        <div class="level-card level-card--accent-green" onclick="startDrawMode()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startDrawMode();}" role="button" tabindex="0">
+          <div class="lv text-green">✏️ Tracé</div>
           <div class="lv-name">Géométrie épique</div>
           <div class="lv-desc">Trace droites, angles et axes de symétrie au doigt</div>
           <div class="lv-topics">
@@ -1910,8 +1985,8 @@
             <span class="topic-badge topic-badge--green">Libre</span>
           </div>
         </div>
-        <div class="level-card" onclick="startPuzzleMode()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startPuzzleMode();}" role="button" tabindex="0" style="border-color:rgba(155,89,182,.3)">
-          <div class="lv" style="color:var(--purple)">🧩 Puzzle</div>
+        <div class="level-card level-card--accent-purple" onclick="startPuzzleMode()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startPuzzleMode();}" role="button" tabindex="0">
+          <div class="lv text-purple">🧩 Puzzle</div>
           <div class="lv-name">Emboîtement</div>
           <div class="lv-desc">Glisse chaque pièce dans la bonne case : fractions, formes, équations</div>
           <div class="lv-topics">
@@ -1920,8 +1995,8 @@
             <span class="topic-badge topic-badge--purple">Formes</span>
           </div>
         </div>
-        <div class="level-card" onclick="startTrueFalse()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startTrueFalse();}" role="button" tabindex="0" style="border-color:rgba(26,107,255,.3)">
-          <div class="lv" style="color:var(--blue)">⚡ Speed</div>
+        <div class="level-card level-card--accent-blue" onclick="startTrueFalse()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startTrueFalse();}" role="button" tabindex="0">
+          <div class="lv text-blue">⚡ Speed</div>
           <div class="lv-name">Vrai / Faux Rapide</div>
           <div class="lv-desc">20 affirmations math, 7 sec chacune. Vrai ou faux ? Tape vite !</div>
           <div class="lv-topics">
@@ -1930,7 +2005,7 @@
           </div>
         </div>
         <div class="level-card" onclick="startPythMode()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startPythMode();}" role="button" tabindex="0" style="border-color:rgba(0,230,118,.4);background:linear-gradient(135deg,var(--dark3),rgba(0,230,118,.04))">
-          <div class="lv" style="color:var(--green)">🔺 Atelier</div>
+          <div class="lv text-green">🔺 Atelier</div>
           <div class="lv-name">Pythagore, Thalès & Trigo</div>
           <div class="lv-desc">Manipule un triangle au doigt et vois les théorèmes prendre vie. 3 ateliers interactifs (4e/3e).</div>
           <div class="lv-topics">
@@ -1940,7 +2015,7 @@
           </div>
         </div>
         <div class="level-card" onclick="startGraphReader()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startGraphReader();}" role="button" tabindex="0" style="border-color:rgba(26,107,255,.4);background:linear-gradient(135deg,var(--dark3),rgba(26,107,255,.04))">
-          <div class="lv" style="color:var(--blue)">📈 Lecteur</div>
+          <div class="lv text-blue">📈 Lecteur</div>
           <div class="lv-name">Lecteur de graphique</div>
           <div class="lv-desc">Lis les images, les antécédents, identifie une fonction affine. 10 défis chronométrés sur le programme de 3e.</div>
           <div class="lv-topics">
@@ -1949,7 +2024,7 @@
           </div>
         </div>
         <div class="level-card" onclick="startProbaTree()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startProbaTree();}" role="button" tabindex="0" style="border-color:rgba(155,89,182,.4);background:linear-gradient(135deg,var(--dark3),rgba(155,89,182,.04))">
-          <div class="lv" style="color:var(--purple)">🌳 Arbre</div>
+          <div class="lv text-purple">🌳 Arbre</div>
           <div class="lv-name">Arbre de probabilités</div>
           <div class="lv-desc">Construis l'arbre, place les bonnes fractions, calcule la probabilité finale. Notion clé du DNB 2027.</div>
           <div class="lv-topics">
@@ -1957,8 +2032,8 @@
             <span class="topic-badge topic-badge--purple">Probas composées</span>
           </div>
         </div>
-        <div class="level-card" onclick="startStoryMode()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startStoryMode();}" role="button" tabindex="0" style="border-color:rgba(255,215,0,.3)">
-          <div class="lv" style="color:var(--yellow)">📖 Histoire</div>
+        <div class="level-card level-card--accent-yellow" onclick="startStoryMode()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startStoryMode();}" role="button" tabindex="0">
+          <div class="lv text-yellow">📖 Histoire</div>
           <div class="lv-name">Aventure narrative</div>
           <div class="lv-desc">Plonge dans une histoire anime et résous les énigmes étape par étape</div>
           <div class="lv-topics">
@@ -1973,9 +2048,9 @@
       <p class="section-label">⚡ Entraînement DNB 2027</p>
       <div class="level-grid" style="grid-template-columns:1fr">
         <div class="level-card" onclick="showAutoMenu()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showAutoMenu();}" role="button" tabindex="0" style="border-color:rgba(255,215,0,.4);background:linear-gradient(135deg,var(--dark3),rgba(255,215,0,.05))">
-          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
-            <div class="lv" style="color:var(--yellow)">⚡ AUTOMATISMES</div>
-            <span style="font-size:.62rem;font-weight:900;background:var(--yellow);color:var(--dark);padding:3px 8px;border-radius:8px">NOUVEAU DNB</span>
+          <div class="flex-between-wrap">
+            <div class="lv text-yellow">⚡ AUTOMATISMES</div>
+            <span class="pill-badge">NOUVEAU DNB</span>
           </div>
           <div class="lv-name">Mode "Choc des Savoirs"</div>
           <div class="lv-desc">20 calculs en 20 min, sans calculatrice. Format exact de la nouvelle épreuve d'automatismes du DNB 2027 (6 pts sur 40).</div>
@@ -1992,9 +2067,9 @@
   <!-- ═══════════════════════════════════════════════════ -->
   <!-- ÉCRAN TRACÉ GÉOMÉTRIQUE                           -->
   <!-- ═══════════════════════════════════════════════════ -->
-  <div id="screen-draw" style="display:none; padding:16px; max-width:860px; margin:0 auto;">
-    <div class="mission-card" style="border-left-color:var(--green)">
-      <div class="mission-label" style="color:var(--green)">✏️ JUTSU DE TRACÉ</div>
+  <div id="screen-draw" class="screen-page">
+    <div class="mission-card mission-card--green">
+      <div class="mission-label text-green">✏️ JUTSU DE TRACÉ</div>
       <div class="mission-title" id="draw-title">Mission 1 / 6</div>
       <div class="mission-desc" id="draw-instruction">Trace l'axe de symétrie !</div>
     </div>
@@ -2044,9 +2119,9 @@
   <!-- ═══════════════════════════════════════════════════ -->
   <!-- ÉCRAN PUZZLE EMBOÎTEMENT                          -->
   <!-- ═══════════════════════════════════════════════════ -->
-  <div id="screen-puzzle" style="display:none; padding:16px; max-width:860px; margin:0 auto;">
-    <div class="mission-card" style="border-left-color:var(--purple)">
-      <div class="mission-label" style="color:var(--purple)">🧩 JUTSU D'EMBOÎTEMENT</div>
+  <div id="screen-puzzle" class="screen-page">
+    <div class="mission-card mission-card--purple">
+      <div class="mission-label text-purple">🧩 JUTSU D'EMBOÎTEMENT</div>
       <div class="mission-title" id="puzzle-title">Puzzle 1 / 6</div>
       <div class="mission-desc" id="puzzle-instruction">Glisse chaque pièce dans la bonne case !</div>
     </div>
@@ -2080,14 +2155,14 @@
       <div style="font-size:3.5rem;filter:drop-shadow(0 0 30px rgba(255,215,0,.5))">⚡</div>
       <h2 style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:2.2rem;color:var(--yellow);letter-spacing:2px;text-shadow:3px 3px 0 var(--dark2);margin-bottom:8px">MODE AUTOMATISMES</h2>
       <p style="color:var(--gray);font-size:.9rem;line-height:1.5">
-        <strong style="color:var(--white)">Format DNB 2027 :</strong> 20 questions de calcul mental en 20 minutes, sans calculatrice. Chaque question = <strong style="color:var(--yellow)">1 minute max</strong>. Tu tapes la réponse au clavier.
+        <strong class="text-white">Format DNB 2027 :</strong> 20 questions de calcul mental en 20 minutes, sans calculatrice. Chaque question = <strong class="text-yellow">1 minute max</strong>. Tu tapes la réponse au clavier.
       </p>
     </div>
 
     <div style="background:var(--dark3);border-radius:14px;padding:14px 18px;max-width:520px;width:100%;border-left:3px solid var(--yellow)">
       <div style="font-size:.7rem;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px">📘 Pourquoi c'est important</div>
       <p style="font-size:.82rem;color:var(--gray);line-height:1.55">
-        Dès 2027, le DNB de maths comprend une nouvelle épreuve de <strong style="color:var(--white)">20 minutes d'automatismes sans calculatrice</strong>, valant <strong style="color:var(--white)">6 points sur 40</strong>. La rapidité de calcul mental devient une compétence clé du collège.
+        Dès 2027, le DNB de maths comprend une nouvelle épreuve de <strong class="text-white">20 minutes d'automatismes sans calculatrice</strong>, valant <strong class="text-white">6 points sur 40</strong>. La rapidité de calcul mental devient une compétence clé du collège.
       </p>
     </div>
 
@@ -2095,17 +2170,17 @@
       <p class="section-label">🎯 Choisis ton niveau</p>
       <div class="level-grid">
         <div class="level-card" onclick="startAutoMode('auto_6e')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startAutoMode('auto_6e');}" role="button" tabindex="0" style="border-color:rgba(0,230,118,.3)">
-          <div class="lv" style="color:var(--green)">🟢 Académie</div>
+          <div class="lv text-green">🟢 Académie</div>
           <div class="lv-name">Niveau 6ème</div>
           <div class="lv-desc">Calcul mental, fractions simples, conversions, pourcentages basiques</div>
         </div>
         <div class="level-card" onclick="startAutoMode('auto_5e')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startAutoMode('auto_5e');}" role="button" tabindex="0" style="border-color:rgba(26,107,255,.3)">
-          <div class="lv" style="color:var(--blue)">🔵 Genin</div>
+          <div class="lv text-blue">🔵 Genin</div>
           <div class="lv-name">Niveau 5ème</div>
           <div class="lv-desc">Relatifs, fractions, puissances, calcul littéral, priorités</div>
         </div>
                 <div class="level-card" onclick="startAutoMode('auto_4e')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startAutoMode('auto_4e');}" role="button" tabindex="0" style="border-color:rgba(255,107,0,.3)">
-          <div class="lv" style="color:var(--orange)">📘 4ème</div>
+          <div class="lv text-orange">📘 4ème</div>
           <div class="lv-name">Automatismes 4ème</div>
           <div class="lv-desc">Pythagore, notation scientifique, équations à 2 membres</div>
           <div class="lv-topics">
@@ -2115,7 +2190,7 @@
           </div>
         </div>
                 <div class="level-card" onclick="startAutoMode('auto_3e')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startAutoMode('auto_3e');}" role="button" tabindex="0" style="border-color:rgba(255,45,85,.3)">
-          <div class="lv" style="color:var(--red)">📕 3ème</div>
+          <div class="lv text-red">📕 3ème</div>
           <div class="lv-name">Automatismes 3ème (DNB)</div>
           <div class="lv-desc">Thalès, trigonométrie, fonctions, factorisation, probabilités</div>
           <div class="lv-topics">
@@ -2125,9 +2200,9 @@
           </div>
         </div>
         <div class="level-card" onclick="startAutoMode('auto_dnb')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startAutoMode('auto_dnb');}" role="button" tabindex="0" style="border-color:rgba(255,215,0,.6);background:linear-gradient(135deg,var(--dark3),rgba(255,215,0,.08));grid-column:span 2">
-          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
-            <div class="lv" style="color:var(--yellow)">⚡ Auto DNB seul</div>
-            <span style="font-size:.62rem;font-weight:900;background:var(--yellow);color:var(--dark);padding:3px 8px;border-radius:8px">20 MIN</span>
+          <div class="flex-between-wrap">
+            <div class="lv text-yellow">⚡ Auto DNB seul</div>
+            <span class="pill-badge">20 MIN</span>
           </div>
           <div class="lv-name">Automatismes DNB 2027 (4e + 3e)</div>
           <div class="lv-desc">Juste la phase d'automatismes : 20 calculs en 20 min, sans calculatrice.</div>
@@ -2138,8 +2213,8 @@
           </div>
         </div>
         <div class="level-card level-card--featured-dnb" onclick="startDnbBlanc()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startDnbBlanc();}" role="button" tabindex="0">
-          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
-            <div class="lv" style="color:var(--red)">🏆 DNB BLANC COMPLET</div>
+          <div class="flex-between-wrap">
+            <div class="lv text-red">🏆 DNB BLANC COMPLET</div>
             <span style="font-size:.62rem;font-weight:900;background:var(--red);color:white;padding:3px 8px;border-radius:8px">~1h45</span>
           </div>
           <div class="lv-name">Épreuve complète simulée /40</div>
@@ -2151,7 +2226,7 @@
           </div>
         </div>
         <div class="level-card" onclick="startAutoMode('auto_mix')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startAutoMode('auto_mix');}" role="button" tabindex="0" style="border-color:rgba(255,107,0,.3);grid-column:span 2">
-          <div class="lv" style="color:var(--orange)">🟠 Chunin Mix</div>
+          <div class="lv text-orange">🟠 Chunin Mix</div>
           <div class="lv-name">Niveau Mix — 6ème + 5ème</div>
           <div class="lv-desc">Mélange complet sur les automatismes du cycle, comme l'épreuve réelle du DNB</div>
         </div>
@@ -2164,7 +2239,7 @@
   <!-- ═══════════════════════════════════════════════════ -->
   <!-- ÉCRAN AUTOMATISMES — Jeu                          -->
   <!-- ═══════════════════════════════════════════════════ -->
-  <div id="screen-auto" style="display:none;padding:16px;max-width:860px;margin:0 auto">
+  <div id="screen-auto" class="screen-page">
     <div class="game-controls" role="toolbar" aria-label="Contrôles de l'épreuve">
       <button type="button" class="btn-control" onclick="pauseAutoMode()" aria-label="Mettre l'épreuve en pause">
         <span aria-hidden="true">⏸️</span> Pause
@@ -2173,8 +2248,8 @@
         <span aria-hidden="true">🏠</span> Accueil
       </button>
     </div>
-    <div class="mission-card" style="border-left-color:var(--yellow)">
-      <div class="mission-label" style="color:var(--yellow)">⚡ ÉPREUVE D'AUTOMATISMES</div>
+    <div class="mission-card mission-card--yellow">
+      <div class="mission-label text-yellow">⚡ ÉPREUVE D'AUTOMATISMES</div>
       <div class="mission-title" id="auto-title">Question 1 / 20</div>
       <div class="mission-desc">Sans calculatrice ! Tape ta réponse au clavier puis valide avec ENTRÉE.</div>
     </div>
@@ -2226,7 +2301,7 @@
   <!-- ═══════════════════════════════════════════════════ -->
   <!-- ÉCRAN AUTOMATISMES — Résultat                     -->
   <!-- ═══════════════════════════════════════════════════ -->
-  <div id="screen-auto-result" style="display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 64px);padding:32px 20px;text-align:center;gap:22px">
+  <div id="screen-auto-result" class="screen-result screen-result--gap-22">
     <div class="result-emoji" id="auto-result-emoji">🏅</div>
     <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:clamp(1.8rem,6vw,2.8rem);color:var(--yellow);letter-spacing:2px;text-shadow:3px 3px 0 var(--dark2)" id="auto-result-msg">ÉPREUVE TERMINÉE !</div>
 
@@ -2342,7 +2417,7 @@
   </div>
 
   <!-- ÉCRAN RÉSULTAT -->
-  <div id="screen-result" style="display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 64px);padding:32px 20px;text-align:center;gap:22px">
+  <div id="screen-result" class="screen-result screen-result--gap-22">
     <div class="result-rank" id="result-rank">🥷</div>
     <div class="result-msg" id="result-msg">Mission accomplie !</div>
     <p id="result-quote" style="font-size:.9rem;color:var(--gray);max-width:420px;font-style:italic;line-height:1.6"></p>
@@ -2382,8 +2457,8 @@
         <span aria-hidden="true">🏠</span> Accueil
       </button>
     </div>
-    <div class="mission-card" style="border-left-color:var(--blue)">
-      <div class="mission-label" style="color:var(--blue)">⚡ VRAI / FAUX SPEED</div>
+    <div class="mission-card mission-card--blue">
+      <div class="mission-label text-blue">⚡ VRAI / FAUX SPEED</div>
       <div class="mission-title" id="tf-progress">Affirmation 1 / 20</div>
       <div class="mission-desc">Lis l'affirmation et tape <strong>Vrai</strong> (V) ou <strong>Faux</strong> (F) le plus vite possible !</div>
     </div>
@@ -2435,7 +2510,7 @@
   <!-- ═══════════════════════════════════════════════════ -->
   <!-- ÉCRAN VRAI / FAUX — RÉSULTAT                       -->
   <!-- ═══════════════════════════════════════════════════ -->
-  <div id="screen-tf-result" style="display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 64px);padding:32px 20px;text-align:center;gap:22px">
+  <div id="screen-tf-result" class="screen-result screen-result--gap-22">
     <div class="result-emoji" id="tf-result-emoji">⚡</div>
     <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:clamp(1.8rem,6vw,2.8rem);color:var(--blue);letter-spacing:2px;text-shadow:3px 3px 0 var(--dark2)" id="tf-result-msg">SPEED TERMINÉ !</div>
     <p id="tf-result-comment" style="font-size:.9rem;color:var(--gray);max-width:420px;line-height:1.6"></p>
@@ -2468,8 +2543,8 @@
         <span aria-hidden="true">🏠</span> Accueil
       </button>
     </div>
-    <div class="mission-card" style="border-left-color:var(--yellow)">
-      <div class="mission-label" style="color:var(--yellow)">📖 AVENTURE NARRATIVE</div>
+    <div class="mission-card mission-card--yellow">
+      <div class="mission-label text-yellow">📖 AVENTURE NARRATIVE</div>
       <div class="mission-title" id="story-title">Chargement…</div>
       <div class="mission-desc" id="story-progress">Étape 1 / 4</div>
     </div>
@@ -2499,7 +2574,7 @@
   <!-- ═══════════════════════════════════════════════════ -->
   <!-- ÉCRAN HISTOIRE — RÉSULTAT                          -->
   <!-- ═══════════════════════════════════════════════════ -->
-  <div id="screen-story-result" style="display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 64px);padding:32px 20px;text-align:center;gap:22px">
+  <div id="screen-story-result" class="screen-result screen-result--gap-22">
     <div class="result-emoji" id="story-result-emoji">📖</div>
     <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:clamp(1.8rem,6vw,2.8rem);color:var(--yellow);letter-spacing:2px;text-shadow:3px 3px 0 var(--dark2)" id="story-result-title">AVENTURE TERMINÉE !</div>
     <p id="story-result-msg" style="font-size:1rem;color:var(--white);max-width:480px;line-height:1.6"></p>
@@ -2530,8 +2605,8 @@
       </button>
     </div>
 
-    <div class="mission-card" style="border-left-color:var(--green)">
-      <div class="mission-label" style="color:var(--green)">📈 MES STATISTIQUES</div>
+    <div class="mission-card mission-card--green">
+      <div class="mission-label text-green">📈 MES STATISTIQUES</div>
       <div class="mission-title" id="stats-title">Ma progression</div>
       <div class="mission-desc" id="stats-subtitle">Stockées uniquement sur cet appareil, jamais transmises.</div>
     </div>
@@ -2601,7 +2676,7 @@
   <!-- ═══════════════════════════════════════════════════ -->
   <!-- DNB BLANC — Intro (avant la phase 1)               -->
   <!-- ═══════════════════════════════════════════════════ -->
-  <div id="screen-dnb-intro" style="display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 64px);padding:32px 20px;text-align:center;gap:18px">
+  <div id="screen-dnb-intro" class="screen-result screen-result--gap-18">
     <div style="font-size:4rem" aria-hidden="true">🏆</div>
     <h2 style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:clamp(1.8rem,6vw,2.8rem);color:var(--yellow);letter-spacing:2px;text-shadow:3px 3px 0 var(--dark2);margin:0">DNB BLANC 2027</h2>
     <p style="max-width:520px;color:var(--white);line-height:1.6;font-size:.95rem">Tu vas passer une <strong>épreuve simulée complète</strong> du brevet 2027. Elle dure environ <strong>1h45</strong>.</p>
@@ -2630,7 +2705,7 @@
   <!-- ═══════════════════════════════════════════════════ -->
   <!-- DNB BLANC — Transition entre phases                -->
   <!-- ═══════════════════════════════════════════════════ -->
-  <div id="screen-dnb-transition" style="display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 64px);padding:32px 20px;text-align:center;gap:18px">
+  <div id="screen-dnb-transition" class="screen-result screen-result--gap-18">
     <div style="font-size:4rem" id="dnb-transition-emoji" aria-hidden="true">✅</div>
     <h2 style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:clamp(1.6rem,5vw,2.4rem);color:var(--green);letter-spacing:2px;margin:0" id="dnb-transition-title">PHASE 1 TERMINÉE !</h2>
     <p style="max-width:480px;color:var(--white);line-height:1.6" id="dnb-transition-msg">Tu as terminé les automatismes. Voici ton score pour cette phase.</p>
@@ -2652,8 +2727,8 @@
         <span aria-hidden="true">🏠</span> Quitter
       </button>
     </div>
-    <div class="mission-card" style="border-left-color:var(--red)">
-      <div class="mission-label" style="color:var(--red)">🏆 DNB BLANC — Phase 2</div>
+    <div class="mission-card mission-card--red">
+      <div class="mission-label text-red">🏆 DNB BLANC — Phase 2</div>
       <div class="mission-title" id="dnb-ex-title">Exercice 1 — Géométrie</div>
       <div class="mission-desc" id="dnb-ex-progress">Question 1 / 4</div>
     </div>
@@ -2662,7 +2737,7 @@
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
       <div class="stat-block" style="padding:8px 10px">
         <div class="stat-label">📐 Exercice</div>
-        <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:1.2rem;color:var(--yellow)" id="dnb-ex-num">1/4</div>
+        <div class="display-jaune-1-2" id="dnb-ex-num">1/4</div>
       </div>
       <div class="stat-block" style="padding:8px 10px">
         <div class="stat-label">✅ Justes</div>
@@ -2699,7 +2774,7 @@
   <!-- ═══════════════════════════════════════════════════ -->
   <!-- DNB BLANC — Résultat final                         -->
   <!-- ═══════════════════════════════════════════════════ -->
-  <div id="screen-dnb-result" style="display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 64px);padding:32px 20px;text-align:center;gap:20px">
+  <div id="screen-dnb-result" class="screen-result screen-result--gap-20">
     <div class="result-emoji" id="dnb-result-emoji">🏆</div>
     <h2 style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:clamp(1.8rem,6vw,2.8rem);color:var(--yellow);letter-spacing:2px;text-shadow:3px 3px 0 var(--dark2);margin:0" id="dnb-result-title">ÉPREUVE TERMINÉE !</h2>
 
@@ -2725,15 +2800,15 @@
   <!-- ═══════════════════════════════════════════════════ -->
   <!-- ÉCRAN CONSTRUCTEUR PYTHAGORE/THALÈS/TRIGO          -->
   <!-- ═══════════════════════════════════════════════════ -->
-  <div id="screen-pythagore" style="display:none;padding:16px;max-width:860px;margin:0 auto">
+  <div id="screen-pythagore" class="screen-page">
     <div class="game-controls" role="toolbar" aria-label="Contrôles atelier géométrie">
       <button type="button" class="btn-control" onclick="showHome()" aria-label="Retour à l'accueil">
         <span aria-hidden="true">🏠</span> Accueil
       </button>
     </div>
 
-    <div class="mission-card" style="border-left-color:var(--green)">
-      <div class="mission-label" style="color:var(--green)">🔺 ATELIER GÉOMÉTRIE INTERACTIVE</div>
+    <div class="mission-card mission-card--green">
+      <div class="mission-label text-green">🔺 ATELIER GÉOMÉTRIE INTERACTIVE</div>
       <div class="mission-title" id="pyth-title">Constructeur Pythagore</div>
       <div class="mission-desc" id="pyth-instruction">Déplace les sommets du triangle pour découvrir le théorème.</div>
     </div>
@@ -2761,7 +2836,7 @@
 
     <!-- Slider pour atelier trigo (caché par défaut) -->
     <div id="pyth-slider-wrap" style="display:none;margin-top:14px;background:var(--dark2);border-radius:12px;padding:14px 18px">
-      <label for="pyth-angle-slider" style="display:block;font-size:.85rem;color:var(--gray);margin-bottom:8px">Angle θ : <strong style="color:var(--yellow)" id="pyth-angle-display">30°</strong></label>
+      <label for="pyth-angle-slider" style="display:block;font-size:.85rem;color:var(--gray);margin-bottom:8px">Angle θ : <strong class="text-yellow" id="pyth-angle-display">30°</strong></label>
       <input type="range" id="pyth-angle-slider" min="5" max="85" value="30" step="1" style="width:100%;accent-color:var(--green)">
     </div>
 
@@ -2780,15 +2855,15 @@
   <!-- ═══════════════════════════════════════════════════ -->
   <!-- ÉCRAN ARBRE DE PROBABILITÉS                        -->
   <!-- ═══════════════════════════════════════════════════ -->
-  <div id="screen-proba-tree" style="display:none;padding:16px;max-width:860px;margin:0 auto">
+  <div id="screen-proba-tree" class="screen-page">
     <div class="game-controls" role="toolbar" aria-label="Contrôles arbre">
       <button type="button" class="btn-control" onclick="showHome()" aria-label="Retour à l'accueil">
         <span aria-hidden="true">🏠</span> Accueil
       </button>
     </div>
 
-    <div class="mission-card" style="border-left-color:var(--purple)">
-      <div class="mission-label" style="color:var(--purple)">🌳 ARBRE DE PROBABILITÉS</div>
+    <div class="mission-card mission-card--purple">
+      <div class="mission-label text-purple">🌳 ARBRE DE PROBABILITÉS</div>
       <div class="mission-title" id="proba-title">Scénario 1 sur 3</div>
       <div class="mission-desc" id="proba-context">Charge en cours…</div>
     </div>
@@ -2835,7 +2910,7 @@
   </div>
 
   <!-- Écran final arbre -->
-  <div id="screen-proba-tree-result" style="display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 64px);padding:32px 20px;text-align:center;gap:18px">
+  <div id="screen-proba-tree-result" class="screen-result screen-result--gap-18">
     <div class="result-emoji" id="proba-result-emoji">🌳</div>
     <h2 style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:clamp(1.6rem,5vw,2.4rem);color:var(--purple);letter-spacing:2px;margin:0">ARBRES TERMINÉS !</h2>
     <p id="proba-result-msg" style="max-width:480px;color:var(--white);line-height:1.6"></p>
@@ -2858,15 +2933,15 @@
   <!-- ═══════════════════════════════════════════════════ -->
   <!-- ÉCRAN LECTEUR DE GRAPHIQUE DE FONCTION              -->
   <!-- ═══════════════════════════════════════════════════ -->
-  <div id="screen-graph-reader" style="display:none;padding:16px;max-width:860px;margin:0 auto">
+  <div id="screen-graph-reader" class="screen-page">
     <div class="game-controls" role="toolbar" aria-label="Contrôles lecture de graphique">
       <button type="button" class="btn-control" onclick="confirmQuitGraph()" aria-label="Quitter le mode lecteur de graphique">
         <span aria-hidden="true">🏠</span> Accueil
       </button>
     </div>
 
-    <div class="mission-card" style="border-left-color:var(--blue)">
-      <div class="mission-label" style="color:var(--blue)">📈 LECTEUR DE GRAPHIQUE</div>
+    <div class="mission-card mission-card--blue">
+      <div class="mission-label text-blue">📈 LECTEUR DE GRAPHIQUE</div>
       <div class="mission-title" id="graph-title">Défi 1 sur 10</div>
       <div class="mission-desc" id="graph-instruction">Charge en cours…</div>
     </div>
@@ -2875,7 +2950,7 @@
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
       <div class="stat-block" style="padding:8px 10px">
         <div class="stat-label">📈 Défi</div>
-        <div style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:1.2rem;color:var(--yellow)" id="graph-progress">1 / 10</div>
+        <div class="display-jaune-1-2" id="graph-progress">1 / 10</div>
       </div>
       <div class="stat-block" style="padding:8px 10px">
         <div class="stat-label">✅ Justes</div>
@@ -2899,7 +2974,7 @@
       <div id="graph-click-mode" style="display:none">
         <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;align-items:center">
           <span style="font-size:.9rem;color:var(--gray)">Point cliqué :</span>
-          <span id="graph-clicked-point" style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:1.2rem;color:var(--yellow)">aucun</span>
+          <span id="graph-clicked-point" class="display-jaune-1-2">aucun</span>
           <button type="button" class="btn-main" id="graph-validate-btn" onclick="validateGraphAnswer()" disabled>✓ VALIDER</button>
         </div>
       </div>
@@ -2917,7 +2992,7 @@
   </div>
 
   <!-- Résultat final lecteur de graphique -->
-  <div id="screen-graph-reader-result" style="display:none;flex-direction:column;align-items:center;min-height:calc(100vh - 64px);padding:32px 20px;text-align:center;gap:18px">
+  <div id="screen-graph-reader-result" class="screen-result screen-result--gap-18">
     <div class="result-emoji" id="graph-result-emoji">📈</div>
     <h2 style="font-family:'Bangers',Impact,'Arial Black',cursive;font-size:clamp(1.6rem,5vw,2.4rem);color:var(--blue);letter-spacing:2px;margin:0">DÉFIS TERMINÉS !</h2>
     <p id="graph-result-msg" style="max-width:480px;color:var(--white);line-height:1.6"></p>
@@ -2941,7 +3016,7 @@
   <div class="modal-overlay" id="modal-graph-quit" role="dialog" aria-modal="true" aria-labelledby="modal-graph-quit-title">
     <div class="modal-card">
       <div class="modal-emoji" aria-hidden="true">⚠️</div>
-      <h3 id="modal-graph-quit-title" style="color:var(--red)">Quitter les défis ?</h3>
+      <h3 id="modal-graph-quit-title" class="text-red">Quitter les défis ?</h3>
       <p>Tu vas perdre ta progression de cette session.</p>
       <div class="modal-actions">
         <button type="button" class="btn-main" onclick="closeModal('modal-graph-quit')" autofocus>↩️ NON, CONTINUER</button>
@@ -2969,7 +3044,7 @@
 <div class="modal-overlay" id="modal-quit" role="dialog" aria-modal="true" aria-labelledby="modal-quit-title" aria-describedby="modal-quit-desc">
   <div class="modal-card">
     <div class="modal-emoji" aria-hidden="true">⚠️</div>
-    <h3 id="modal-quit-title" style="color:var(--red)">Quitter la partie ?</h3>
+    <h3 id="modal-quit-title" class="text-red">Quitter la partie ?</h3>
     <p id="modal-quit-desc">Ta progression dans cette partie sera perdue. Tes points XP totaux restent acquis.</p>
     <div class="modal-actions">
       <button type="button" class="btn-main" onclick="closeQuitModal()" autofocus>↩️ NON, CONTINUER</button>
@@ -2995,7 +3070,7 @@
 <div class="modal-overlay" id="modal-auto-quit" role="dialog" aria-modal="true" aria-labelledby="modal-auto-quit-title" aria-describedby="modal-auto-quit-desc">
   <div class="modal-card">
     <div class="modal-emoji" aria-hidden="true">⚠️</div>
-    <h3 id="modal-auto-quit-title" style="color:var(--red)">Quitter l'épreuve ?</h3>
+    <h3 id="modal-auto-quit-title" class="text-red">Quitter l'épreuve ?</h3>
     <p id="modal-auto-quit-desc">Les questions déjà répondues seront perdues. Tu pourras recommencer une nouvelle épreuve.</p>
     <div class="modal-actions">
       <button type="button" class="btn-main" onclick="closeAutoQuitModal()" autofocus>↩️ NON, CONTINUER</button>
@@ -3010,11 +3085,11 @@
     <div class="modal-emoji" style="text-align:center" aria-hidden="true">🥷</div>
     <h3 id="modal-tutorial-title" style="text-align:center">BIENVENUE NINJA !</h3>
     <div id="modal-tutorial-desc" style="font-size:.9rem;line-height:1.6;color:var(--white);margin:14px 0">
-      <p style="margin-bottom:12px"><strong style="color:var(--orange)">🎯 Le but :</strong> réviser les maths de 6e / 5e en t'amusant dans 6 univers anime.</p>
-      <p style="margin-bottom:12px"><strong style="color:var(--red)">❤️ 3 vies</strong> par partie. Tu en perds une à chaque mauvaise réponse ou temps écoulé.</p>
-      <p style="margin-bottom:12px"><strong style="color:var(--blue)">💧 Chakra</strong> : ressource pour utiliser les <strong>jutsus</strong> (✂️ 50/50, 💡 indice, ⏸️ stop le temps). Bonne réponse = +15 chakra.</p>
-      <p style="margin-bottom:12px"><strong style="color:var(--yellow)">🔥 Combo</strong> : enchaîne les bonnes réponses pour multiplier ton score.</p>
-      <p style="margin-bottom:12px"><strong style="color:var(--green)">🔁 Répétition espacée</strong> : les questions ratées reviennent automatiquement plus tard.</p>
+      <p class="mb-3"><strong class="text-orange">🎯 Le but :</strong> réviser les maths de 6e / 5e en t'amusant dans 6 univers anime.</p>
+      <p class="mb-3"><strong class="text-red">❤️ 3 vies</strong> par partie. Tu en perds une à chaque mauvaise réponse ou temps écoulé.</p>
+      <p class="mb-3"><strong class="text-blue">💧 Chakra</strong> : ressource pour utiliser les <strong>jutsus</strong> (✂️ 50/50, 💡 indice, ⏸️ stop le temps). Bonne réponse = +15 chakra.</p>
+      <p class="mb-3"><strong class="text-yellow">🔥 Combo</strong> : enchaîne les bonnes réponses pour multiplier ton score.</p>
+      <p class="mb-3"><strong class="text-green">🔁 Répétition espacée</strong> : les questions ratées reviennent automatiquement plus tard.</p>
       <p style="margin-bottom:0;color:var(--gray);font-size:.85rem">💡 Astuce : tu peux jouer entièrement au clavier (touches 1-4 pour répondre, Échap pour la pause).</p>
     </div>
     <div class="modal-actions">
@@ -3036,22 +3111,22 @@
     <div class="modal-emoji" style="text-align:center" aria-hidden="true">⚖️</div>
     <h3 id="modal-legal-title" style="text-align:center">À propos &amp; Mentions légales</h3>
     <div id="modal-legal-desc" style="font-size:.88rem;line-height:1.55;color:var(--white);margin:14px 0">
-      <p style="margin-bottom:10px"><strong style="color:var(--orange)">📚 Projet pédagogique</strong></p>
+      <p style="margin-bottom:10px"><strong class="text-orange">📚 Projet pédagogique</strong></p>
       <p style="margin-bottom:14px">Anime Math Academy est un jeu éducatif <strong>gratuit, sans publicité, sans inscription, sans collecte de données personnelles</strong>, conçu pour aider les collégiens de 6e et 5e à réviser les mathématiques selon les programmes officiels (BO 17/04/2025 et 05/03/2026).</p>
 
-      <p style="margin-bottom:10px"><strong style="color:var(--orange)">🎌 Univers anime cités</strong></p>
+      <p style="margin-bottom:10px"><strong class="text-orange">🎌 Univers anime cités</strong></p>
       <p style="margin-bottom:14px">Ce projet n'est <strong>ni affilié, ni sponsorisé, ni endossé</strong> par les ayants droit des œuvres suivantes : Shueisha, Toei Animation, The Pokémon Company, Nintendo, Bandai Namco, ufotable, Aniplex, BONES, ou tout autre titulaire de droits. Les noms cités (Naruto, One Piece, Dragon Ball, My Hero Academia, Demon Slayer, Pokémon et les noms de personnages associés) sont des marques déposées de leurs titulaires respectifs et sont utilisés <strong>à titre purement référentiel à des fins éducatives</strong>, sans reproduction d'éléments graphiques, sonores ou d'extraits de ces œuvres.</p>
 
-      <p style="margin-bottom:10px"><strong style="color:var(--orange)">🛡️ Demande de retrait</strong></p>
+      <p style="margin-bottom:10px"><strong class="text-orange">🛡️ Demande de retrait</strong></p>
       <p style="margin-bottom:14px">Tout ayant droit ou son représentant peut demander à tout moment, par simple email à <a href="mailto:legal@acs-dataformation.fr" style="color:var(--yellow);text-decoration:underline">legal@acs-dataformation.fr</a>, le retrait immédiat des références concernant son œuvre. Engagement de réponse sous 72 h ouvrées.</p>
 
-      <p style="margin-bottom:10px"><strong style="color:var(--orange)">🧑‍🏫 Éditeur</strong></p>
+      <p style="margin-bottom:10px"><strong class="text-orange">🧑‍🏫 Éditeur</strong></p>
       <p style="margin-bottom:14px">ACS Dataformation — France.<br>Contact : <a href="mailto:contact@acs-dataformation.fr" style="color:var(--yellow);text-decoration:underline">contact@acs-dataformation.fr</a></p>
 
-      <p style="margin-bottom:10px"><strong style="color:var(--orange)">🔒 Données personnelles</strong></p>
+      <p style="margin-bottom:10px"><strong class="text-orange">🔒 Données personnelles</strong></p>
       <p style="margin-bottom:14px">Aucune donnée personnelle n'est collectée par défaut. La sauvegarde locale (XP, niveau, univers, personnage) est <strong>opt-in explicite</strong> et stockée uniquement dans le navigateur de l'utilisateur via <code>localStorage</code>. Aucune transmission à un serveur tiers. Le service worker met en cache les ressources statiques pour le fonctionnement hors-ligne (RGPD-safe).</p>
 
-      <p style="margin-bottom:10px"><strong style="color:var(--orange)">📜 Licence et source</strong></p>
+      <p style="margin-bottom:10px"><strong class="text-orange">📜 Licence et source</strong></p>
       <p style="margin-bottom:0">Code source ouvert. Toute utilisation respectueuse des droits des tiers est encouragée.</p>
     </div>
     <div class="modal-actions">
@@ -3063,7 +3138,7 @@
 <div class="modal-overlay" id="modal-reset-stats" role="dialog" aria-modal="true" aria-labelledby="modal-reset-title">
   <div class="modal-card">
     <div class="modal-emoji" aria-hidden="true">⚠️</div>
-    <h3 id="modal-reset-title" style="color:var(--red)">Réinitialiser ?</h3>
+    <h3 id="modal-reset-title" class="text-red">Réinitialiser ?</h3>
     <p>Toutes tes statistiques (parties, chapitres, série) seront effacées définitivement. Cette action est irréversible.</p>
     <div class="modal-actions">
       <button type="button" class="btn-main" onclick="closeModal('modal-reset-stats')" autofocus>↩️ NON, GARDER</button>
@@ -3075,7 +3150,7 @@
 <div class="modal-overlay" id="modal-dnb-quit" role="dialog" aria-modal="true" aria-labelledby="modal-dnb-quit-title">
   <div class="modal-card">
     <div class="modal-emoji" aria-hidden="true">⚠️</div>
-    <h3 id="modal-dnb-quit-title" style="color:var(--red)">Abandonner le DNB Blanc ?</h3>
+    <h3 id="modal-dnb-quit-title" class="text-red">Abandonner le DNB Blanc ?</h3>
     <p>Tu vas perdre toute la progression de cette épreuve. Tu peux reprendre depuis le début à tout moment.</p>
     <div class="modal-actions">
       <button type="button" class="btn-main" onclick="closeModal('modal-dnb-quit')" autofocus>↩️ NON, CONTINUER</button>
