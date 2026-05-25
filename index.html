@@ -1149,6 +1149,147 @@
   }
   .btn-control:hover { border-color: var(--orange); transform: translateY(-1px); }
 
+
+  /* ── SECTION CHOISIR UNE PARTIE (Option 4 — unifié) ── */
+  .mission-section {
+    width: 100%;
+    max-width: 560px;
+    background: var(--dark2);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+  }
+  .mission-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: var(--space-3);
+  }
+  .mission-tab {
+    flex: 1 0 calc(33% - 4px);
+    min-width: 90px;
+    background: var(--dark3);
+    border: 2px solid rgba(255,255,255,.08);
+    color: var(--gray);
+    padding: 9px 8px;
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-weight: 800;
+    font-size: .82rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    min-height: 44px;
+  }
+  .mission-tab:hover { border-color: var(--yellow); color: var(--white); }
+  .mission-tab.active {
+    background: linear-gradient(135deg, var(--dark3), rgba(255,215,0,.10));
+    border-color: var(--yellow);
+    color: var(--yellow);
+    box-shadow: 0 2px 10px rgba(255,215,0,.15);
+  }
+  .mission-tab[data-classe="mix"].active {
+    background: linear-gradient(135deg, var(--dark3), rgba(255,107,0,.10));
+    border-color: var(--orange);
+    color: var(--orange);
+  }
+  .mission-quick-label {
+    font-size: var(--text-xs);
+    font-weight: 900;
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: var(--space-2);
+  }
+  .mission-quick-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
+  .mission-quick-btn {
+    background: var(--dark3);
+    border: 2px solid;
+    color: var(--white);
+    padding: 10px var(--space-3);
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-weight: 800;
+    font-size: .85rem;
+    cursor: pointer;
+    text-align: left;
+    transition: all var(--transition-default);
+    min-height: 44px;
+    line-height: 1.3;
+  }
+  .mission-quick-btn:hover { transform: translateY(-1px); }
+  .mission-quick-btn.qb-mix { border-color: rgba(255,107,0,.5); color: var(--orange); }
+  .mission-quick-btn.qb-mix:hover { background: rgba(255,107,0,.08); box-shadow: 0 4px 14px rgba(255,107,0,.2); }
+  .mission-quick-btn.qb-boss { border-color: rgba(255,85,119,.5); color: var(--red); }
+  .mission-quick-btn.qb-boss:hover { background: rgba(255,85,119,.08); box-shadow: 0 4px 14px rgba(255,85,119,.2); }
+  .mission-quick-btn.qb-zen { border-color: rgba(0,230,118,.5); color: var(--green); }
+  .mission-quick-btn.qb-zen:hover { background: rgba(0,230,118,.08); box-shadow: 0 4px 14px rgba(0,230,118,.2); }
+  .mission-quick-btn .qb-emoji { display: block; font-size: 1.2rem; margin-bottom: 2px; }
+  .mission-divider {
+    border-top: 1px dashed rgba(255,255,255,.12);
+    margin: var(--space-3) 0;
+    text-align: center;
+    font-size: .65rem;
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    position: relative;
+  }
+  .mission-divider span {
+    background: var(--dark2);
+    padding: 0 var(--space-2);
+    position: relative;
+    top: -8px;
+  }
+  .mission-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 50px;
+  }
+  .mission-chip {
+    background: var(--dark3);
+    border: 2px solid rgba(255,215,0,.25);
+    color: var(--white);
+    padding: 8px var(--space-3);
+    border-radius: var(--radius-md);
+    font-size: .8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .mission-chip:hover {
+    border-color: var(--yellow);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255,215,0,.15);
+  }
+  .mission-chip .chip-emoji { font-size: 1rem; }
+  .mission-chip .chip-count { font-size: .7rem; color: var(--gray); margin-left: 2px; }
+  .mission-chips-empty {
+    color: var(--gray);
+    font-size: .8rem;
+    text-align: center;
+    width: 100%;
+    padding: var(--space-3);
+    line-height: 1.5;
+  }
+  .mission-hint {
+    font-size: .7rem;
+    color: var(--gray);
+    margin-top: var(--space-3);
+    text-align: center;
+    line-height: 1.4;
+  }
+
+
   /* ── SÉLECTEUR DE CHAPITRE (4e/3e) ── */
   .chapter-tabs {
     display: flex;
@@ -1905,74 +2046,38 @@
       </div>
     </div>
 
-    <div class="container-narrow">
-      <p class="section-label">📚 Choisir la mission</p>
-      <div class="level-grid">
-        <div class="level-card" onclick="startGame('6e_facile')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startGame('6e_facile');}" role="button" tabindex="0">
-          <div class="lv">🟢 Académie</div>
-          <div class="lv-name">6ème — Révisions</div>
-          <div class="lv-desc">Rappel des notions de 6ème avant d'entrer en 5ème</div>
-          <div class="lv-topics">
-            <span class="topic-badge">Fractions</span>
-            <span class="topic-badge">Géométrie</span>
-            <span class="topic-badge">Calcul</span>
-          </div>
-        </div>
-        <div class="level-card" onclick="startGame('5e_medium')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startGame('5e_medium');}" role="button" tabindex="0">
-          <div class="lv">🔵 Genin</div>
-          <div class="lv-name">5ème — Préparation</div>
-          <div class="lv-desc">Nouvelles notions de 5ème pour prendre de l'avance</div>
-          <div class="lv-topics">
-            <span class="topic-badge">Relatifs</span>
-            <span class="topic-badge">Proportionnalité</span>
-            <span class="topic-badge">Angles</span>
-          </div>
-        </div>
-        <div class="level-card" onclick="startGame('mixte_difficile')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startGame('mixte_difficile');}" role="button" tabindex="0">
-          <div class="lv">🔴 Chunin</div>
-          <div class="lv-name">Mix — Défi épique</div>
-          <div class="lv-desc">Mélange 6ème + 5ème, questions piégées</div>
-          <div class="lv-topics">
-            <span class="topic-badge">Tout niveau</span>
-            <span class="topic-badge">Pièges</span>
-          </div>
-        </div>
-        <div class="level-card" onclick="startGame('boss')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startGame('boss');}" role="button" tabindex="0">
-          <div class="lv">💀 Kage</div>
-          <div class="lv-name">Mode Boss</div>
-          <div class="lv-desc">Affronte Orochimaru ! Temps limité, sans erreur</div>
-          <div class="lv-topics">
-            <span class="topic-badge">Expert</span>
-            <span class="topic-badge">Chronométré</span>
-          </div>
-        </div>
-        <div class="level-card" onclick="startGame('libre')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startGame('libre');}" role="button" tabindex="0" style="border-color:rgba(0,230,118,.3)">
-          <div class="lv text-green">🧘 Zen</div>
-          <div class="lv-name">Entraînement libre</div>
-          <div class="lv-desc">Sans timer, sans vies perdues. Apprends à ton rythme.</div>
-          <div class="lv-topics">
-            <span class="topic-badge topic-badge--green">Sans pression</span>
-            <span class="topic-badge topic-badge--green">Mix 6e + 5e</span>
-          </div>
-        </div>
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- SECTION UNIFIÉE : Choisir une partie (Option 4)      -->
+    <!-- Onglets classe + démarrage rapide + chapitres        -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <div class="mission-section" id="mission-section">
+      <p class="section-label">📚 Choisir une partie</p>
+      <div class="mission-tabs" role="tablist" aria-label="Niveau de classe">
+        <button type="button" class="mission-tab active" data-classe="6e" onclick="selectMissionClass('6e')" role="tab" aria-selected="true">🟢 6ème</button>
+        <button type="button" class="mission-tab" data-classe="5e" onclick="selectMissionClass('5e')" role="tab" aria-selected="false">🔵 5ème</button>
+        <button type="button" class="mission-tab" data-classe="4e" onclick="selectMissionClass('4e')" role="tab" aria-selected="false">📘 4ème</button>
+        <button type="button" class="mission-tab" data-classe="3e" onclick="selectMissionClass('3e')" role="tab" aria-selected="false">📕 3ème · DNB</button>
+        <button type="button" class="mission-tab" data-classe="mix" onclick="selectMissionClass('mix')" role="tab" aria-selected="false">🔀 Mix</button>
       </div>
-    </div>
 
-    <!-- ═══════════════════════════════════════════════════ -->
-    <!-- NOUVEAU : Sélecteur par chapitre (4e/3e)            -->
-    <!-- ═══════════════════════════════════════════════════ -->
-    <div class="container-medium">
-      <p class="section-label">📚 Réviser par chapitre <span style="background:var(--yellow);color:var(--dark);font-size:.55rem;padding:2px 7px;border-radius:6px;margin-left:6px;letter-spacing:1px;font-weight:900">6e → 3e · DNB</span></p>
-      <div class="chapter-tabs" role="tablist" aria-label="Niveau de classe">
-        <button type="button" class="chapter-tab active" data-class="6e" onclick="selectChapterClass('6e')" role="tab" aria-selected="true">🟢 6ème</button>
-        <button type="button" class="chapter-tab" data-class="5e" onclick="selectChapterClass('5e')" role="tab" aria-selected="false">🔵 5ème</button>
-        <button type="button" class="chapter-tab" data-class="4e" onclick="selectChapterClass('4e')" role="tab" aria-selected="false">📘 4ème</button>
-        <button type="button" class="chapter-tab" data-class="3e" onclick="selectChapterClass('3e')" role="tab" aria-selected="false">📕 3ème (DNB)</button>
+      <div class="mission-quick-label">⚡ Démarrage rapide <span id="mission-quick-classe-label" style="color:var(--yellow)">— 6ème</span></div>
+      <div class="mission-quick-row">
+        <button type="button" class="mission-quick-btn qb-mix" onclick="startMissionQuick('mix')" aria-label="Démarrer mix de tous les chapitres">
+          <span class="qb-emoji" aria-hidden="true">🎲</span>Mix tous chapitres
+        </button>
+        <button type="button" class="mission-quick-btn qb-boss" onclick="startMissionQuick('boss')" aria-label="Démarrer mode Boss chronométré">
+          <span class="qb-emoji" aria-hidden="true">💀</span>Boss chrono
+        </button>
+        <button type="button" class="mission-quick-btn qb-zen" onclick="startMissionQuick('libre')" aria-label="Démarrer mode Zen sans timer">
+          <span class="qb-emoji" aria-hidden="true">🧘</span>Zen sans timer
+        </button>
       </div>
-      <div class="chapter-grid" id="chapter-grid" role="tabpanel">
-        <!-- Généré dynamiquement par renderChapterGrid() -->
+
+      <div class="mission-divider"><span>Ou chapitre précis</span></div>
+      <div class="mission-chips" id="mission-chips" role="tabpanel" aria-label="Chapitres disponibles">
+        <!-- Généré par renderMissionChips() -->
       </div>
-      <p style="font-size:.7rem;color:var(--gray);margin-top:8px;text-align:center;line-height:1.4">💡 Astuce : chaque chapitre = 8 questions ciblées sur une notion précise du programme.</p>
+      <p class="mission-hint">💡 Tu peux choisir un chapitre précis ou lancer un mix complet de la classe.</p>
     </div>
 
     <div class="container-narrow">
@@ -5016,10 +5121,15 @@ function adaptQuestionToUniverse(q, universe) {
 function startGame(mode) {
   if (typeof recordGameStart === 'function') recordGameStart(mode);
   state.mode = mode;
-  state.freeMode = (mode === 'libre');
-  // Mode libre : pool de questions issu de tous les niveaux
+  // Détection des modes spéciaux par classe (CLASSE:libre, CLASSE:boss, CLASSE:mix, CLASSE:chap)
+  const isClassedMode = (typeof mode === 'string' && mode.indexOf(':') > -1);
+  const [classedClasse, classedFormat] = isClassedMode ? mode.split(':') : [null, null];
+  state.freeMode = (mode === 'libre') || (isClassedMode && classedFormat === 'libre');
+  state.bossMode = (mode === 'boss') || (isClassedMode && classedFormat === 'boss');
+  // Mode libre : pool de questions issu de tous les niveaux OU d'une classe spécifique
   let rawQs, qs;
-  if (state.freeMode) {
+  if (mode === 'libre') {
+    // Libre global — toutes les classes legacy mélangées (comportement historique)
     const all = [
       ...(QUESTIONS['6e_facile'] || []),
       ...(QUESTIONS['5e_medium'] || []),
@@ -5031,10 +5141,20 @@ function startGame(mode) {
     }
     rawQs = all.slice(0, 20);
     qs = rawQs.map(q => adaptQuestionToUniverse(q, currentUniverse));
-  } else if (typeof mode === 'string' && mode.indexOf(':') > -1) {
+  } else if (isClassedMode && (classedFormat === 'mix' || classedFormat === 'boss' || classedFormat === 'libre')) {
+    // CLASSE:mix / CLASSE:boss / CLASSE:libre — pool complet de la classe
+    const all = getClassMixPool(classedClasse);  // déjà adapté à l'univers
+    // Mélange
+    for (let i = all.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [all[i], all[j]] = [all[j], all[i]];
+    }
+    // Taille du pool : 20 pour mix/libre, 12 pour boss (rythme expert)
+    const target = (classedFormat === 'boss') ? 12 : 20;
+    qs = all.slice(0, target);
+  } else if (isClassedMode) {
     // Mode "classe:chapitre" — banque ciblée par chapitre du programme
-    const [classe, chap] = mode.split(':');
-    qs = getChapterQuestions(classe, chap);
+    qs = getChapterQuestions(classedClasse, classedFormat);
   } else {
     rawQs = QUESTIONS[mode] ? [...QUESTIONS[mode]] : [];
     qs = rawQs.map(q => adaptQuestionToUniverse(q, currentUniverse));
@@ -5067,7 +5187,7 @@ function startGame(mode) {
   const char = CHARS[state.char];
   if (state.freeMode) state.maxTime = 9999;    // pas de timer
   else if (char.bonus === 'time') state.maxTime = char.bVal;
-  else state.maxTime = mode === 'boss' ? 20 : 30;
+  else state.maxTime = state.bossMode ? 20 : 30;
 
   // Loading screen
   showScreen('loading');
@@ -5100,41 +5220,9 @@ function startChapterQCM(classe, chapitre) {
   startGame(`${classe}:${chapitre}`);
 }
 
-// ── Sélection de la classe dans les onglets chapitre ──
-let activeChapterClass = '6e';
-function selectChapterClass(classe) {
-  activeChapterClass = classe;
-  document.querySelectorAll('.chapter-tab').forEach(b => {
-    const isActive = b.dataset.class === classe;
-    b.classList.toggle('active', isActive);
-    b.setAttribute('aria-selected', isActive ? 'true' : 'false');
-  });
-  renderChapterGrid();
-}
+// (selectChapterClass/renderChapterGrid retirés — fusionnés dans selectMissionClass/renderMissionChips, Option 4)
 
-function renderChapterGrid() {
-  const grid = document.getElementById('chapter-grid');
-  if (!grid) return;
-  grid.innerHTML = '';
-  const chapters = QUESTIONS_BY_CHAPTER[activeChapterClass] || {};
-  const meta = CHAPTER_LABELS[activeChapterClass] || {};
-  Object.keys(chapters).forEach(ch => {
-    const m = meta[ch] || { emoji: '📖', name: ch, desc: '' };
-    const count = chapters[ch].length;
-    const card = document.createElement('button');
-    card.type = 'button';
-    card.className = 'chapter-card';
-    card.setAttribute('aria-label', `${m.name} — ${count} questions (niveau ${activeChapterClass})`);
-    card.onclick = () => startChapterQCM(activeChapterClass, ch);
-    card.innerHTML = `
-      <span class="ch-emoji" aria-hidden="true">${m.emoji}</span>
-      <div class="ch-name">${m.name}</div>
-      <div class="ch-desc">${m.desc}</div>
-      <div class="ch-meta">${count} questions · ${activeChapterClass}</div>
-    `;
-    grid.appendChild(card);
-  });
-}
+
 
 // ══════════════════════════════
 // QUESTION
@@ -5280,7 +5368,7 @@ function answer(idx) {
     const correctText = q.answers[q.correct];
     announceToScreenReader(`Faux. La bonne réponse était : ${correctText}. ${stripHtml(q.feedback)}`);
     // Répétition espacée : remettre la question dans la pile (sauf si déjà en retry)
-    if (!q._retry && state.mode !== 'boss') {
+    if (!q._retry && !state.bossMode) {
       const retryQ = Object.assign({}, q, { _retry: true });
       state.missedQueue.push(retryQ);
     }
@@ -5296,7 +5384,7 @@ function loseHp() {
   if (state.freeMode) return;
   state.hp = Math.max(0, state.hp - 1);
   updateStatsUI();
-  if (state.hp <= 0 && state.mode === 'boss') {
+  if (state.hp <= 0 && state.bossMode) {
     setTimeout(() => endGame(), 1500);
   }
 }
@@ -8759,8 +8847,8 @@ function applyUpdate() {
   // Re-render univers + persos avec l'état restauré
   if (typeof renderUniverseGrid === 'function') renderUniverseGrid();
   if (typeof renderCharGrid === 'function') renderCharGrid();
-  // Render la grille des chapitres 4e/3e
-  if (typeof renderChapterGrid === 'function') renderChapterGrid();
+  // Render la grille des chapitres dans la section mission unifiée
+  if (typeof renderMissionChips === 'function') renderMissionChips();
   maybeShowTutorialOnLoad();
 })();
 
@@ -10676,6 +10764,93 @@ window.addEventListener('resize', () => {
     setTimeout(initDrawCanvas, 100);
   }
 });
+
+
+
+// ═══════════════════════════════════════════════════════════
+// SECTION MISSION UNIFIÉE (Option 4) — onglets classe + démarrage rapide
+// ═══════════════════════════════════════════════════════════
+let activeMissionClasse = '6e';
+
+const MISSION_CLASSE_LABELS = {
+  '6e': '6ème',
+  '5e': '5ème',
+  '4e': '4ème',
+  '3e': '3ème (DNB)',
+  'mix': 'Mix tous niveaux'
+};
+
+function selectMissionClass(classe) {
+  activeMissionClasse = classe;
+  document.querySelectorAll('.mission-tab').forEach(b => {
+    const isActive = b.dataset.classe === classe;
+    b.classList.toggle('active', isActive);
+    b.setAttribute('aria-selected', isActive ? 'true' : 'false');
+  });
+  document.getElementById('mission-quick-classe-label').textContent = '— ' + MISSION_CLASSE_LABELS[classe];
+  renderMissionChips();
+}
+
+function renderMissionChips() {
+  const grid = document.getElementById('mission-chips');
+  if (!grid) return;
+  grid.innerHTML = '';
+  if (activeMissionClasse === 'mix') {
+    grid.innerHTML = '<div class="mission-chips-empty">🔀 Le mode Mix utilise les questions des 4 niveaux mélangées (via les boutons ci-dessus). Pour un chapitre précis, choisis d\'abord un niveau de classe.</div>';
+    return;
+  }
+  const chapters = QUESTIONS_BY_CHAPTER[activeMissionClasse] || {};
+  const meta = CHAPTER_LABELS[activeMissionClasse] || {};
+  Object.keys(chapters).forEach(ch => {
+    const m = meta[ch] || { emoji: '📖', name: ch, desc: '' };
+    const count = chapters[ch].length;
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'mission-chip';
+    chip.setAttribute('aria-label', `${m.name} — ${count} questions niveau ${activeMissionClasse}`);
+    chip.onclick = () => startMissionChapter(ch);
+    chip.innerHTML = `<span class="chip-emoji" aria-hidden="true">${m.emoji}</span><span>${m.name}</span><span class="chip-count">(${count})</span>`;
+    grid.appendChild(chip);
+  });
+}
+
+// Démarrage rapide d'un format (mix/boss/libre) sur la classe active
+function startMissionQuick(format) {
+  const cls = activeMissionClasse;
+  // Mapping vers les modes existants
+  // - 6e/5e : modes legacy (6e_facile, 5e_medium) pour mix ; modes globaux boss/libre
+  // - 4e/3e : nouveaux modes CLASSE:format
+  // - mix (tous niveaux) : modes legacy mixte_difficile / boss / libre
+  let mode;
+  if (cls === 'mix') {
+    if (format === 'mix') mode = 'mixte_difficile';
+    else if (format === 'boss') mode = 'boss';
+    else if (format === 'libre') mode = 'libre';
+  } else if (cls === '6e') {
+    if (format === 'mix') mode = '6e_facile';
+    else if (format === 'boss') mode = '6e:boss';
+    else if (format === 'libre') mode = '6e:libre';
+  } else if (cls === '5e') {
+    if (format === 'mix') mode = '5e_medium';
+    else if (format === 'boss') mode = '5e:boss';
+    else if (format === 'libre') mode = '5e:libre';
+  } else {
+    // 4e ou 3e
+    mode = cls + ':' + format;
+  }
+  startGame(mode);
+}
+
+// Lancement d'un chapitre précis depuis les chips
+function startMissionChapter(chap) {
+  startGame(activeMissionClasse + ':' + chap);
+}
+
+// Init au chargement
+if (typeof renderMissionChips === 'function') {
+  // Render initial chips (en différé pour que DOM soit prêt)
+  setTimeout(renderMissionChips, 0);
+}
 
 </script>
 </body>
