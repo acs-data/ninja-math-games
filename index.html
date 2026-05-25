@@ -1056,6 +1056,108 @@
 
 
 
+
+  /* ── ATELIER PYTHAGORE/THALÈS/TRIGO ── */
+  .pyth-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 12px;
+    margin-top: 14px;
+  }
+  @media(max-width: 768px) {
+    .pyth-grid { grid-template-columns: 1fr; }
+  }
+  .pyth-canvas-wrap {
+    background: var(--dark2);
+    border: 2px solid rgba(0,230,118,.25);
+    border-radius: 14px;
+    padding: 10px;
+    position: relative;
+  }
+  #pyth-canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 8px;
+    background: #0A0A14;
+    touch-action: none; /* indispensable pour le drag tactile */
+    cursor: grab;
+  }
+  .pyth-hint {
+    font-size: .7rem;
+    color: var(--gray);
+    text-align: center;
+    margin-top: 6px;
+  }
+  .pyth-info-panel {
+    background: var(--dark2);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: .85rem;
+  }
+  .pyth-info-title {
+    font-family: 'Bangers', Impact, 'Arial Black', cursive;
+    font-size: .95rem;
+    color: var(--green);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  #pyth-values, #pyth-equation {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: var(--white);
+    font-family: 'Nunito', monospace;
+  }
+  .pyth-val-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 8px;
+    background: var(--dark3);
+    border-radius: 6px;
+    font-size: .85rem;
+  }
+  .pyth-val-row .name { color: var(--gray); font-weight: 700; }
+  .pyth-val-row .val { color: var(--yellow); font-weight: 800; }
+  .pyth-eq {
+    padding: 8px 10px;
+    background: var(--dark3);
+    border-radius: 6px;
+    text-align: center;
+    font-family: 'Bangers', Impact, 'Arial Black', cursive;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    color: var(--white);
+  }
+  .pyth-eq.success { background: rgba(0,230,118,.15); color: var(--green); border: 1px solid var(--green); }
+  .pyth-eq small { font-family: 'Nunito', sans-serif; color: var(--gray); font-size: .7rem; font-weight: 700; letter-spacing: 0; }
+  .pyth-challenge {
+    background: linear-gradient(135deg, var(--dark2), rgba(255,215,0,.06));
+    border: 1px solid rgba(255,215,0,.3);
+    border-radius: 14px;
+    padding: 14px 18px;
+    margin-top: 14px;
+  }
+  .pyth-challenge-title {
+    font-family: 'Bangers', Impact, 'Arial Black', cursive;
+    font-size: 1rem;
+    color: var(--yellow);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .pyth-challenge-text { font-size: .9rem; color: var(--white); line-height: 1.5; margin-bottom: 10px; }
+  .pyth-challenge-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pyth-challenge-feedback {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: .85rem;
+    line-height: 1.5;
+  }
+  .pyth-challenge-feedback.success { background: rgba(0,230,118,.12); border: 1px solid var(--green); color: var(--white); }
+  .pyth-challenge-feedback.error { background: rgba(255,85,119,.12); border: 1px solid var(--red); color: var(--white); }
+
   /* ── DNB BLANC ── */
   /* Variante de story-narrative pour les énoncés DNB (plus rigoureux) */
   #screen-dnb-ex .story-narrative {
@@ -1550,6 +1652,16 @@
           <div class="lv-topics">
             <span class="topic-badge" style="color:var(--blue);border-color:rgba(26,107,255,.3);background:rgba(26,107,255,.1)">Réflexes</span>
             <span class="topic-badge" style="color:var(--blue);border-color:rgba(26,107,255,.3);background:rgba(26,107,255,.1)">Binaire</span>
+          </div>
+        </div>
+        <div class="level-card" onclick="startPythMode()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startPythMode();}" role="button" tabindex="0" style="border-color:rgba(0,230,118,.4);background:linear-gradient(135deg,var(--dark3),rgba(0,230,118,.04))">
+          <div class="lv" style="color:var(--green)">🔺 Atelier</div>
+          <div class="lv-name">Pythagore, Thalès & Trigo</div>
+          <div class="lv-desc">Manipule un triangle au doigt et vois les théorèmes prendre vie. 3 ateliers interactifs (4e/3e).</div>
+          <div class="lv-topics">
+            <span class="topic-badge" style="color:var(--green);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.1)">Pythagore</span>
+            <span class="topic-badge" style="color:var(--green);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.1)">Thalès</span>
+            <span class="topic-badge" style="color:var(--green);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.1)">Trigo</span>
           </div>
         </div>
         <div class="level-card" onclick="startStoryMode()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startStoryMode();}" role="button" tabindex="0" style="border-color:rgba(255,215,0,.3)">
@@ -2314,6 +2426,61 @@
     <div class="btn-row">
       <button class="btn-main" onclick="startDnbBlanc()">🔄 NOUVEAU DNB BLANC</button>
       <button class="btn-sec" onclick="showHome()">🏠 Accueil</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- ÉCRAN CONSTRUCTEUR PYTHAGORE/THALÈS/TRIGO          -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="screen-pythagore" style="display:none;padding:16px;max-width:860px;margin:0 auto">
+    <div class="game-controls" role="toolbar" aria-label="Contrôles atelier géométrie">
+      <button type="button" class="btn-control" onclick="showHome()" aria-label="Retour à l'accueil">
+        <span aria-hidden="true">🏠</span> Accueil
+      </button>
+    </div>
+
+    <div class="mission-card" style="border-left-color:var(--green)">
+      <div class="mission-label" style="color:var(--green)">🔺 ATELIER GÉOMÉTRIE INTERACTIVE</div>
+      <div class="mission-title" id="pyth-title">Constructeur Pythagore</div>
+      <div class="mission-desc" id="pyth-instruction">Déplace les sommets du triangle pour découvrir le théorème.</div>
+    </div>
+
+    <!-- Onglets ateliers -->
+    <div class="chapter-tabs" role="tablist" aria-label="Choix de l'atelier">
+      <button type="button" class="chapter-tab active" data-atelier="pythagore" onclick="selectPythAtelier('pythagore')" role="tab" aria-selected="true">🔺 Pythagore</button>
+      <button type="button" class="chapter-tab" data-atelier="thales" onclick="selectPythAtelier('thales')" role="tab" aria-selected="false">📐 Thalès</button>
+      <button type="button" class="chapter-tab" data-atelier="trigo" onclick="selectPythAtelier('trigo')" role="tab" aria-selected="false">📏 Trigo</button>
+    </div>
+
+    <!-- Canvas + panneau valeurs -->
+    <div class="pyth-grid">
+      <div class="pyth-canvas-wrap">
+        <canvas id="pyth-canvas" aria-label="Triangle interactif" role="img"></canvas>
+        <div class="pyth-hint" id="pyth-hint">💡 Glisse les points roses pour modifier la figure.</div>
+      </div>
+      <div class="pyth-info-panel" id="pyth-info-panel">
+        <div class="pyth-info-title">📐 Valeurs</div>
+        <div id="pyth-values"></div>
+        <div class="pyth-info-title" style="margin-top:14px">🧮 Vérification</div>
+        <div id="pyth-equation"></div>
+      </div>
+    </div>
+
+    <!-- Slider pour atelier trigo (caché par défaut) -->
+    <div id="pyth-slider-wrap" style="display:none;margin-top:14px;background:var(--dark2);border-radius:12px;padding:14px 18px">
+      <label for="pyth-angle-slider" style="display:block;font-size:.85rem;color:var(--gray);margin-bottom:8px">Angle θ : <strong style="color:var(--yellow)" id="pyth-angle-display">30°</strong></label>
+      <input type="range" id="pyth-angle-slider" min="5" max="85" value="30" step="1" style="width:100%;accent-color:var(--green)">
+    </div>
+
+    <!-- Défi -->
+    <div class="pyth-challenge" id="pyth-challenge">
+      <div class="pyth-challenge-title">🎯 Défi</div>
+      <div class="pyth-challenge-text" id="pyth-challenge-text">Charge en cours…</div>
+      <div class="pyth-challenge-actions">
+        <button type="button" class="btn-main" onclick="validatePythChallenge()" id="pyth-validate-btn">✓ VALIDER</button>
+        <button type="button" class="btn-sec" onclick="newPythChallenge()" id="pyth-new-btn">🔄 NOUVEAU DÉFI</button>
+      </div>
+      <div class="pyth-challenge-feedback" id="pyth-challenge-feedback" style="display:none"></div>
     </div>
   </div>
 
@@ -6590,6 +6757,7 @@ showScreen = function(id) {
     'dnb-transition': 'Transition entre phases du DNB',
     'dnb-ex': 'Exercice écrit du DNB Blanc',
     'dnb-result': 'Résultats finaux du DNB Blanc',
+    'pythagore': 'Atelier interactif Pythagore, Thalès et trigonométrie',
     'loading': 'Chargement'
   };
   if (announcements[id]) announceToScreenReader(announcements[id]);
@@ -8325,6 +8493,519 @@ function confirmedQuitDnb() {
   clearInterval(autoState.globalTimer);
   showHome();
 }
+
+
+
+// ═══════════════════════════════════════════════════════════
+// ATELIER PYTHAGORE / THALÈS / TRIGO — Canvas interactif
+// ═══════════════════════════════════════════════════════════
+let pythState = {
+  atelier: 'pythagore',  // pythagore | thales | trigo
+  canvas: null,
+  ctx: null,
+  W: 0, H: 0,
+  // Atelier Pythagore : rectangle ABC, angle droit en C, AC vertical, BC horizontal
+  // On stocke en coords normalisées (0..1)
+  pyth: {
+    A: { x: 0.12, y: 0.80 },  // bas gauche (= C en fait, l'angle droit)
+    B: { x: 0.78, y: 0.80 },  // bas droite
+    C: { x: 0.12, y: 0.20 },  // haut gauche (sommet du triangle)
+    drag: null
+  },
+  // Atelier Thalès
+  thales: {
+    A: { x: 0.50, y: 0.12 },  // sommet
+    B: { x: 0.10, y: 0.86 },  // pied gauche
+    C: { x: 0.90, y: 0.86 },  // pied droit
+    t: 0.55,                  // position de M le long de AB (0..1)
+    drag: false
+  },
+  // Atelier Trigo
+  trigo: {
+    angle: 30,    // en degrés
+    hypPx: 0     // calculé dynamiquement
+  },
+  challenge: null,
+  challengeAnswered: false
+};
+
+const PYTH_ATELIER_LABELS = {
+  pythagore: { title: 'Constructeur Pythagore', instruction: 'Glisse les sommets <span style="color:var(--orange)">A</span> et <span style="color:var(--blue)">C</span> du triangle rectangle. Observe l\'égalité des carrés.' },
+  thales:    { title: 'Constructeur Thalès',    instruction: 'Glisse le point <span style="color:var(--orange)">M</span> sur le segment [AB]. Le point N se positionne automatiquement pour que (MN) // (BC).' },
+  trigo:     { title: 'Constructeur Trigonométrie', instruction: 'Ajuste l\'angle θ avec le curseur. Observe l\'évolution de cosinus, sinus et tangente.' }
+};
+
+function startPythMode() {
+  if (typeof recordGameStart === 'function') recordGameStart('pythagore_atelier');
+  showScreen('pythagore');
+  setTimeout(initPythCanvas, 60);
+}
+
+function initPythCanvas() {
+  const c = document.getElementById('pyth-canvas');
+  if (!c) return;
+  const parent = c.parentElement;
+  c.width = parent.clientWidth - 20;  // padding
+  c.height = Math.min(c.width * 0.7, 380);
+  pythState.canvas = c;
+  pythState.ctx = c.getContext('2d');
+  pythState.W = c.width;
+  pythState.H = c.height;
+  setupPythCanvasEvents(c);
+  selectPythAtelier(pythState.atelier);
+  // Slider trigo
+  const slider = document.getElementById('pyth-angle-slider');
+  if (slider) {
+    slider.addEventListener('input', (e) => {
+      pythState.trigo.angle = parseInt(e.target.value, 10);
+      document.getElementById('pyth-angle-display').textContent = pythState.trigo.angle + '°';
+      renderPyth();
+    });
+  }
+}
+
+function selectPythAtelier(atelier) {
+  pythState.atelier = atelier;
+  pythState.challengeAnswered = false;
+  document.querySelectorAll('#screen-pythagore .chapter-tab').forEach(b => {
+    const active = b.dataset.atelier === atelier;
+    b.classList.toggle('active', active);
+    b.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+  document.getElementById('pyth-title').textContent = PYTH_ATELIER_LABELS[atelier].title;
+  document.getElementById('pyth-instruction').innerHTML = PYTH_ATELIER_LABELS[atelier].instruction;
+  document.getElementById('pyth-slider-wrap').style.display = (atelier === 'trigo') ? 'block' : 'none';
+  document.getElementById('pyth-hint').textContent = (atelier === 'trigo')
+    ? '💡 Utilise le curseur pour ajuster l\'angle.'
+    : '💡 Glisse les points roses pour modifier la figure.';
+  newPythChallenge();
+  renderPyth();
+}
+
+// ─── Distance & utilitaires ───
+function pythDist(p1, p2) {
+  const dx = p2.x - p1.x;
+  const dy = p2.y - p1.y;
+  return Math.sqrt(dx*dx + dy*dy);
+}
+
+// Convertit distance canvas (en pixels) → cm visuels (échelle = canvas.width / 10 cm)
+function pythPxToCm(px) {
+  return px / (pythState.W / 10);
+}
+
+function pythToCanvas(p) {
+  return { x: p.x * pythState.W, y: p.y * pythState.H };
+}
+
+function pythToNorm(cx, cy) {
+  return { x: cx / pythState.W, y: cy / pythState.H };
+}
+
+// ─── Événements pointer (mouse + touch) ───
+function setupPythCanvasEvents(canvas) {
+  const newC = canvas.cloneNode(true);
+  canvas.parentNode.replaceChild(newC, canvas);
+  pythState.canvas = newC;
+  pythState.ctx = newC.getContext('2d');
+
+  const getPos = (e) => {
+    const r = newC.getBoundingClientRect();
+    const sx = newC.width / r.width;
+    const sy = newC.height / r.height;
+    let cx, cy;
+    if (e.touches) {
+      cx = (e.touches[0].clientX - r.left) * sx;
+      cy = (e.touches[0].clientY - r.top) * sy;
+    } else {
+      cx = (e.clientX - r.left) * sx;
+      cy = (e.clientY - r.top) * sy;
+    }
+    return { x: cx, y: cy };
+  };
+
+  const onStart = (e) => {
+    e.preventDefault();
+    const p = getPos(e);
+    handlePythStart(p);
+  };
+  const onMove = (e) => {
+    if (!isPythDragging()) return;
+    e.preventDefault();
+    const p = getPos(e);
+    handlePythMove(p);
+  };
+  const onEnd = (e) => { handlePythEnd(); };
+
+  newC.addEventListener('mousedown', onStart);
+  newC.addEventListener('mousemove', onMove);
+  newC.addEventListener('mouseup', onEnd);
+  newC.addEventListener('mouseleave', onEnd);
+  newC.addEventListener('touchstart', onStart, { passive: false });
+  newC.addEventListener('touchmove', onMove, { passive: false });
+  newC.addEventListener('touchend', onEnd);
+  newC.addEventListener('touchcancel', onEnd);
+}
+
+function isPythDragging() {
+  if (pythState.atelier === 'pythagore') return pythState.pyth.drag !== null;
+  if (pythState.atelier === 'thales') return pythState.thales.drag;
+  return false;
+}
+
+function handlePythStart(p) {
+  if (pythState.atelier === 'pythagore') {
+    // Test proximité avec B (bas droite) ou C (haut gauche)
+    const Bpx = pythToCanvas(pythState.pyth.B);
+    const Cpx = pythToCanvas(pythState.pyth.C);
+    if (pythDist(p, Bpx) < 25) pythState.pyth.drag = 'B';
+    else if (pythDist(p, Cpx) < 25) pythState.pyth.drag = 'C';
+  } else if (pythState.atelier === 'thales') {
+    // Test proximité avec M (le point sur [AB])
+    const Mpx = pythToCanvas(pythGetThalesM());
+    if (pythDist(p, Mpx) < 25) pythState.thales.drag = true;
+  }
+}
+
+function handlePythMove(p) {
+  if (pythState.atelier === 'pythagore') {
+    const drag = pythState.pyth.drag;
+    if (drag === 'B') {
+      // B se déplace horizontalement uniquement (sur même ligne que A)
+      let nx = Math.max(pythState.pyth.A.x + 0.15, Math.min(0.95, p.x / pythState.W));
+      pythState.pyth.B.x = nx;
+      pythState.pyth.B.y = pythState.pyth.A.y;
+    } else if (drag === 'C') {
+      // C se déplace verticalement uniquement (sur même verticale que A)
+      let ny = Math.max(0.05, Math.min(pythState.pyth.A.y - 0.15, p.y / pythState.H));
+      pythState.pyth.C.y = ny;
+      pythState.pyth.C.x = pythState.pyth.A.x;
+    }
+    renderPyth();
+  } else if (pythState.atelier === 'thales' && pythState.thales.drag) {
+    // Projection orthogonale sur le segment [AB]
+    const A = pythToCanvas(pythState.thales.A);
+    const B = pythToCanvas(pythState.thales.B);
+    const abx = B.x - A.x, aby = B.y - A.y;
+    const apx = p.x - A.x, apy = p.y - A.y;
+    const t = (apx*abx + apy*aby) / (abx*abx + aby*aby);
+    pythState.thales.t = Math.max(0.05, Math.min(0.95, t));
+    renderPyth();
+  }
+}
+
+function handlePythEnd() {
+  if (pythState.atelier === 'pythagore') pythState.pyth.drag = null;
+  else if (pythState.atelier === 'thales') pythState.thales.drag = false;
+}
+
+function pythGetThalesM() {
+  const A = pythState.thales.A, B = pythState.thales.B;
+  const t = pythState.thales.t;
+  return { x: A.x + t * (B.x - A.x), y: A.y + t * (B.y - A.y) };
+}
+
+function pythGetThalesN() {
+  // N tel que AN/AC = AM/AB = t (parallèle MN à BC)
+  const A = pythState.thales.A, C = pythState.thales.C;
+  const t = pythState.thales.t;
+  return { x: A.x + t * (C.x - A.x), y: A.y + t * (C.y - A.y) };
+}
+
+// ─── Rendu canvas ───
+function renderPyth() {
+  const ctx = pythState.ctx;
+  if (!ctx) return;
+  ctx.clearRect(0, 0, pythState.W, pythState.H);
+  // Grille de fond
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 1;
+  const step = pythState.W / 20;
+  for (let x = 0; x <= pythState.W; x += step) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, pythState.H); ctx.stroke();
+  }
+  for (let y = 0; y <= pythState.H; y += step) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(pythState.W, y); ctx.stroke();
+  }
+  // Délègue selon l'atelier
+  if (pythState.atelier === 'pythagore') renderPythPythagore();
+  else if (pythState.atelier === 'thales') renderPythThales();
+  else if (pythState.atelier === 'trigo') renderPythTrigo();
+}
+
+function renderPythPythagore() {
+  const ctx = pythState.ctx;
+  const A = pythToCanvas(pythState.pyth.A);
+  const B = pythToCanvas(pythState.pyth.B);
+  const C = pythToCanvas(pythState.pyth.C);
+  // Triangle
+  ctx.fillStyle = 'rgba(0,230,118,0.10)';
+  ctx.strokeStyle = '#00E676';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.lineTo(C.x, C.y); ctx.closePath();
+  ctx.fill(); ctx.stroke();
+  // Marquer l'angle droit en A
+  ctx.strokeStyle = '#FFD700';
+  ctx.lineWidth = 2;
+  const sq = 16;
+  ctx.strokeRect(A.x, A.y - sq, sq, sq);
+  // Labels des sommets
+  ctx.fillStyle = '#F0F0FF';
+  ctx.font = 'bold 14px Nunito, sans-serif';
+  ctx.fillText('A', A.x - 16, A.y + 16);
+  ctx.fillText('B', B.x + 6, B.y + 16);
+  ctx.fillText('C', C.x - 16, C.y - 4);
+  // Labels longueurs
+  const ac = pythPxToCm(pythDist(A, C)).toFixed(1);
+  const bc = pythPxToCm(pythDist(A, B)).toFixed(1);  // côté horizontal (= AB)
+  const cb = pythPxToCm(pythDist(B, C)).toFixed(1);  // hypoténuse
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 13px Nunito, sans-serif';
+  ctx.fillText(ac + ' cm', A.x - 60, (A.y + C.y) / 2);  // côté AC (vertical)
+  ctx.fillText(bc + ' cm', (A.x + B.x) / 2 - 10, A.y + 24);  // côté AB (horizontal)
+  ctx.fillText(cb + ' cm', (B.x + C.x) / 2 + 6, (B.y + C.y) / 2);  // hypoténuse BC
+  // Points draggables
+  drawPythHandle(B, pythState.pyth.drag === 'B');
+  drawPythHandle(C, pythState.pyth.drag === 'C');
+  // Maj panneau
+  const ac2 = (parseFloat(ac) ** 2).toFixed(2);
+  const bc2 = (parseFloat(bc) ** 2).toFixed(2);
+  const cb2 = (parseFloat(cb) ** 2).toFixed(2);
+  const sum = (parseFloat(ac2) + parseFloat(bc2)).toFixed(2);
+  document.getElementById('pyth-values').innerHTML = `
+    <div class="pyth-val-row"><span class="name">AC (côté vert.)</span><span class="val">${ac} cm</span></div>
+    <div class="pyth-val-row"><span class="name">AB (côté hor.)</span><span class="val">${bc} cm</span></div>
+    <div class="pyth-val-row"><span class="name">BC (hypoténuse)</span><span class="val">${cb} cm</span></div>
+  `;
+  const isClose = Math.abs(parseFloat(sum) - parseFloat(cb2)) < 0.1;
+  document.getElementById('pyth-equation').innerHTML = `
+    <div class="pyth-eq"><small>AC² + AB²</small><br>${ac2} + ${bc2} = ${sum}</div>
+    <div class="pyth-eq"><small>BC² (hypoténuse au carré)</small><br>${cb2}</div>
+    <div class="pyth-eq ${isClose ? 'success' : ''}">${isClose ? '✓ Égalité ! AC² + AB² = BC²' : '≈ ' + sum + ' ≈ ' + cb2}<br><small>Théorème de Pythagore confirmé</small></div>
+  `;
+}
+
+function renderPythThales() {
+  const ctx = pythState.ctx;
+  const A = pythToCanvas(pythState.thales.A);
+  const B = pythToCanvas(pythState.thales.B);
+  const C = pythToCanvas(pythState.thales.C);
+  const M = pythToCanvas(pythGetThalesM());
+  const N = pythToCanvas(pythGetThalesN());
+  // Triangle ABC
+  ctx.fillStyle = 'rgba(26,107,255,0.08)';
+  ctx.strokeStyle = '#1A6BFF';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.lineTo(C.x, C.y); ctx.closePath();
+  ctx.fill(); ctx.stroke();
+  // Segment MN (parallèle à BC) — en surbrillance
+  ctx.strokeStyle = '#FFD700';
+  ctx.lineWidth = 3;
+  ctx.setLineDash([6, 4]);
+  ctx.beginPath(); ctx.moveTo(M.x, M.y); ctx.lineTo(N.x, N.y); ctx.stroke();
+  ctx.setLineDash([]);
+  // Petit triangle AMN
+  ctx.fillStyle = 'rgba(255,215,0,0.12)';
+  ctx.beginPath();
+  ctx.moveTo(A.x, A.y); ctx.lineTo(M.x, M.y); ctx.lineTo(N.x, N.y); ctx.closePath();
+  ctx.fill();
+  // Labels
+  ctx.fillStyle = '#F0F0FF';
+  ctx.font = 'bold 14px Nunito, sans-serif';
+  ctx.fillText('A', A.x - 4, A.y - 8);
+  ctx.fillText('B', B.x - 18, B.y + 16);
+  ctx.fillText('C', C.x + 6, C.y + 16);
+  ctx.fillStyle = '#FFD700';
+  ctx.fillText('M', M.x + 8, M.y);
+  ctx.fillText('N', N.x + 8, N.y);
+  // Point draggable M
+  drawPythHandle(M, pythState.thales.drag);
+  // Maj panneau
+  const am = pythPxToCm(pythDist(A, M)).toFixed(1);
+  const ab = pythPxToCm(pythDist(A, B)).toFixed(1);
+  const an = pythPxToCm(pythDist(A, N)).toFixed(1);
+  const ac = pythPxToCm(pythDist(A, C)).toFixed(1);
+  const mn = pythPxToCm(pythDist(M, N)).toFixed(1);
+  const bc = pythPxToCm(pythDist(B, C)).toFixed(1);
+  const r1 = (parseFloat(am) / parseFloat(ab)).toFixed(3);
+  const r2 = (parseFloat(an) / parseFloat(ac)).toFixed(3);
+  const r3 = (parseFloat(mn) / parseFloat(bc)).toFixed(3);
+  document.getElementById('pyth-values').innerHTML = `
+    <div class="pyth-val-row"><span class="name">AM / AB</span><span class="val">${am}/${ab} = ${r1}</span></div>
+    <div class="pyth-val-row"><span class="name">AN / AC</span><span class="val">${an}/${ac} = ${r2}</span></div>
+    <div class="pyth-val-row"><span class="name">MN / BC</span><span class="val">${mn}/${bc} = ${r3}</span></div>
+  `;
+  const allEqual = Math.abs(parseFloat(r1) - parseFloat(r2)) < 0.02 && Math.abs(parseFloat(r2) - parseFloat(r3)) < 0.02;
+  document.getElementById('pyth-equation').innerHTML = `
+    <div class="pyth-eq ${allEqual ? 'success' : ''}">${allEqual ? '✓ Les 3 rapports sont égaux !' : 'Rapports : ' + r1 + ' / ' + r2 + ' / ' + r3}<br><small>Théorème de Thalès : <em>AM/AB = AN/AC = MN/BC</em></small></div>
+  `;
+}
+
+function renderPythTrigo() {
+  const ctx = pythState.ctx;
+  // Construit un triangle rectangle au milieu
+  const cx = pythState.W * 0.18;
+  const cy = pythState.H * 0.82;
+  const hyp = Math.min(pythState.W * 0.7, pythState.H * 0.7);
+  const ang = pythState.trigo.angle * Math.PI / 180;
+  // A est l'angle droit en bas gauche, B est sur l'horizontale, C en haut
+  // L'angle θ est en A entre AC (vertical) et... non, par convention :
+  // Triangle rectangle en C (haut gauche), angle θ en A (bas gauche)
+  // Donc : A en bas gauche, B en bas droite (à distance adjacent), C en haut gauche (à hauteur opposed)
+  const adj = hyp * Math.cos(ang);
+  const opp = hyp * Math.sin(ang);
+  const A = { x: cx, y: cy };
+  const B = { x: cx + adj, y: cy };
+  const C = { x: cx + adj, y: cy - opp };
+  // Triangle
+  ctx.fillStyle = 'rgba(0,230,118,0.08)';
+  ctx.strokeStyle = '#00E676';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.lineTo(C.x, C.y); ctx.closePath();
+  ctx.fill(); ctx.stroke();
+  // Marqueur angle droit en B
+  ctx.strokeStyle = '#FFD700';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(B.x - 16, B.y - 16, 16, 16);
+  // Marqueur angle θ en A
+  ctx.strokeStyle = '#FF6B00';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(A.x, A.y, 28, -ang, 0);
+  ctx.stroke();
+  ctx.fillStyle = '#FF6B00';
+  ctx.font = 'bold 14px Nunito, sans-serif';
+  ctx.fillText('θ', A.x + 32, A.y - 4);
+  // Labels
+  ctx.fillStyle = '#F0F0FF';
+  ctx.fillText('A', A.x - 18, A.y + 6);
+  ctx.fillText('B', B.x + 4, B.y + 16);
+  ctx.fillText('C', C.x + 4, C.y + 4);
+  // Longueurs
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 12px Nunito, sans-serif';
+  const hypCm = pythPxToCm(hyp).toFixed(1);
+  const adjCm = pythPxToCm(adj).toFixed(1);
+  const oppCm = pythPxToCm(opp).toFixed(1);
+  ctx.fillText('hyp = ' + hypCm + ' cm', (A.x + C.x)/2 - 60, (A.y + C.y)/2);
+  ctx.fillText('adj = ' + adjCm + ' cm', (A.x + B.x)/2 - 20, A.y + 22);
+  ctx.fillText('opp = ' + oppCm + ' cm', B.x + 8, (B.y + C.y)/2);
+  // Maj panneau
+  const cosV = Math.cos(ang).toFixed(3);
+  const sinV = Math.sin(ang).toFixed(3);
+  const tanV = Math.tan(ang).toFixed(3);
+  document.getElementById('pyth-values').innerHTML = `
+    <div class="pyth-val-row"><span class="name">cos(${pythState.trigo.angle}°)</span><span class="val">${cosV}</span></div>
+    <div class="pyth-val-row"><span class="name">sin(${pythState.trigo.angle}°)</span><span class="val">${sinV}</span></div>
+    <div class="pyth-val-row"><span class="name">tan(${pythState.trigo.angle}°)</span><span class="val">${tanV}</span></div>
+  `;
+  document.getElementById('pyth-equation').innerHTML = `
+    <div class="pyth-eq"><small>cos = adj/hyp</small><br>${adjCm}/${hypCm} = ${(parseFloat(adjCm)/parseFloat(hypCm)).toFixed(3)}</div>
+    <div class="pyth-eq"><small>sin = opp/hyp</small><br>${oppCm}/${hypCm} = ${(parseFloat(oppCm)/parseFloat(hypCm)).toFixed(3)}</div>
+    <div class="pyth-eq"><small>tan = opp/adj</small><br>${oppCm}/${adjCm} = ${(parseFloat(oppCm)/parseFloat(adjCm)).toFixed(3)}</div>
+  `;
+}
+
+function drawPythHandle(p, isDragged) {
+  const ctx = pythState.ctx;
+  ctx.fillStyle = isDragged ? '#FF6B00' : '#FF2D55';
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#FFFFFF';
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// ─── Défis ───
+function newPythChallenge() {
+  const a = pythState.atelier;
+  const fb = document.getElementById('pyth-challenge-feedback');
+  fb.style.display = 'none';
+  fb.classList.remove('success', 'error');
+  pythState.challengeAnswered = false;
+  if (a === 'pythagore') {
+    // Demande de construire un triangle 3-4-5 ou 6-8-10
+    const target = [
+      { ac: 3, ab: 4, bc: 5, name: '3-4-5' },
+      { ac: 5, ab: 12, bc: 13, name: '5-12-13' },
+      { ac: 6, ab: 8, bc: 10, name: '6-8-10' },
+      { ac: 8, ab: 15, bc: 17, name: '8-15-17' }
+    ][Math.floor(Math.random() * 4)];
+    pythState.challenge = { type: 'pyth', target };
+    document.getElementById('pyth-challenge-text').innerHTML = `Construis un triangle rectangle avec <strong>AC = ${target.ac} cm</strong> et <strong>AB = ${target.ab} cm</strong>. Quelle sera l'hypoténuse BC ?`;
+  } else if (a === 'thales') {
+    const ratios = [0.25, 0.33, 0.4, 0.5, 0.6, 0.67, 0.75];
+    const r = ratios[Math.floor(Math.random() * ratios.length)];
+    pythState.challenge = { type: 'thales', targetRatio: r };
+    document.getElementById('pyth-challenge-text').innerHTML = `Place le point M sur [AB] de telle sorte que <strong>AM/AB ≈ ${r.toFixed(2)}</strong>.`;
+  } else if (a === 'trigo') {
+    const targets = [
+      { angle: 30, cosVal: 0.866 },
+      { angle: 45, cosVal: 0.707 },
+      { angle: 60, cosVal: 0.5 }
+    ];
+    const t = targets[Math.floor(Math.random() * 3)];
+    pythState.challenge = { type: 'trigo', target: t };
+    document.getElementById('pyth-challenge-text').innerHTML = `Trouve l'angle θ pour lequel <strong>cos(θ) ≈ ${t.cosVal.toFixed(3)}</strong>. Indice : c'est un angle remarquable.`;
+  }
+}
+
+function validatePythChallenge() {
+  if (pythState.challengeAnswered) return;
+  const c = pythState.challenge;
+  if (!c) return;
+  const fb = document.getElementById('pyth-challenge-feedback');
+  fb.style.display = 'block';
+  let ok = false, msg = '';
+  if (c.type === 'pyth') {
+    // Vérifie les longueurs AC et AB
+    const ac = pythPxToCm(pythDist(pythToCanvas(pythState.pyth.A), pythToCanvas(pythState.pyth.C)));
+    const ab = pythPxToCm(pythDist(pythToCanvas(pythState.pyth.A), pythToCanvas(pythState.pyth.B)));
+    const errAc = Math.abs(ac - c.target.ac);
+    const errAb = Math.abs(ab - c.target.ab);
+    ok = errAc < 0.6 && errAb < 0.6;
+    msg = ok
+      ? `✅ Bravo ! Triangle ${c.target.name} construit. Hypoténuse BC = ${c.target.bc} cm (vérifie via Pythagore : ${c.target.ac}² + ${c.target.ab}² = ${c.target.ac*c.target.ac + c.target.ab*c.target.ab} = ${c.target.bc}²).`
+      : `❌ Pas encore. AC = ${ac.toFixed(1)} (objectif ${c.target.ac}), AB = ${ab.toFixed(1)} (objectif ${c.target.ab}). Glisse les points roses pour ajuster.`;
+  } else if (c.type === 'thales') {
+    const r = pythState.thales.t;
+    const err = Math.abs(r - c.targetRatio);
+    ok = err < 0.03;
+    msg = ok
+      ? `✅ Excellent ! AM/AB ≈ ${r.toFixed(3)} ≈ ${c.targetRatio.toFixed(2)} ✓. Et le rapport est conservé sur les 3 segments grâce à Thalès.`
+      : `❌ Rapport actuel : ${r.toFixed(3)}. Objectif : ${c.targetRatio.toFixed(2)}. ${r < c.targetRatio ? 'Déplace M vers B' : 'Déplace M vers A'}.`;
+  } else if (c.type === 'trigo') {
+    const err = Math.abs(pythState.trigo.angle - c.target.angle);
+    ok = err <= 1;
+    msg = ok
+      ? `✅ Bien joué ! L'angle est ${c.target.angle}° (à mémoriser : c'est un angle remarquable). cos(${c.target.angle}°) = ${c.target.cosVal.toFixed(3)}.`
+      : `❌ Angle actuel : ${pythState.trigo.angle}°. Objectif : ${c.target.angle}°. ${pythState.trigo.angle < c.target.angle ? 'Augmente l\'angle' : 'Diminue l\'angle'}.`;
+  }
+  fb.classList.add(ok ? 'success' : 'error');
+  fb.innerHTML = msg;
+  if (ok) {
+    pythState.challengeAnswered = true;
+    if (typeof addXP === 'function') addXP(40);
+    if (typeof recordGameComplete === 'function') recordGameComplete('pythagore_atelier_' + c.type, 1, 1);
+    // msg est construit en interne à partir de littéraux et de valeurs numériques :
+    // pas de HTML utilisateur, on passe directement au SR via stripHtml par sécurité.
+    if (typeof announceToScreenReader === 'function') announceToScreenReader('Défi réussi ! ' + stripHtml(msg));
+  } else {
+    if (typeof announceToScreenReader === 'function') announceToScreenReader(stripHtml(msg));
+  }
+}
+
+// Redimensionne le canvas si l'orientation change
+window.addEventListener('resize', () => {
+  if (document.getElementById('screen-pythagore') && document.getElementById('screen-pythagore').style.display !== 'none') {
+    setTimeout(initPythCanvas, 100);
+  }
+});
 
 </script>
 </body>
