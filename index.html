@@ -8907,7 +8907,11 @@ function installPWA() {
 window._swRegistration = null;
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').then((reg) => {
+    // updateViaCache: 'none' = court-circuite TOUJOURS le HTTP cache du navigateur
+    // quand on vérifie sw.js. Sans cette option, certains navigateurs (iOS Safari
+    // notamment) peuvent servir un sw.js périmé depuis leur cache HTTP, ce qui
+    // donne l'impression qu'aucune mise à jour n'est dispo alors qu'elle l'est.
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((reg) => {
       window._swRegistration = reg;
       // Cas 1 : un SW en attente existe déjà au démarrage (laissé d'une session précédente)
       if (reg.waiting && navigator.serviceWorker.controller) {
@@ -8941,27 +8945,74 @@ if ('serviceWorker' in navigator) {
 }
 
 // Vérification manuelle déclenchée par l'item "Vérifier les mises à jour" du drawer.
-// Si une mise à jour est dispo → toast standard ; sinon → toast "Vous êtes à jour".
+// Plus robuste que la version initiale : on écoute updatefound AVANT d'appeler
+// update(), on attend que le nouveau SW atteigne l'état "installed", et on
+// laisse 4s avant de conclure "à jour" (l'install peut être longue en 4G/mobile).
 function checkForUpdates() {
   closeTopbarMenu();
   if (!('serviceWorker' in navigator) || !window._swRegistration) {
     showToast('⚠️ Service Worker non disponible');
     return;
   }
+  const reg = window._swRegistration;
+
+  // 1) Si un SW est déjà en attente, on affiche le toast directement
+  if (reg.waiting && navigator.serviceWorker.controller) {
+    window._updateNotified = false; // re-permet l'affichage si déjà notifié
+    showUpdateAvailable();
+    return;
+  }
+
   showToast('🔍 Vérification…');
-  window._swRegistration.update().then(() => {
-    // Laisse le temps au navigateur de détecter la nouvelle version
-    setTimeout(() => {
-      const reg = window._swRegistration;
-      if (reg && reg.waiting) {
+  let resolved = false;
+
+  // 2) Listener temporaire pour détecter le nouveau SW dès qu'il est trouvé
+  const onUpdateFound = () => {
+    const newSW = reg.installing;
+    if (!newSW) return;
+    const onStateChange = () => {
+      if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+        if (resolved) return;
+        resolved = true;
+        newSW.removeEventListener('statechange', onStateChange);
+        reg.removeEventListener('updatefound', onUpdateFound);
+        window._updateNotified = false;
         showUpdateAvailable();
-      } else if (!window._updateNotified) {
-        showToast('✅ Vous êtes à jour');
+      } else if (newSW.state === 'redundant') {
+        if (resolved) return;
+        resolved = true;
+        newSW.removeEventListener('statechange', onStateChange);
+        reg.removeEventListener('updatefound', onUpdateFound);
+        showToast('⚠️ Mise à jour échouée');
       }
-    }, 800);
-  }).catch(() => {
-    showToast('⚠️ Vérification impossible');
+    };
+    newSW.addEventListener('statechange', onStateChange);
+    // Race : si déjà installé entre l'événement et le listener, fire manuellement
+    if (newSW.state === 'installed' || newSW.state === 'redundant') onStateChange();
+  };
+  reg.addEventListener('updatefound', onUpdateFound);
+
+  // 3) Déclenche la vérif (force fetch sw.js sans cache HTTP grâce à updateViaCache:'none')
+  reg.update().catch(() => {
+    if (!resolved) {
+      resolved = true;
+      reg.removeEventListener('updatefound', onUpdateFound);
+      showToast('⚠️ Vérification impossible');
+    }
   });
+
+  // 4) Failsafe : 4 secondes max pour laisser le temps à l'install
+  setTimeout(() => {
+    if (resolved) return;
+    resolved = true;
+    reg.removeEventListener('updatefound', onUpdateFound);
+    if (reg.waiting && navigator.serviceWorker.controller) {
+      window._updateNotified = false;
+      showUpdateAvailable();
+    } else {
+      showToast('✅ Vous êtes à jour');
+    }
+  }, 4000);
 }
 
 
