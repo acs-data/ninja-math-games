@@ -27,6 +27,15 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      - name: Inject cache version into Service Worker
+        # Remplace __CACHE_VERSION__ par le SHA court du commit pour invalider
+        # automatiquement le cache PWA à chaque déploiement.
+        run: |
+          SHA_SHORT="${GITHUB_SHA:0:8}"
+          sed -i "s|__CACHE_VERSION__|${SHA_SHORT}|g" sw.js
+          echo "Cache version set to: amat-${SHA_SHORT}"
+          grep "CACHE_NAME" sw.js
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

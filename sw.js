@@ -1,8 +1,11 @@
 // Service Worker — Anime Math Academy
 // Stratégie : cache-first pour les ressources statiques (HTML, icônes, OG image, polices Google).
 // Aucune collecte de données, aucune analytics, full offline après 1re visite.
-
-const CACHE_NAME = 'amat-v1';
+//
+// Le placeholder __CACHE_VERSION__ ci-dessous est remplacé automatiquement
+// au déploiement par le workflow GitHub Actions (pages.yml) avec le SHA du commit.
+// En dev local (sans déploiement), la valeur reste 'dev' — c'est volontaire.
+const CACHE_NAME = 'amat-__CACHE_VERSION__';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -14,20 +17,31 @@ const CORE_ASSETS = [
 ];
 
 // Installation : pré-cache les fichiers essentiels.
+// NB : on n'appelle PAS self.skipWaiting() ici. Le nouveau SW reste en
+// attente jusqu'à ce que l'utilisateur clique sur "METTRE À JOUR" dans
+// la notification (ou ferme/rouvre l'onglet). Cela évite un reload
+// abrupt en pleine session de jeu.
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(CORE_ASSETS))
-      .then(() => self.skipWaiting())
   );
 });
 
-// Activation : supprime les vieux caches.
+// Activation : supprime les vieux caches et prend le contrôle.
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
+});
+
+// Message handler : permet à la page de déclencher l'activation immédiate
+// du nouveau SW en attente (déclenché par le bouton "METTRE À JOUR").
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 // Fetch : cache-first pour same-origin + polices Google ; network-first ignoré (offline-first).
