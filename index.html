@@ -105,6 +105,61 @@
     --transition-fast: .15s ease;
     --transition-default: .2s ease;
     --transition-slow: .35s ease;
+
+    /* ═══════════════════════════════════════════════════════
+       THÈME SÉMANTIQUE — Mode sombre (défaut)
+       Les anciens tokens (--dark, --white, --gray) servent
+       maintenant de "surface/text" — leur valeur change selon
+       le thème actif. Pas de rename pour éviter le refactor massif.
+       ═══════════════════════════════════════════════════════ */
+    --border-soft: rgba(255, 255, 255, 0.08);     /* bordures discrètes */
+    --border-medium: rgba(255, 255, 255, 0.12);
+    --border-strong: rgba(255, 255, 255, 0.18);
+    --backdrop: var(--backdrop);              /* fond modal */
+    --text-shadow-strong: 0,0,0;                  /* triple pour box/text-shadow */
+    --canvas-bg: #0A0A14;                          /* fond des canvas (Pythagore/Tracé/Graph) */
+    --canvas-grid: rgba(255, 255, 255, 0.06);
+    --canvas-axis: #FFFFFF;
+    --canvas-label: #F0F0FF;
+    --particle-opacity: 0.6;                      /* opacité des chakra dots */
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     THÈME CLAIR (mode jour)
+     Activé par : <html data-theme="light"> ou system pref
+     Override des tokens sans renommer.
+     ═══════════════════════════════════════════════════════ */
+  [data-theme="light"] {
+    --dark: #F5F5F7;          /* "background page" */
+    --dark2: #FFFFFF;         /* "surface card" */
+    --dark3: #EBEBF0;         /* "surface élevée" */
+    --white: #1A1A2E;         /* "texte primaire" (presque noir) */
+    --gray: #5A5A75;          /* "texte secondaire" — ratio 5.8:1 sur dark2 */
+    /* Accents légèrement assombris pour contraste sur blanc */
+    --orange: #E55F00;        /* anc. #FF6B00 → contraste renforcé sur blanc */
+    --orange-light: #FF7B19;
+    --blue: #2D6BCC;          /* anc. #5C9DFF (3.1:1 sur blanc) → 5.3:1 */
+    --blue-light: #4D8FFF;
+    --red: #D43A60;           /* anc. #FF5577 (3.5:1) → 4.8:1 */
+    --green: #00A653;         /* anc. #00E676 (1.7:1) → 4.7:1 */
+    --yellow: #B38600;        /* anc. #FFD700 trop pâle → 4.7:1 */
+    --purple: #8C42AE;        /* anc. #C68FDD → 5.0:1 */
+    /* Borders, shadows, canvas en clair */
+    --border-soft: rgba(0, 0, 0, 0.06);
+    --border-medium: rgba(0, 0, 0, 0.10);
+    --border-strong: rgba(0, 0, 0, 0.15);
+    --backdrop: rgba(0, 0, 0, 0.5);               /* moins sombre sur clair */
+    --text-shadow-strong: 0, 0, 0;
+    --canvas-bg: #FBFBFD;
+    --canvas-grid: rgba(0, 0, 0, 0.06);
+    --canvas-axis: #1A1A2E;
+    --canvas-label: #1A1A2E;
+    --particle-opacity: 0.25;                     /* particules plus discrètes sur clair */
+    /* Shadows adaptées (moins sombres) */
+    --shadow-sm: 0 4px 16px rgba(60, 60, 100, 0.10);
+    --shadow-md: 0 8px 28px rgba(60, 60, 100, 0.14);
+    --shadow-lg: 0 20px 60px rgba(60, 60, 100, 0.20);
+    --shadow-glow-orange: 0 0 40px rgba(255, 107, 0, 0.20);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -132,8 +187,8 @@
   }
   @keyframes chakraFloat {
     0%   { transform: translateY(100vh) scale(0); opacity: 0; }
-    10%  { opacity: .6; }
-    90%  { opacity: .3; }
+    10%  { opacity: var(--particle-opacity); }
+    90%  { opacity: calc(var(--particle-opacity) * 0.5); }
     100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
   }
 
@@ -303,7 +358,7 @@
   .hud-item {
     display: flex; align-items: center; gap: 6px;
     background: var(--dark3);
-    border: 1px solid rgba(255,255,255,.1);
+    border: 1px solid var(--border-medium);
     border-radius: var(--radius-pill);
     padding: 5px var(--space-3);
     font-weight: 800; font-size: var(--text-sm);
@@ -320,7 +375,7 @@
     background: var(--dark3);
     border-radius: 4px;
     overflow: hidden;
-    border: 1px solid rgba(255,255,255,.15);
+    border: 1px solid var(--border-strong);
   }
   .xp-fill {
     height: 100%; background: linear-gradient(90deg, var(--blue), var(--orange));
@@ -367,7 +422,7 @@
   }
   .char-card {
     background: var(--dark3);
-    border: 2px solid rgba(255,255,255,.1);
+    border: 2px solid var(--border-medium);
     border-radius: 16px;
     padding: 14px 10px;
     cursor: pointer;
@@ -405,7 +460,7 @@
   }
   .level-card {
     background: var(--dark3);
-    border: 2px solid rgba(255,255,255,.1);
+    border: 2px solid var(--border-medium);
     border-radius: var(--radius-lg);
     padding: var(--space-4);
     cursor: pointer;
@@ -465,7 +520,7 @@
   /* Mission card */
   .mission-card {
     background: linear-gradient(135deg, var(--dark3) 0%, var(--dark2) 100%);
-    border: 1px solid rgba(255,255,255,.1);
+    border: 1px solid var(--border-medium);
     border-left: 4px solid var(--orange);
     border-radius: var(--radius-lg);
     padding: 18px var(--space-5);
@@ -498,7 +553,7 @@
   .stat-bar {
     height: 10px; background: var(--dark2);
     border-radius: 5px; overflow: hidden;
-    border: 1px solid rgba(255,255,255,.1);
+    border: 1px solid var(--border-medium);
   }
   .stat-fill { height: 100%; border-radius: 5px; transition: width .5s ease; }
   .hp-fill { background: linear-gradient(90deg, var(--red), #FF6B6B); }
@@ -553,7 +608,7 @@
   }
   .answer-btn {
     background: var(--dark3);
-    border: 2px solid rgba(255,255,255,.1);
+    border: 2px solid var(--border-medium);
     border-radius: 12px;
     padding: 14px 16px;
     cursor: pointer;
@@ -568,7 +623,7 @@
   .answer-btn .ans-letter {
     display: inline-block;
     width: 22px; height: 22px;
-    background: rgba(255,255,255,.1);
+    background: var(--border-medium);
     border-radius: 50%;
     text-align: center; line-height: 22px;
     font-size: .75rem;
@@ -691,7 +746,7 @@
   }
   .jutsu-btn {
     background: var(--dark3);
-    border: 2px solid rgba(255,255,255,.1);
+    border: 2px solid var(--border-medium);
     border-radius: 10px;
     padding: 8px 14px;
     cursor: pointer;
@@ -797,7 +852,7 @@
   #toast {
     position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
     background: var(--dark3);
-    border: 1px solid rgba(255,255,255,.15);
+    border: 1px solid var(--border-strong);
     border-radius: 12px;
     padding: 12px 20px;
     font-weight: 700; font-size: .9rem;
@@ -888,7 +943,7 @@
   .puzzle-pieces-tray {
     display: flex; flex-wrap: wrap; gap: 10px;
     background: var(--dark2);
-    border: 1px solid rgba(255,255,255,.08);
+    border: 1px solid var(--border-soft);
     border-radius: 14px;
     padding: 14px;
     min-height: 80px;
@@ -981,7 +1036,7 @@
   }
   .universe-card {
     background: var(--dark3);
-    border: 2px solid rgba(255,255,255,.08);
+    border: 2px solid var(--border-soft);
     border-radius: 14px;
     padding: 12px 8px;
     cursor: pointer;
@@ -1134,7 +1189,7 @@
   }
   .btn-control {
     background: var(--dark3);
-    border: 2px solid rgba(255,255,255,.15);
+    border: 2px solid var(--border-strong);
     color: var(--white);
     padding: var(--space-2) var(--space-3);
     border-radius: var(--radius-md);
@@ -1155,7 +1210,7 @@
     width: 100%;
     max-width: 560px;
     background: var(--dark2);
-    border: 1px solid rgba(255,255,255,.08);
+    border: 1px solid var(--border-soft);
     border-radius: var(--radius-lg);
     padding: var(--space-4);
   }
@@ -1169,7 +1224,7 @@
     flex: 1 0 calc(33% - 4px);
     min-width: 90px;
     background: var(--dark3);
-    border: 2px solid rgba(255,255,255,.08);
+    border: 2px solid var(--border-soft);
     color: var(--gray);
     padding: 9px 8px;
     border-radius: var(--radius-md);
@@ -1180,12 +1235,18 @@
     transition: all var(--transition-fast);
     min-height: 44px;
   }
-  .mission-tab:hover { border-color: var(--yellow); color: var(--white); }
+  /* Hover uniquement sur devices qui le supportent (PC, pas touch sticky) */
+  @media (hover: hover) {
+    .mission-tab:hover { border-color: var(--orange); color: var(--white); }
+  }
   .mission-tab.active {
-    background: linear-gradient(135deg, var(--dark3), rgba(255,215,0,.10));
+    background: linear-gradient(135deg, var(--dark3), rgba(255,215,0,.18));
     border-color: var(--yellow);
     color: var(--yellow);
-    box-shadow: 0 2px 10px rgba(255,215,0,.15);
+    box-shadow: 0 2px 10px rgba(255,215,0,.20);
+    /* Petit indicateur visuel supplémentaire pour bien distinguer du hover */
+    transform: translateY(-1px);
+    font-weight: 900;
   }
   .mission-tab[data-classe="mix"].active {
     background: linear-gradient(135deg, var(--dark3), rgba(255,107,0,.10));
@@ -1301,7 +1362,7 @@
     flex: 1;
     min-width: 130px;
     background: var(--dark3);
-    border: 2px solid rgba(255,255,255,.1);
+    border: 2px solid var(--border-medium);
     color: var(--gray);
     padding: var(--space-2) var(--space-3);
     border-radius: var(--radius-md);
@@ -1385,7 +1446,7 @@
     height: auto;
     display: block;
     border-radius: 8px;
-    background: #0A0A14;
+    background: var(--canvas-bg);
     cursor: crosshair;
     touch-action: none;
   }
@@ -1488,7 +1549,7 @@
   .proba-slot.wrong { border-color: var(--red); background: rgba(255,85,119,.12); color: var(--red); animation: wrongShake .4s; }
   .proba-leaf {
     background: var(--dark3);
-    border: 1px solid rgba(255,255,255,.08);
+    border: 1px solid var(--border-soft);
     border-radius: 8px;
     padding: 8px 12px;
     font-weight: 700;
@@ -1507,7 +1568,7 @@
   }
   .proba-pool {
     background: var(--dark2);
-    border: 1px solid rgba(255,255,255,.08);
+    border: 1px solid var(--border-soft);
     border-radius: 14px;
     padding: 14px;
     display: flex;
@@ -1555,7 +1616,7 @@
     height: auto;
     display: block;
     border-radius: 8px;
-    background: #0A0A14;
+    background: var(--canvas-bg);
     touch-action: none; /* indispensable pour le drag tactile */
     cursor: grab;
   }
@@ -1567,7 +1628,7 @@
   }
   .pyth-info-panel {
     background: var(--dark2);
-    border: 1px solid rgba(255,255,255,.08);
+    border: 1px solid var(--border-soft);
     border-radius: 14px;
     padding: 14px 16px;
     font-size: .85rem;
@@ -1687,7 +1748,7 @@
   }
   .stat-card {
     background: var(--dark3);
-    border: 2px solid rgba(255,255,255,.08);
+    border: 2px solid var(--border-soft);
     border-radius: var(--radius-lg);
     padding: var(--space-3) var(--space-2);
     text-align: center;
@@ -1711,7 +1772,7 @@
   }
   .stats-section {
     background: var(--dark2);
-    border: 1px solid rgba(255,255,255,.06);
+    border: 1px solid var(--border-soft);
     border-radius: 12px;
     padding: 14px 16px;
     margin-bottom: 14px;
@@ -1792,7 +1853,7 @@
   /* ── MODE VRAI / FAUX SPEED ── */
   .tf-card {
     background: var(--dark2);
-    border: 2px solid rgba(255,255,255,.08);
+    border: 2px solid var(--border-soft);
     border-radius: 18px;
     padding: 36px 24px;
     text-align: center;
@@ -1885,7 +1946,7 @@
   .site-footer {
     margin-top: 40px;
     padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
-    border-top: 1px solid rgba(255,255,255,.08);
+    border-top: 1px solid var(--border-soft);
     background: var(--dark2);
     color: var(--gray);
     font-size: .78rem;
@@ -1938,7 +1999,7 @@
   .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.85);
+    background: var(--backdrop);
     backdrop-filter: blur(4px);
     z-index: 1000;
     display: none;
@@ -2027,6 +2088,9 @@
       <a href="mailto:contact@acs-dataformation.fr?subject=Feedback%20Anime%20Math%20Academy&amp;body=Bonjour%2C%0A%0AVoici%20mon%20retour%20sur%20Anime%20Math%20Academy%20%3A%0A%0A" class="btn-control home-action-btn" aria-label="Envoyer un retour par email" style="text-decoration:none;display:inline-flex">
         <span aria-hidden="true">✉️</span> Feedback
       </a>
+      <button type="button" class="btn-control home-action-btn" id="theme-toggle-btn" onclick="toggleTheme()" aria-label="Basculer entre mode jour et mode nuit" aria-pressed="false">
+        <span aria-hidden="true" id="theme-toggle-icon">🌙</span> <span id="theme-toggle-label">Mode : Nuit</span>
+      </button>
       <button type="button" class="btn-control home-action-btn" id="stats-btn" onclick="showStatsScreen()" aria-label="Voir mes statistiques de progression">
         <span aria-hidden="true">📈</span> Mes stats
       </button>
@@ -5832,12 +5896,12 @@ function renderCanvas(preview) {
   const W = canvas.width, H = canvas.height;
   ctx.clearRect(0, 0, W, H);
 
-  // Background
-  ctx.fillStyle = '#0D0D1A';
+  // Background (s'adapte au thème jour/nuit)
+  ctx.fillStyle = getThemeColor('--canvas-bg') || '#0D0D1A';
   ctx.fillRect(0, 0, W, H);
 
   // Grid légère
-  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.strokeStyle = getThemeColor('--canvas-grid') || 'rgba(255,255,255,0.04)';
   ctx.lineWidth = 1;
   for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
   for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
@@ -5881,7 +5945,7 @@ function renderCanvas(preview) {
       // Mesure de l'angle
       let ang = Math.abs(a2 - a1) * 180 / Math.PI;
       if (ang > 180) ang = 360 - ang;
-      ctx.fillStyle = '#FFD700';
+      ctx.fillStyle = getThemeColor('--yellow') || '#FFD700';
       ctx.font = 'bold 12px Nunito, sans-serif';
       ctx.fillText(Math.round(ang) + '°', l.pts[1].x + 28, l.pts[1].y - 8);
     }
@@ -5889,12 +5953,12 @@ function renderCanvas(preview) {
 
   // Angle en cours (points posés)
   if (drawState.anglePoints.length > 0) {
-    ctx.fillStyle = '#FFD700';
+    ctx.fillStyle = getThemeColor('--yellow') || '#FFD700';
     drawState.anglePoints.forEach(p => {
       ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI*2); ctx.fill();
     });
     if (drawState.anglePoints.length === 2) {
-      ctx.strokeStyle = '#FFD700';
+      ctx.strokeStyle = getThemeColor('--yellow') || '#FFD700';
       ctx.lineWidth = 2;
       ctx.setLineDash([5,4]);
       ctx.beginPath();
@@ -5929,7 +5993,7 @@ function drawGuide(ctx, W, H, m) {
   ctx.globalAlpha = 0.25;
 
   if (g.type === 'vertical') {
-    ctx.strokeStyle = '#00E676';
+    ctx.strokeStyle = getThemeColor('--green') || '#00E676';
     ctx.beginPath(); ctx.moveTo(W * g.x, 0); ctx.lineTo(W * g.x, H); ctx.stroke();
     // emoji personnage
     ctx.globalAlpha = 0.5;
@@ -5937,7 +6001,7 @@ function drawGuide(ctx, W, H, m) {
     ctx.textAlign = 'center';
     ctx.fillText('🥷', W * g.x, H * 0.55);
   } else if (g.type === 'horizontal') {
-    ctx.strokeStyle = '#1A6BFF';
+    ctx.strokeStyle = getThemeColor('--blue') || '#1A6BFF';
     ctx.beginPath(); ctx.moveTo(0, H * g.y); ctx.lineTo(W, H * g.y); ctx.stroke();
     ctx.globalAlpha = 0.45;
     ctx.font = `${Math.min(H * 0.28, 64)}px serif`;
@@ -5945,7 +6009,7 @@ function drawGuide(ctx, W, H, m) {
     ctx.fillText('🦋', W * 0.5, H * 0.42);
     ctx.fillText('🦋', W * 0.5, H * 0.7);
   } else if (g.type === 'diagonal45') {
-    ctx.strokeStyle = '#FFD700';
+    ctx.strokeStyle = getThemeColor('--yellow') || '#FFD700';
     // Carré
     const s = Math.min(W, H) * 0.55;
     const sx = (W - s) / 2, sy = (H - s) / 2;
@@ -5955,26 +6019,26 @@ function drawGuide(ctx, W, H, m) {
     ctx.strokeRect(sx, sy, s, s);
     // Diagonale guide
     ctx.setLineDash([8,6]);
-    ctx.strokeStyle = '#FFD700';
+    ctx.strokeStyle = getThemeColor('--yellow') || '#FFD700';
     ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(sx, sy + s); ctx.lineTo(sx + s, sy); ctx.stroke();
     ctx.globalAlpha = 0.5;
     ctx.font = '16px Nunito, sans-serif';
-    ctx.fillStyle = '#FFD700';
+    ctx.fillStyle = getThemeColor('--yellow') || '#FFD700';
     ctx.textAlign = 'center';
     ctx.fillText('⚡', sx + s * 0.5, sy + s * 0.5);
   } else if (g.type === 'hyp') {
     // Points A et B
     const ax = W * g.ax, ay = H * g.ay;
     const bx = W * g.bx, by = H * g.by;
-    ctx.strokeStyle = '#FF6B00';
+    ctx.strokeStyle = getThemeColor('--orange') || '#FF6B00';
     ctx.setLineDash([]);
     ctx.lineWidth = 2;
     ctx.globalAlpha = 0.5;
     // Angle droit
     ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ax, by); ctx.lineTo(bx, by); ctx.stroke();
     ctx.globalAlpha = 0.9;
-    ctx.fillStyle = '#FF6B00';
+    ctx.fillStyle = getThemeColor('--orange') || '#FF6B00';
     ctx.font = 'bold 14px Nunito, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('A', ax - 14, ay);
@@ -8840,10 +8904,114 @@ function applyUpdate() {
   });
 }
 
+// ═══════════════════════════════════════════════════════════
+// THÈME JOUR/NUIT — Toggle, persistance, prefers-color-scheme
+// ═══════════════════════════════════════════════════════════
+const THEME_KEY = 'amat_theme';  // localStorage key (uniquement si save activé)
+
+function getTheme() {
+  // Priorité : localStorage > prefers-color-scheme > 'dark' par défaut
+  try {
+    if (isSaveEnabled && isSaveEnabled()) {
+      const stored = localStorage.getItem(THEME_KEY);
+      if (stored === 'light' || stored === 'dark') return stored;
+    }
+  } catch(e) {}
+  // Respecte prefers-color-scheme système au premier chargement
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+    return 'light';
+  }
+  return 'dark';
+}
+
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  document.documentElement.style.colorScheme = theme;  // hint pour les contrôles natifs
+  // Maj du bouton
+  const btn = document.getElementById('theme-toggle-btn');
+  const icon = document.getElementById('theme-toggle-icon');
+  const label = document.getElementById('theme-toggle-label');
+  if (btn && icon && label) {
+    if (theme === 'light') {
+      icon.textContent = '☀️';
+      label.textContent = 'Mode : Jour';
+      btn.setAttribute('aria-pressed', 'true');
+    } else {
+      icon.textContent = '🌙';
+      label.textContent = 'Mode : Nuit';
+      btn.setAttribute('aria-pressed', 'false');
+    }
+  }
+  // Re-render des canvas actifs (car ils utilisent des couleurs JS hardcodées
+  // qui doivent maintenant lire les CSS vars via getComputedStyle)
+  if (typeof renderPyth === 'function' && document.getElementById('screen-pythagore') &&
+      document.getElementById('screen-pythagore').style.display !== 'none') renderPyth();
+  if (typeof renderGraph === 'function' && document.getElementById('screen-graph-reader') &&
+      document.getElementById('screen-graph-reader').style.display !== 'none') renderGraph();
+  if (typeof renderCanvas === 'function' && document.getElementById('screen-draw') &&
+      document.getElementById('screen-draw').style.display !== 'none') renderCanvas();
+  // Re-init particules avec opacité adaptée
+  if (typeof initParticles === 'function') initParticles();
+}
+
+function toggleTheme() {
+  const current = document.documentElement.dataset.theme || 'dark';
+  const next = current === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  // Persistance — uniquement si la sauvegarde est activée (RGPD opt-in)
+  try {
+    if (isSaveEnabled && isSaveEnabled()) {
+      localStorage.setItem(THEME_KEY, next);
+    } else {
+      // Si pas opt-in : on garde le choix pour la session uniquement
+      sessionStorage.setItem(THEME_KEY, next);
+    }
+  } catch(e) {}
+  // Tracking
+  if (typeof track === 'function') track('theme_toggle', next);
+  // Annonce SR
+  if (typeof announceToScreenReader === 'function') {
+    announceToScreenReader('Mode ' + (next === 'light' ? 'jour' : 'nuit') + ' activé.');
+  }
+}
+
+// Helper pour les canvases : lit une CSS variable depuis :root et la retourne
+function getThemeColor(varName) {
+  const styles = getComputedStyle(document.documentElement);
+  return styles.getPropertyValue(varName).trim();
+}
+
+// Init au chargement
+function initTheme() {
+  // Priorité session > persistance > système
+  let theme = null;
+  try {
+    theme = sessionStorage.getItem(THEME_KEY);
+  } catch(e) {}
+  if (!theme || (theme !== 'light' && theme !== 'dark')) {
+    theme = getTheme();
+  }
+  applyTheme(theme);
+
+  // Suivre les changements système si l'utilisateur n'a pas explicitement choisi
+  if (window.matchMedia) {
+    const mq = window.matchMedia('(prefers-color-scheme: light)');
+    mq.addEventListener && mq.addEventListener('change', (e) => {
+      const explicit = (function() {
+        try {
+          return localStorage.getItem(THEME_KEY) || sessionStorage.getItem(THEME_KEY);
+        } catch(err) { return null; }
+      })();
+      if (!explicit) applyTheme(e.matches ? 'light' : 'dark');
+    });
+  }
+}
+
 // ── Initialisation différée : restaure la sauvegarde et affiche le tutoriel ──
 (function initExtensions() {
   restoreProgress();
   updateSaveToggleUI();
+  initTheme();  // ← thème AVANT le render pour éviter le flash
   // Re-render univers + persos avec l'état restauré
   if (typeof renderUniverseGrid === 'function') renderUniverseGrid();
   if (typeof renderCharGrid === 'function') renderCharGrid();
@@ -9485,8 +9653,8 @@ function renderPyth() {
   const ctx = pythState.ctx;
   if (!ctx) return;
   ctx.clearRect(0, 0, pythState.W, pythState.H);
-  // Grille de fond
-  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  // Grille de fond (s'adapte au thème)
+  ctx.strokeStyle = getThemeColor('--canvas-grid') || 'rgba(255,255,255,0.05)';
   ctx.lineWidth = 1;
   const step = pythState.W / 20;
   for (let x = 0; x <= pythState.W; x += step) {
@@ -9508,18 +9676,18 @@ function renderPythPythagore() {
   const C = pythToCanvas(pythState.pyth.C);
   // Triangle
   ctx.fillStyle = 'rgba(0,230,118,0.10)';
-  ctx.strokeStyle = '#00E676';
+  ctx.strokeStyle = getThemeColor('--green') || '#00E676';
   ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.lineTo(C.x, C.y); ctx.closePath();
   ctx.fill(); ctx.stroke();
   // Marquer l'angle droit en A
-  ctx.strokeStyle = '#FFD700';
+  ctx.strokeStyle = getThemeColor('--yellow') || '#FFD700';
   ctx.lineWidth = 2;
   const sq = 16;
   ctx.strokeRect(A.x, A.y - sq, sq, sq);
   // Labels des sommets
-  ctx.fillStyle = '#F0F0FF';
+  ctx.fillStyle = getThemeColor('--canvas-label') || '#F0F0FF';
   ctx.font = 'bold 14px Nunito, sans-serif';
   ctx.fillText('A', A.x - 16, A.y + 16);
   ctx.fillText('B', B.x + 6, B.y + 16);
@@ -9528,7 +9696,7 @@ function renderPythPythagore() {
   const ac = pythPxToCm(pythDist(A, C)).toFixed(1);
   const bc = pythPxToCm(pythDist(A, B)).toFixed(1);  // côté horizontal (= AB)
   const cb = pythPxToCm(pythDist(B, C)).toFixed(1);  // hypoténuse
-  ctx.fillStyle = '#FFD700';
+  ctx.fillStyle = getThemeColor('--yellow') || '#FFD700';
   ctx.font = 'bold 13px Nunito, sans-serif';
   ctx.fillText(ac + ' cm', A.x - 60, (A.y + C.y) / 2);  // côté AC (vertical)
   ctx.fillText(bc + ' cm', (A.x + B.x) / 2 - 10, A.y + 24);  // côté AB (horizontal)
@@ -9563,13 +9731,13 @@ function renderPythThales() {
   const N = pythToCanvas(pythGetThalesN());
   // Triangle ABC
   ctx.fillStyle = 'rgba(26,107,255,0.08)';
-  ctx.strokeStyle = '#1A6BFF';
+  ctx.strokeStyle = getThemeColor('--blue') || '#1A6BFF';
   ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.lineTo(C.x, C.y); ctx.closePath();
   ctx.fill(); ctx.stroke();
   // Segment MN (parallèle à BC) — en surbrillance
-  ctx.strokeStyle = '#FFD700';
+  ctx.strokeStyle = getThemeColor('--yellow') || '#FFD700';
   ctx.lineWidth = 3;
   ctx.setLineDash([6, 4]);
   ctx.beginPath(); ctx.moveTo(M.x, M.y); ctx.lineTo(N.x, N.y); ctx.stroke();
@@ -9580,12 +9748,12 @@ function renderPythThales() {
   ctx.moveTo(A.x, A.y); ctx.lineTo(M.x, M.y); ctx.lineTo(N.x, N.y); ctx.closePath();
   ctx.fill();
   // Labels
-  ctx.fillStyle = '#F0F0FF';
+  ctx.fillStyle = getThemeColor('--canvas-label') || '#F0F0FF';
   ctx.font = 'bold 14px Nunito, sans-serif';
   ctx.fillText('A', A.x - 4, A.y - 8);
   ctx.fillText('B', B.x - 18, B.y + 16);
   ctx.fillText('C', C.x + 6, C.y + 16);
-  ctx.fillStyle = '#FFD700';
+  ctx.fillStyle = getThemeColor('--yellow') || '#FFD700';
   ctx.fillText('M', M.x + 8, M.y);
   ctx.fillText('N', N.x + 8, N.y);
   // Point draggable M
@@ -9629,31 +9797,31 @@ function renderPythTrigo() {
   const C = { x: cx + adj, y: cy - opp };
   // Triangle
   ctx.fillStyle = 'rgba(0,230,118,0.08)';
-  ctx.strokeStyle = '#00E676';
+  ctx.strokeStyle = getThemeColor('--green') || '#00E676';
   ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.lineTo(C.x, C.y); ctx.closePath();
   ctx.fill(); ctx.stroke();
   // Marqueur angle droit en B
-  ctx.strokeStyle = '#FFD700';
+  ctx.strokeStyle = getThemeColor('--yellow') || '#FFD700';
   ctx.lineWidth = 2;
   ctx.strokeRect(B.x - 16, B.y - 16, 16, 16);
   // Marqueur angle θ en A
-  ctx.strokeStyle = '#FF6B00';
+  ctx.strokeStyle = getThemeColor('--orange') || '#FF6B00';
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.arc(A.x, A.y, 28, -ang, 0);
   ctx.stroke();
-  ctx.fillStyle = '#FF6B00';
+  ctx.fillStyle = getThemeColor('--orange') || '#FF6B00';
   ctx.font = 'bold 14px Nunito, sans-serif';
   ctx.fillText('θ', A.x + 32, A.y - 4);
   // Labels
-  ctx.fillStyle = '#F0F0FF';
+  ctx.fillStyle = getThemeColor('--canvas-label') || '#F0F0FF';
   ctx.fillText('A', A.x - 18, A.y + 6);
   ctx.fillText('B', B.x + 4, B.y + 16);
   ctx.fillText('C', C.x + 4, C.y + 4);
   // Longueurs
-  ctx.fillStyle = '#FFD700';
+  ctx.fillStyle = getThemeColor('--yellow') || '#FFD700';
   ctx.font = 'bold 12px Nunito, sans-serif';
   const hypCm = pythPxToCm(hyp).toFixed(1);
   const adjCm = pythPxToCm(adj).toFixed(1);
@@ -9683,7 +9851,7 @@ function drawPythHandle(p, isDragged) {
   ctx.beginPath();
   ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = '#FFFFFF';
+  ctx.fillStyle = getThemeColor('--canvas-axis') || '#FFFFFF';
   ctx.beginPath();
   ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
   ctx.fill();
@@ -10527,12 +10695,12 @@ function renderGraph() {
   const W = graphState.W, H = graphState.H;
   ctx.clearRect(0, 0, W, H);
 
-  // Fond
-  ctx.fillStyle = '#0A0A14';
+  // Fond (s'adapte au thème jour/nuit)
+  ctx.fillStyle = getThemeColor('--canvas-bg') || '#0A0A14';
   ctx.fillRect(0, 0, W, H);
 
   // Grille
-  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.strokeStyle = getThemeColor('--canvas-grid') || 'rgba(255,255,255,0.06)';
   ctx.lineWidth = 1;
   const s = graphState.scale;
   for (let x = graphState.xRange[0]; x <= graphState.xRange[1]; x++) {
@@ -10545,7 +10713,7 @@ function renderGraph() {
   }
 
   // Axes
-  ctx.strokeStyle = '#FFFFFF';
+  ctx.strokeStyle = getThemeColor('--canvas-axis') || '#FFFFFF';
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(0, graphState.origin.y); ctx.lineTo(W, graphState.origin.y);
@@ -10553,7 +10721,7 @@ function renderGraph() {
   ctx.stroke();
 
   // Flèches axes
-  ctx.fillStyle = '#FFFFFF';
+  ctx.fillStyle = getThemeColor('--canvas-axis') || '#FFFFFF';
   // X →
   ctx.beginPath();
   ctx.moveTo(W - 8, graphState.origin.y - 4);
@@ -10568,21 +10736,21 @@ function renderGraph() {
   ctx.closePath(); ctx.fill();
 
   // Labels axes
-  ctx.fillStyle = '#F0F0FF';
+  ctx.fillStyle = getThemeColor('--canvas-label') || '#F0F0FF';
   ctx.font = 'bold 11px Nunito, sans-serif';
   ctx.fillText('x', W - 14, graphState.origin.y + 18);
   ctx.fillText('y', graphState.origin.x + 8, 14);
 
   // Graduations + labels numériques
   ctx.font = '10px Nunito, sans-serif';
-  ctx.fillStyle = '#A0A0C0';
+  ctx.fillStyle = getThemeColor('--gray') || '#A0A0C0';
   for (let x = graphState.xRange[0]; x <= graphState.xRange[1]; x++) {
     if (x === 0) continue;
     const px = mathToPx(x, 0).x;
     ctx.beginPath();
     ctx.moveTo(px, graphState.origin.y - 4);
     ctx.lineTo(px, graphState.origin.y + 4);
-    ctx.strokeStyle = '#FFFFFF';
+    ctx.strokeStyle = getThemeColor('--canvas-axis') || '#FFFFFF';
     ctx.stroke();
     ctx.fillText(x, px - 4, graphState.origin.y + 16);
   }
@@ -10598,7 +10766,7 @@ function renderGraph() {
 
   // Courbe (fonction affine)
   if (graphState.current && graphState.current.fn) {
-    ctx.strokeStyle = '#5C9DFF';
+    ctx.strokeStyle = getThemeColor('--blue') || '#5C9DFF';
     ctx.lineWidth = 3;
     ctx.beginPath();
     const xMin = graphState.xRange[0], xMax = graphState.xRange[1];
@@ -10632,13 +10800,13 @@ function renderGraph() {
     ctx.beginPath();
     ctx.arc(p.x, p.y, isKb ? 9 : 7, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = '#0D0D1A';
+    ctx.fillStyle = getThemeColor('--canvas-bg') || '#0D0D1A';
     ctx.beginPath();
     ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
     ctx.fill();
     // Annotation textuelle si keyboard (aide visuelle)
     if (isKb) {
-      ctx.fillStyle = '#FF6B00';
+      ctx.fillStyle = getThemeColor('--orange') || '#FF6B00';
       ctx.font = 'bold 11px Nunito, sans-serif';
       const label = '(' + formatNum(graphState.clickedPoint.x) + ' ; ' + formatNum(graphState.clickedPoint.y) + ')';
       ctx.fillText(label, p.x + 12, p.y - 8);
