@@ -1054,6 +1054,121 @@
     margin-top: auto;
   }
 
+
+  /* ── ÉCRAN STATS PERSONNELLES ── */
+  .stats-overview {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  @media(max-width: 480px) {
+    .stats-overview { grid-template-columns: repeat(2, 1fr); }
+  }
+  .stat-card {
+    background: var(--dark3);
+    border: 2px solid rgba(255,255,255,.08);
+    border-radius: 14px;
+    padding: 14px 10px;
+    text-align: center;
+    transition: all .2s;
+  }
+  .stat-card:hover { border-color: var(--orange); transform: translateY(-2px); }
+  .stat-card-icon { font-size: 1.5rem; margin-bottom: 4px; }
+  .stat-card-value {
+    font-family: 'Bangers', Impact, 'Arial Black', cursive;
+    font-size: clamp(1.3rem, 5vw, 1.8rem);
+    color: var(--yellow);
+    letter-spacing: 1px;
+    line-height: 1.1;
+  }
+  .stat-card-label {
+    font-size: .68rem;
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+  .stats-section {
+    background: var(--dark2);
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+  .stats-section-title {
+    font-family: 'Bangers', Impact, 'Arial Black', cursive;
+    font-size: 1.1rem;
+    color: var(--orange);
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+  .stats-section-hint {
+    font-family: 'Nunito', sans-serif;
+    font-size: .7rem;
+    color: var(--gray);
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+  .stats-bars { display: flex; flex-direction: column; gap: 8px; }
+  .stats-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: .85rem;
+  }
+  .stats-bar-label {
+    flex: 0 0 140px;
+    color: var(--white);
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .stats-bar-track {
+    flex: 1;
+    height: 10px;
+    background: var(--dark3);
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  .stats-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--orange), var(--yellow));
+    border-radius: 5px;
+    transition: width .8s ease;
+  }
+  .stats-bar-count {
+    flex: 0 0 60px;
+    text-align: right;
+    font-size: .8rem;
+    color: var(--yellow);
+    font-weight: 800;
+  }
+  .stats-chapters-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .stats-chapter-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--dark3);
+    border-radius: 8px;
+    font-size: .85rem;
+  }
+  .stats-chapter-item .ch-pct {
+    margin-left: auto;
+    font-weight: 800;
+    font-size: .8rem;
+  }
+  .stats-chapter-item.mastered { border-left: 3px solid var(--green); }
+  .stats-chapter-item.todo { border-left: 3px solid var(--red); }
+  .stats-chapter-item.mastered .ch-pct { color: var(--green); }
+  .stats-chapter-item.todo .ch-pct { color: var(--red); }
+
   /* ── MODE VRAI / FAUX SPEED ── */
   .tf-card {
     background: var(--dark2);
@@ -1286,6 +1401,9 @@
       </button>
       <button type="button" class="btn-control home-action-btn" onclick="openModal('modal-legal')" aria-label="Mentions légales et informations">
         <span aria-hidden="true">⚖️</span> Mentions légales
+      </button>
+      <button type="button" class="btn-control home-action-btn" id="stats-btn" onclick="showStatsScreen()" aria-label="Voir mes statistiques de progression">
+        <span aria-hidden="true">📈</span> Mes stats
       </button>
     </div>
 
@@ -1956,6 +2074,84 @@
   </div>
 </div>
 
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- ÉCRAN STATS PERSONNELLES (opt-in)                  -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="screen-stats" style="display:none;padding:16px;max-width:760px;margin:0 auto">
+    <div class="game-controls" role="toolbar" aria-label="Contrôles stats">
+      <button type="button" class="btn-control" onclick="showHome()" aria-label="Retour à l'accueil">
+        <span aria-hidden="true">🏠</span> Accueil
+      </button>
+    </div>
+
+    <div class="mission-card" style="border-left-color:var(--green)">
+      <div class="mission-label" style="color:var(--green)">📈 MES STATISTIQUES</div>
+      <div class="mission-title" id="stats-title">Ma progression</div>
+      <div class="mission-desc" id="stats-subtitle">Stockées uniquement sur cet appareil, jamais transmises.</div>
+    </div>
+
+    <!-- Vue d'ensemble -->
+    <div class="stats-overview">
+      <div class="stat-card">
+        <div class="stat-card-icon" aria-hidden="true">🎮</div>
+        <div class="stat-card-value" id="stats-total-games">0</div>
+        <div class="stat-card-label">Parties jouées</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon" aria-hidden="true">✅</div>
+        <div class="stat-card-value" id="stats-success-rate">0%</div>
+        <div class="stat-card-label">Taux de réussite</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon" aria-hidden="true">💎</div>
+        <div class="stat-card-value" id="stats-level-xp">Niv.1</div>
+        <div class="stat-card-label">Niveau</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon" aria-hidden="true">🔥</div>
+        <div class="stat-card-value" id="stats-streak">0j</div>
+        <div class="stat-card-label">Série de jours</div>
+      </div>
+    </div>
+
+    <!-- Avertissement si sauvegarde désactivée -->
+    <div id="stats-warning" style="display:none;background:rgba(255,215,0,.1);border:1px solid var(--yellow);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:.85rem;color:var(--white)">
+      ⚠️ La sauvegarde locale est <strong>désactivée</strong>. Tes stats actuelles existent uniquement pour cette session. <button type="button" class="footer-link-btn" onclick="toggleSave();renderStats()">Active-la</button> pour les conserver entre sessions.
+    </div>
+
+    <!-- Sections -->
+    <div class="stats-section">
+      <h3 class="stats-section-title">🌍 Mes univers préférés</h3>
+      <div id="stats-universes" class="stats-bars"></div>
+    </div>
+
+    <div class="stats-section">
+      <h3 class="stats-section-title">🎮 Modes joués</h3>
+      <div id="stats-modes" class="stats-bars"></div>
+    </div>
+
+    <div class="stats-section">
+      <h3 class="stats-section-title">✅ Chapitres maîtrisés <span class="stats-section-hint">(taux ≥ 75%)</span></h3>
+      <div id="stats-mastered" class="stats-chapters-list">
+        <p style="color:var(--gray);font-size:.85rem">Joue quelques chapitres pour voir tes points forts apparaître ici.</p>
+      </div>
+    </div>
+
+    <div class="stats-section">
+      <h3 class="stats-section-title">⚠️ Chapitres à retravailler <span class="stats-section-hint">(taux &lt; 50%)</span></h3>
+      <div id="stats-todo" class="stats-chapters-list">
+        <p style="color:var(--gray);font-size:.85rem">Aucun chapitre à retravailler pour le moment, continue comme ça !</p>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px">
+      <button type="button" class="btn-sec" onclick="confirmResetStats()" style="border-color:var(--red);color:var(--red)">
+        🗑️ Réinitialiser mes stats
+      </button>
+    </div>
+  </div>
+
 </main>
 
 <!-- Modal Pause / Quitter -->
@@ -2065,6 +2261,19 @@
     </div>
   </div>
 </div>
+<!-- Modal confirmation reset stats -->
+<div class="modal-overlay" id="modal-reset-stats" role="dialog" aria-modal="true" aria-labelledby="modal-reset-title">
+  <div class="modal-card">
+    <div style="font-size:3rem;margin-bottom:8px" aria-hidden="true">⚠️</div>
+    <h3 id="modal-reset-title" style="color:var(--red)">Réinitialiser ?</h3>
+    <p>Toutes tes statistiques (parties, chapitres, série) seront effacées définitivement. Cette action est irréversible.</p>
+    <div class="modal-actions">
+      <button type="button" class="btn-main" onclick="closeModal('modal-reset-stats')" autofocus>↩️ NON, GARDER</button>
+      <button type="button" class="btn-sec" style="border-color:var(--red);color:var(--red)" onclick="resetPlayerStats()">✓ Oui, tout effacer</button>
+    </div>
+  </div>
+</div>
+
 
 <!-- Footer global -->
 <footer class="site-footer" role="contentinfo">
@@ -3690,6 +3899,7 @@ function selectChar(el, char) {
   el.setAttribute('aria-pressed', 'true');
   state.char = char;
   showToast(`${CHARS[char].emoji} ${CHARS[char].name} sélectionné !`);
+  if (typeof recordCharSelect === 'function') recordCharSelect(currentUniverse, char);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -3725,6 +3935,7 @@ function renderUniverseGrid() {
 
 function selectUniverse(universeKey) {
   if (!UNIVERSES[universeKey]) return;
+  if (typeof recordUniverseSelect === 'function') recordUniverseSelect(universeKey);
   if (currentUniverse === universeKey) return;
 
   currentUniverse = universeKey;
@@ -3914,6 +4125,7 @@ function adaptQuestionToUniverse(q, universe) {
 }
 
 function startGame(mode) {
+  if (typeof recordGameStart === 'function') recordGameStart(mode);
   state.mode = mode;
   state.freeMode = (mode === 'libre');
   // Mode libre : pool de questions issu de tous les niveaux
@@ -4364,6 +4576,7 @@ function endGame() {
   clearInterval(state.timer);
   const total = state.questions.length;
   const pct = total > 0 ? (state.correct / total) * 100 : 0;
+  if (typeof recordGameComplete === 'function') recordGameComplete(state.mode, state.correct, total);
 
   // Rang
   let rank = RANKS[0];
@@ -5676,6 +5889,7 @@ function showAutoMenu() {
 }
 
 function startAutoMode(mode) {
+  if (typeof recordGameStart === 'function') recordGameStart(mode);
   autoState.mode = mode;
   autoState.qIdx = 0;
   autoState.score = 0;
@@ -5854,6 +6068,10 @@ function endAutoMode() {
   clearInterval(autoState.qTimer);
   clearInterval(autoState.globalTimer);
 
+  if (typeof recordGameComplete === 'function') {
+    recordGameComplete(autoState.mode, autoState.correct, Math.max(autoState.qIdx, 1));
+  }
+
   showScreen('auto-result');
 
   // Note DNB sur 6 (selon nb correct / 20)
@@ -6013,6 +6231,7 @@ function trapFocus(e) {
     else if (modal.id === 'modal-auto-quit') closeAutoQuitModal();
     else if (modal.id === 'modal-tutorial') closeTutorial();
     else if (modal.id === 'modal-legal') closeModal('modal-legal');
+    else if (modal.id === 'modal-reset-stats') closeModal('modal-reset-stats');
     return;
   }
   if (e.key !== 'Tab') return;
@@ -6156,6 +6375,7 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
       else if (m.id === 'modal-auto-pause') resumeAutoMode();
       else if (m.id === 'modal-auto-quit') closeAutoQuitModal();
       else if (m.id === 'modal-legal') closeModal('modal-legal');
+      else if (m.id === 'modal-reset-stats') closeModal('modal-reset-stats');
       // modal-tutorial : volontairement pas de close sur click extérieur,
       // pour forcer l'utilisateur à valider sa compréhension via le bouton.
     }
@@ -6179,6 +6399,7 @@ showScreen = function(id) {
     'tf-result': 'Résultats Vrai ou Faux',
     'story': 'Mode Histoire interactive',
     'story-result': 'Résultats de l\'histoire',
+    'stats': 'Mes statistiques personnelles',
     'loading': 'Chargement'
   };
   if (announcements[id]) announceToScreenReader(announcements[id]);
@@ -6480,6 +6701,7 @@ let tfState = {
 };
 
 function startTrueFalse() {
+  if (typeof recordGameStart === 'function') recordGameStart('tf');
   // Mélange et prend 20 affirmations
   const pool = [...TRUEFALSE_STATEMENTS];
   for (let i = pool.length - 1; i > 0; i--) {
@@ -6598,6 +6820,9 @@ function showFeedbackTf(ok, msg, earned) {
 
 function endTrueFalse() {
   clearInterval(tfState.timer);
+  if (typeof recordGameComplete === 'function') {
+    recordGameComplete('tf', tfState.correct, tfState.questions.length);
+  }
   showScreen('tf-result');
   const pct = (tfState.correct / tfState.questions.length) * 100;
   let emoji, msg, comment;
@@ -6996,6 +7221,7 @@ let storyState = {
 };
 
 function startStoryMode() {
+  if (typeof recordGameStart === 'function') recordGameStart('story');
   // Choisit une histoire au hasard
   storyState = {
     missionIdx: Math.floor(Math.random() * STORY_MISSIONS.length),
@@ -7095,6 +7321,7 @@ function endStoryMode() {
   showScreen('story-result');
   const mission = STORY_MISSIONS[storyState.missionIdx];
   const total = mission.steps.length;
+  if (typeof recordGameComplete === 'function') recordGameComplete('story', storyState.correct, total);
   const pct = (storyState.correct / total) * 100;
   let emoji, title, msg;
   if (pct === 100) { emoji = '🏆'; title = 'HISTOIRE PARFAITE !'; msg = `Tu as résolu toutes les énigmes de « ${mission.title} » sans aucune erreur. Tu maîtrises vraiment ces notions !`; }
@@ -7173,6 +7400,263 @@ if ('serviceWorker' in navigator) {
     });
   });
 }
+
+
+// ═══════════════════════════════════════════════════════════
+// A) GOATCOUNTER — Analytique admin (anonyme, sans cookies, RGPD-safe)
+// ═══════════════════════════════════════════════════════════
+// Pour activer : remplacer la valeur ci-dessous par votre code GoatCounter.
+// Créer un compte gratuit sur https://www.goatcounter.com/signup (gratuit < 100k pv/mois).
+// Exemple : si votre URL est https://monsite.goatcounter.com, mettez 'monsite'.
+const GOATCOUNTER_CODE = 'ninja-math'; // https://ninja-math.goatcounter.com
+
+(function setupGoatCounter() {
+  if (!GOATCOUNTER_CODE) return;
+  // Respect du Do Not Track navigateur
+  if (navigator.doNotTrack === '1') return;
+  const s = document.createElement('script');
+  s.async = true;
+  s.dataset.goatcounter = 'https://' + GOATCOUNTER_CODE + '.goatcounter.com/count';
+  s.src = '//gc.zgo.at/count.js';
+  document.head.appendChild(s);
+})();
+
+// Helper d'envoi d'événement custom à GoatCounter (no-op si non configuré)
+function track(event, value) {
+  if (!window.goatcounter || typeof window.goatcounter.count !== 'function') return;
+  if (navigator.doNotTrack === '1') return;
+  const payload = value ? (event + ':' + value) : event;
+  try {
+    window.goatcounter.count({ path: 'event:' + payload, title: payload, event: true });
+  } catch(e) { /* silent */ }
+}
+
+// ═══════════════════════════════════════════════════════════
+// B) STATS LOCALES JOUEUR (localStorage opt-in, RGPD-safe)
+// ═══════════════════════════════════════════════════════════
+const STATS_KEY = 'amat_player_stats_v1';
+let playerStats = {
+  totalGames: 0,
+  totalCorrect: 0,
+  totalAnswered: 0,
+  gamesByMode: {},        // {mode_key: count}
+  universesUsed: {},      // {universe: count}
+  charsUsed: {},          // {universe:char: count}
+  chapterPerf: {},        // {classe:chap: {correct, total}}
+  lastPlayedDate: null,   // 'YYYY-MM-DD'
+  currentStreak: 0,
+  bestDayStreak: 0,
+  firstSeen: null,
+  lastSeen: null
+};
+
+function savePlayerStats() {
+  if (!isSaveEnabled()) return;
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(playerStats)); }
+  catch(e) {}
+}
+
+function restorePlayerStats() {
+  try {
+    const raw = localStorage.getItem(STATS_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (data && typeof data === 'object') {
+      Object.assign(playerStats, data);
+      // Assurer les sous-objets
+      playerStats.gamesByMode = playerStats.gamesByMode || {};
+      playerStats.universesUsed = playerStats.universesUsed || {};
+      playerStats.charsUsed = playerStats.charsUsed || {};
+      playerStats.chapterPerf = playerStats.chapterPerf || {};
+    }
+  } catch(e) {}
+}
+
+function updatePlayerStreak() {
+  const today = new Date().toISOString().slice(0, 10);
+  const last = playerStats.lastPlayedDate;
+  if (last === today) return; // déjà compté aujourd'hui
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  if (last === yesterday) {
+    playerStats.currentStreak++;
+  } else {
+    playerStats.currentStreak = 1;
+  }
+  if (playerStats.currentStreak > playerStats.bestDayStreak) {
+    playerStats.bestDayStreak = playerStats.currentStreak;
+  }
+  playerStats.lastPlayedDate = today;
+}
+
+function recordGameStart(mode) {
+  playerStats.gamesByMode[mode] = (playerStats.gamesByMode[mode] || 0) + 1;
+  playerStats.totalGames++;
+  updatePlayerStreak();
+  if (!playerStats.firstSeen) playerStats.firstSeen = Date.now();
+  playerStats.lastSeen = Date.now();
+  savePlayerStats();
+  track('mode_start', String(mode).replace(':', '_'));
+}
+
+function recordGameComplete(mode, correctCount, totalCount) {
+  if (typeof correctCount !== 'number' || typeof totalCount !== 'number' || totalCount === 0) return;
+  playerStats.totalCorrect += correctCount;
+  playerStats.totalAnswered += totalCount;
+  // Track chapter perf if mode is "classe:chapitre"
+  if (typeof mode === 'string' && mode.indexOf(':') > -1) {
+    const key = mode;
+    if (!playerStats.chapterPerf[key]) playerStats.chapterPerf[key] = { correct: 0, total: 0 };
+    playerStats.chapterPerf[key].correct += correctCount;
+    playerStats.chapterPerf[key].total += totalCount;
+  }
+  savePlayerStats();
+  const pctBin = Math.min(100, Math.floor((correctCount / totalCount) * 100 / 25) * 25);
+  track('mode_complete', String(mode).replace(':', '_') + '_' + pctBin + 'pct');
+}
+
+function recordUniverseSelect(u) {
+  playerStats.universesUsed[u] = (playerStats.universesUsed[u] || 0) + 1;
+  savePlayerStats();
+  track('universe', u);
+}
+
+function recordCharSelect(u, c) {
+  const k = u + ':' + c;
+  playerStats.charsUsed[k] = (playerStats.charsUsed[k] || 0) + 1;
+  savePlayerStats();
+  track('char', k);
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDU DE L'ÉCRAN STATS
+// ═══════════════════════════════════════════════════════════
+function showStatsScreen() {
+  renderStats();
+  showScreen('stats');
+}
+
+function renderStats() {
+  // Vue d'ensemble
+  document.getElementById('stats-total-games').textContent = playerStats.totalGames;
+  const rate = playerStats.totalAnswered > 0
+    ? Math.round((playerStats.totalCorrect / playerStats.totalAnswered) * 100)
+    : 0;
+  document.getElementById('stats-success-rate').textContent = rate + '%';
+  document.getElementById('stats-level-xp').textContent = 'Niv.' + (state.level || 1);
+  document.getElementById('stats-streak').textContent = (playerStats.currentStreak || 0) + 'j';
+
+  // Avertissement si pas sauvegardé
+  const warn = document.getElementById('stats-warning');
+  if (warn) warn.style.display = isSaveEnabled() ? 'none' : 'block';
+
+  // Univers
+  renderStatsBars('stats-universes', playerStats.universesUsed,
+    (k) => (UNIVERSES[k] ? (UNIVERSES[k].emoji + ' ' + UNIVERSES[k].name) : k));
+
+  // Modes
+  const modeLabels = {
+    '6e_facile': '🟢 Académie 6e',
+    '5e_medium': '🔵 Genin 5e',
+    'mixte_difficile': '🔴 Chunin Mix',
+    'boss': '💀 Boss',
+    'libre': '🧘 Entraînement libre',
+    'tf': '⚡ Vrai/Faux Speed',
+    'story': '📖 Histoire interactive',
+    'draw': '✏️ Tracé géométrique',
+    'puzzle': '🧩 Puzzle',
+    'auto_6e': '⚡ Auto 6e',
+    'auto_5e': '⚡ Auto 5e',
+    'auto_4e': '⚡ Auto 4e',
+    'auto_3e': '⚡ Auto 3e',
+    'auto_mix': '⚡ Auto Mix',
+    'auto_dnb': '🏆 Auto DNB 2027'
+  };
+  // Pour les modes "classe:chapitre", on regroupe en libellés lisibles
+  const modesFlat = {};
+  Object.entries(playerStats.gamesByMode || {}).forEach(([k, v]) => {
+    if (k.indexOf(':') > -1) {
+      const [classe, chap] = k.split(':');
+      const meta = CHAPTER_LABELS[classe] && CHAPTER_LABELS[classe][chap];
+      const label = meta ? (meta.emoji + ' ' + meta.name + ' (' + classe + ')') : k;
+      modesFlat[label] = (modesFlat[label] || 0) + v;
+    } else {
+      modesFlat[modeLabels[k] || k] = (modesFlat[modeLabels[k] || k] || 0) + v;
+    }
+  });
+  renderStatsBars('stats-modes', modesFlat, (k) => k);
+
+  // Chapitres maîtrisés et à retravailler
+  const mastered = [];
+  const todo = [];
+  Object.entries(playerStats.chapterPerf || {}).forEach(([key, perf]) => {
+    if (perf.total < 3) return; // pas assez de données
+    const pct = Math.round((perf.correct / perf.total) * 100);
+    const [classe, chap] = key.split(':');
+    const meta = (CHAPTER_LABELS[classe] && CHAPTER_LABELS[classe][chap]) || null;
+    const label = meta ? (meta.emoji + ' ' + meta.name + ' (' + classe + ')') : key;
+    if (pct >= 75) mastered.push({ label, pct });
+    else if (pct < 50) todo.push({ label, pct });
+  });
+  mastered.sort((a, b) => b.pct - a.pct);
+  todo.sort((a, b) => a.pct - b.pct);
+
+  const masteredEl = document.getElementById('stats-mastered');
+  if (mastered.length === 0) {
+    masteredEl.innerHTML = '<p style="color:var(--gray);font-size:.85rem">Joue quelques chapitres pour voir tes points forts apparaître ici.</p>';
+  } else {
+    masteredEl.innerHTML = mastered.map(m =>
+      '<div class="stats-chapter-item mastered"><span>' + m.label + '</span><span class="ch-pct">' + m.pct + '%</span></div>'
+    ).join('');
+  }
+  const todoEl = document.getElementById('stats-todo');
+  if (todo.length === 0) {
+    todoEl.innerHTML = '<p style="color:var(--gray);font-size:.85rem">Aucun chapitre à retravailler pour le moment, continue comme ça !</p>';
+  } else {
+    todoEl.innerHTML = todo.map(m =>
+      '<div class="stats-chapter-item todo"><span>' + m.label + '</span><span class="ch-pct">' + m.pct + '%</span></div>'
+    ).join('');
+  }
+}
+
+function renderStatsBars(elId, dict, labelFn) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const entries = Object.entries(dict || {}).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  if (entries.length === 0) {
+    el.innerHTML = '<p style="color:var(--gray);font-size:.85rem">Aucune donnée pour le moment. Joue quelques parties !</p>';
+    return;
+  }
+  const max = entries[0][1] || 1;
+  el.innerHTML = entries.map(([k, v]) => {
+    const pct = (v / max) * 100;
+    return '<div class="stats-bar-row">' +
+      '<span class="stats-bar-label">' + labelFn(k) + '</span>' +
+      '<div class="stats-bar-track"><div class="stats-bar-fill" style="width:' + pct + '%"></div></div>' +
+      '<span class="stats-bar-count">' + v + '</span>' +
+    '</div>';
+  }).join('');
+}
+
+function confirmResetStats() {
+  openModal('modal-reset-stats');
+}
+
+function resetPlayerStats() {
+  playerStats = {
+    totalGames: 0, totalCorrect: 0, totalAnswered: 0,
+    gamesByMode: {}, universesUsed: {}, charsUsed: {}, chapterPerf: {},
+    lastPlayedDate: null, currentStreak: 0, bestDayStreak: 0,
+    firstSeen: null, lastSeen: null
+  };
+  try { localStorage.removeItem(STATS_KEY); } catch(e) {}
+  closeModal('modal-reset-stats');
+  renderStats();
+  showToast('🗑️ Statistiques réinitialisées.');
+  track('stats_reset');
+}
+
+// Restaure les stats au chargement
+restorePlayerStats();
 
 // ── Initialisation différée : restaure la sauvegarde et affiche le tutoriel ──
 (function initExtensions() {
