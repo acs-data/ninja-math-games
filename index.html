@@ -1550,6 +1550,16 @@
           <div class="lv-name">Niveau 5ème</div>
           <div class="lv-desc">Relatifs, fractions, puissances, calcul littéral, priorités</div>
         </div>
+                <div class="level-card" onclick="startAutoMode('auto_4e')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startAutoMode('auto_4e');}" role="button" tabindex="0" style="border-color:rgba(255,107,0,.3)">
+          <div class="lv" style="color:var(--orange)">📘 4ème</div>
+          <div class="lv-name">Automatismes 4ème</div>
+          <div class="lv-desc">Pythagore, notation scientifique, équations à 2 membres</div>
+          <div class="lv-topics">
+            <span class="topic-badge">Pythagore</span>
+            <span class="topic-badge">Scientifique</span>
+            <span class="topic-badge">Équations</span>
+          </div>
+        </div>
         <div class="level-card" onclick="startAutoMode('auto_mix')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startAutoMode('auto_mix');}" role="button" tabindex="0" style="border-color:rgba(255,107,0,.3);grid-column:span 2">
           <div class="lv" style="color:var(--orange)">🟠 Chunin Mix</div>
           <div class="lv-name">Niveau Mix — 6ème + 5ème</div>
@@ -2722,7 +2732,36 @@ const QUESTIONS_BY_CHAPTER = {
         answers: ["15 cm", "21 cm", "10 cm", "√225 = pas le bon"],
         correct: 0,
         feedback: "La diagonale est l'hypoténuse du triangle rectangle formé par les deux côtés. d² = 9² + 12² = 81 + 144 = 225. d = √225 = <strong>15 cm</strong>."
+      }      ,
+      {
+        type: "Pythagore", theme: "🏯 Tour de Konoha",
+        text: `Un mât de drapeau mesure <span class='math'>8 m</span>. Sa base est à <span class='math'>6 m</span> du mur. Quelle longueur de câble pour le maintenir au sommet ?`,
+        answers: ["10 m", "14 m", "100 m", "√14 m"],
+        correct: 0,
+        feedback: "Pythagore : câble² = 6² + 8² = 36 + 64 = 100. Câble = √100 = <strong>10 m</strong>. Encore le triangle 6-8-10 (proportionnel à 3-4-5)."
+      },
+      {
+        type: "Pythagore", theme: "📐 Carré d'entraînement",
+        text: `La diagonale d'un carré mesure <span class='math'>√50 cm</span>. Quelle est la longueur de son côté ?`,
+        answers: ["5 cm", "25 cm", "√25 cm = 5", "10 cm"],
+        correct: 0,
+        feedback: "Diagonale² = côté² + côté² = 2 × côté². Donc 50 = 2 × côté², côté² = 25, côté = <strong>5 cm</strong>."
+      },
+      {
+        type: "Pythagore au carré", theme: "📐 Démontrer un triangle rectangle",
+        text: `Triangle de côtés <span class='math'>5, 6, 7</span>. Est-il rectangle ?`,
+        answers: ["Non, car 5² + 6² ≠ 7²", "Oui", "Oui, en l'angle opposé à 7", "On ne sait pas"],
+        correct: 0,
+        feedback: "Test : 5² + 6² = 25 + 36 = 61. Et 7² = 49. <strong>61 ≠ 49</strong> donc la réciproque de Pythagore NE s'applique PAS : le triangle n'est pas rectangle."
+      },
+      {
+        type: "Pythagore appliqué", theme: "🪜 Échelle de Naruto",
+        text: `Une échelle de <span class='math'>5 m</span> appuyée contre un mur. Son pied est à <span class='math'>3 m</span> du mur. À quelle hauteur touche-t-elle ?`,
+        answers: ["4 m", "2 m", "√34 m", "8 m"],
+        correct: 0,
+        feedback: "Pythagore : 5² = 3² + h². Donc h² = 25 − 9 = 16, h = <strong>4 m</strong>. Triangle 3-4-5 classique. L'échelle, le sol et le mur forment un triangle rectangle."
       }
+
     ],
     'puissances_scientifique': [
       {
@@ -2752,7 +2791,36 @@ const QUESTIONS_BY_CHAPTER = {
         answers: ["450 000 000 km", "45 000 000 km", "4 500 000 km", "4,5 milliards de km"],
         correct: 0,
         feedback: "4,5 × 10⁸ = 4,5 suivi de 8 - 1 = 7 zéros (on décale la virgule de 8 rangs) = <strong>450 000 000 km</strong>, soit 450 millions."
+      }      ,
+      {
+        type: "Notation scientifique", theme: "🌌 Distance Terre-Soleil",
+        text: `Écris <span class='math'>149 600 000 km</span> en notation scientifique.`,
+        answers: ["1,496 × 10⁸ km", "14,96 × 10⁷ km", "1,496 × 10⁹ km", "149,6 × 10⁶ km"],
+        correct: 0,
+        feedback: "Notation scientifique : un seul chiffre non nul avant la virgule. 149 600 000 = 1,496 × 10⁸. On décale la virgule de 8 rangs vers la gauche."
+      },
+      {
+        type: "Comparaison puissances", theme: "💥 Energie de combat",
+        text: `Lequel est le plus grand : <span class='math'>3⁴</span> ou <span class='math'>4³</span> ?`,
+        answers: ["3⁴ = 81 > 4³ = 64", "Ils sont égaux", "4³ > 3⁴", "Impossible à comparer"],
+        correct: 0,
+        feedback: "3⁴ = 3×3×3×3 = 81. 4³ = 4×4×4 = 64. Donc <strong>3⁴ > 4³</strong>. Astuce : pour de petites valeurs, exposant plus grand donne souvent un résultat plus grand."
+      },
+      {
+        type: "Puissance de 10", theme: "🔬 Cellules",
+        text: `Le corps humain contient environ <span class='math'>3,7 × 10¹³</span> cellules. Combien de zéros si on l'écrit en chiffres ?`,
+        answers: ["12 chiffres après le 3", "13 zéros", "10 zéros", "37 chiffres"],
+        correct: 0,
+        feedback: "3,7 × 10¹³ = 37 × 10¹² = 37 suivi de 12 zéros = 37 000 000 000 000 (37 mille milliards). Donc <strong>12 chiffres après le 7</strong>."
+      },
+      {
+        type: "Produit puissances", theme: "💥 Multiplier deux énergies",
+        text: `Calcule : <span class='math'>(2 × 10⁵) × (3 × 10⁴)</span>.`,
+        answers: ["6 × 10⁹", "6 × 10²⁰", "5 × 10⁹", "23 × 10⁹"],
+        correct: 0,
+        feedback: "On multiplie les nombres et on additionne les exposants : (2 × 3) × 10⁵⁺⁴ = <strong>6 × 10⁹</strong>. Règle générale pour les notations scientifiques."
       }
+
     ],
     'calcul_litteral_4e': [
       {
@@ -2775,7 +2843,29 @@ const QUESTIONS_BY_CHAPTER = {
         answers: ["5(3x − 5)", "5(3x − 25)", "5x(3 − 5)", "15(x − 25)"],
         correct: 0,
         feedback: "PGCD(15, 25) = 5. Donc 15x − 25 = 5 × 3x − 5 × 5 = <strong>5(3x − 5)</strong>. On vérifie en redéveloppant : 5 × 3x − 5 × 5 = 15x − 25 ✓."
+      }      ,
+      {
+        type: "Réduction", theme: "🧮 Simplification",
+        text: `Réduis : <span class='math'>5x − 3 + 2x + 7</span>.`,
+        answers: ["7x + 4", "7x − 4", "10x + 4", "5x + 4"],
+        correct: 0,
+        feedback: "On regroupe : termes en x (5x + 2x = 7x) et termes constants (−3 + 7 = +4). Résultat : <strong>7x + 4</strong>."
+      },
+      {
+        type: "Double distribution", theme: "✏️ (a+b)(c+d)",
+        text: `Développe : <span class='math'>(x + 3)(x − 2)</span>.`,
+        answers: ["x² + x − 6", "x² − 6", "x² + 5x − 6", "x² + x + 6"],
+        correct: 0,
+        feedback: "Méthode : chaque terme du 1er facteur × chaque terme du 2e : x × x + x × (−2) + 3 × x + 3 × (−2) = x² − 2x + 3x − 6 = <strong>x² + x − 6</strong>."
+      },
+      {
+        type: "Factorisation", theme: "✂️ Mise en évidence",
+        text: `Factorise : <span class='math'>4x² + 12x</span>.`,
+        answers: ["4x(x + 3)", "4x² + 12x", "4x(x² + 3)", "x(4x + 12)"],
+        correct: 0,
+        feedback: "Facteur commun = 4x (PGCD(4,12)=4 et x est commun). Donc 4x² + 12x = 4x × x + 4x × 3 = <strong>4x(x + 3)</strong>."
       }
+
     ],
     'equations_4e': [
       {
@@ -2791,7 +2881,36 @@ const QUESTIONS_BY_CHAPTER = {
         answers: ["−5", "5", "−1", "Pas de solution"],
         correct: 0,
         feedback: "Développer : 2x − 6 = 4x + 4. Regrouper : 2x − 4x = 4 + 6, donc −2x = 10, donc x = <strong>−5</strong>. Vérif : 2(−5−3) = −16 et 4(−5+1) = −16 ✓."
+      }      ,
+      {
+        type: "Équation avec fraction", theme: "⚖️ Demi-balance",
+        text: `Résous : <span class='math'>x/3 + 2 = 5</span>.`,
+        answers: ["9", "1", "21", "15"],
+        correct: 0,
+        feedback: "On enlève 2 : x/3 = 3. On multiplie par 3 : x = <strong>9</strong>. Vérification : 9/3 + 2 = 3 + 2 = 5 ✓."
+      },
+      {
+        type: "Équation mise en équation", theme: "🎯 Énigme",
+        text: `« Le triple d'un nombre, diminué de 4, vaut 20. » Quel est ce nombre ?`,
+        answers: ["8", "5", "16", "24"],
+        correct: 0,
+        feedback: "On note x. Équation : 3x − 4 = 20. Donc 3x = 24, x = <strong>8</strong>. Vérification : 3 × 8 − 4 = 20 ✓."
+      },
+      {
+        type: "Équation impossible", theme: "⚖️ Cas particulier",
+        text: `Combien de solutions a l'équation <span class='math'>2x + 5 = 2x − 3</span> ?`,
+        answers: ["0 (impossible)", "Une seule : x = −4", "Infinité de solutions", "x = 0"],
+        correct: 0,
+        feedback: "On simplifie : 2x − 2x = −3 − 5, soit 0 = −8. C'est <strong>faux</strong> donc l'équation n'a aucune solution. Si on avait obtenu 0 = 0, il y aurait une infinité."
+      },
+      {
+        type: "Mise en équation problème", theme: "💰 Économies",
+        text: `Naruto et Sasuke ont ensemble <span class='math'>50 ryos</span>. Naruto a <span class='math'>10 ryos</span> de plus que Sasuke. Combien a Sasuke ?`,
+        answers: ["20 ryos", "30 ryos", "25 ryos", "40 ryos"],
+        correct: 0,
+        feedback: "Soit x les ryos de Sasuke. Naruto a x + 10. Total : x + (x + 10) = 50, donc 2x = 40, x = <strong>20</strong>. Vérif : Sasuke 20 + Naruto 30 = 50 ✓."
       }
+
     ],
     'statistiques_4e': [
       {
@@ -2814,7 +2933,29 @@ const QUESTIONS_BY_CHAPTER = {
         answers: ["13,1", "13", "26", "13,5"],
         correct: 0,
         feedback: "Moyenne pondérée = (14×4 + 12×3) ÷ (4+3) = (56 + 36) ÷ 7 = 92 ÷ 7 ≈ <strong>13,1</strong>. On multiplie chaque note par son coefficient, on divise par la somme des coefficients."
+      }      ,
+      {
+        type: "Effectifs cumulés", theme: "📊 Sondage Konoha",
+        text: `Effectif : 5+8+12+9+6 = 40. Quelle est la fréquence (en %) de la 3ème catégorie ?`,
+        answers: ["30 %", "12 %", "40 %", "25 %"],
+        correct: 0,
+        feedback: "Fréquence = effectif catégorie ÷ effectif total = 12 ÷ 40 = 0,30 = <strong>30 %</strong>."
+      },
+      {
+        type: "Calcul de moyenne", theme: "📊 Performance",
+        text: `Moyennes : <span class='math'>11, 13, 15, 12, 14</span>. Quelle est la moyenne ?`,
+        answers: ["13", "12", "14", "65"],
+        correct: 0,
+        feedback: "Moyenne = somme ÷ nombre = (11+13+15+12+14) ÷ 5 = 65 ÷ 5 = <strong>13</strong>."
+      },
+      {
+        type: "Caractères statistiques", theme: "📊 Données du village",
+        text: `Caractère qualitatif (vs quantitatif) : lequel parmi ces 4 ?`,
+        answers: ["Couleur préférée", "Note sur 20", "Âge en années", "Taille en cm"],
+        correct: 0,
+        feedback: "Un caractère <strong>qualitatif</strong> est une catégorie non chiffrée (couleur, sport, etc.). Les autres sont <strong>quantitatifs</strong> (mesurables avec des nombres)."
       }
+
     ],
     'transformations_4e': [
       {
@@ -2830,7 +2971,29 @@ const QUESTIONS_BY_CHAPTER = {
         answers: ["4 cm", "8 cm", "2 cm", "Dépend de l'angle"],
         correct: 0,
         feedback: "La rotation est une <strong>isométrie</strong> : elle conserve les longueurs et les angles. L'image mesure donc <strong>4 cm</strong>, comme le segment d'origine."
+      }      ,
+      {
+        type: "Image translation", theme: "🔄 Rotation/Translation",
+        text: `Un triangle est translaté par un vecteur. Que conserve la translation ?`,
+        answers: ["Longueurs et angles", "Couleurs uniquement", "L'orientation seulement", "Rien"],
+        correct: 0,
+        feedback: "Une translation est une <strong>isométrie</strong>. Elle conserve : longueurs, angles, aires, parallélisme. C'est un déplacement « rigide »."
+      },
+      {
+        type: "Centre de rotation", theme: "🔄 Pivot",
+        text: `Une figure subit une rotation de 360° autour d'un point. Qu'obtient-on ?`,
+        answers: ["La figure de départ (tour complet)", "Une figure différente", "Une figure symétrique", "Impossible à dire"],
+        correct: 0,
+        feedback: "Une rotation de 360° = tour complet → on revient au point de départ. La figure d'arrivée est <strong>identique</strong> à la figure de départ."
+      },
+      {
+        type: "Symétrie centrale 5e->4e", theme: "🔄 Demi-tour",
+        text: `La symétrie centrale est équivalente à quelle rotation ?`,
+        answers: ["Rotation de 180°", "Rotation de 90°", "Rotation de 360°", "Translation"],
+        correct: 0,
+        feedback: "La symétrie centrale (point central) équivaut à une <strong>rotation de 180°</strong> autour du même centre. Demi-tour exact."
       }
+
     ]
   },
   '3e': {
@@ -4998,6 +5161,75 @@ const AUTO_GENERATORS = {
     const b = Math.floor(Math.random()*(160-a)/10) * 10 + 20;
     return { q: `Triangle, 2 angles = ${a}° et ${b}°, 3e angle ?`, a: String(180-a-b), theme: 'Triangle', unit: '°' };
   },
+
+  // ─── NIVEAU 4ème ───
+  '4e_pyth_hyp': () => {
+    // triangles pythagoriciens : 3-4-5, 5-12-13, 6-8-10, 8-15-17, 7-24-25, 9-12-15
+    const pairs = [[3,4,5],[5,12,13],[6,8,10],[8,15,17],[7,24,25],[9,12,15],[20,21,29]];
+    const [a, b, h] = pairs[Math.floor(Math.random()*pairs.length)];
+    return { q: `Pythagore : hypoténuse si côtés = ${a} et ${b}`, a: String(h), theme: 'Pythagore' };
+  },
+  '4e_pyth_cote': () => {
+    const pairs = [[3,4,5],[5,12,13],[6,8,10],[8,15,17],[7,24,25],[9,12,15]];
+    const [a, b, h] = pairs[Math.floor(Math.random()*pairs.length)];
+    return { q: `Pythagore : côté si hypoténuse=${h} et autre côté=${b}`, a: String(a), theme: 'Pythagore' };
+  },
+  '4e_notation_sci': () => {
+    const m = Math.floor(Math.random()*9 + 1);
+    const dec = Math.floor(Math.random()*900 + 100);
+    const exp = Math.floor(Math.random()*5 + 3);
+    const num = m + dec/1000;
+    // num × 10^exp, ex: 3.456 × 10^5 = 345600
+    const big = num * Math.pow(10, exp);
+    // Affichage du grand nombre avec espaces
+    const bigStr = Math.round(big).toString();
+    return { q: `${bigStr} en notation scientifique (a × 10^n)`, a: `${frFr(num)} × 10^${exp}`,
+             accept: [`${frFr(num)}×10^${exp}`, `${frFr(num)} x 10^${exp}`, `${frFr(num)}x10^${exp}`],
+             theme: 'Notation scientifique' };
+  },
+  '4e_powers_mult': () => {
+    const a = Math.floor(Math.random()*5+1);
+    const b = Math.floor(Math.random()*5+1);
+    return { q: `10^${a} × 10^${b}`, a: `10^${a+b}`,
+             accept: [String(Math.pow(10,a+b))], theme: 'Puissances de 10' };
+  },
+  '4e_powers_div': () => {
+    const a = Math.floor(Math.random()*5+4);
+    const b = Math.floor(Math.random()*(a-1)+1);
+    return { q: `10^${a} ÷ 10^${b}`, a: `10^${a-b}`,
+             accept: [String(Math.pow(10,a-b))], theme: 'Puissances de 10' };
+  },
+  '4e_developpe': () => {
+    const a = Math.floor(Math.random()*7+2);
+    const b = Math.floor(Math.random()*9+2);
+    const c = Math.floor(Math.random()*9-4);
+    // a(bx + c) = ab·x + ac
+    const ab = a*b, ac = a*c;
+    const sign = ac >= 0 ? '+' : '−';
+    return { q: `Développe : ${a}(${b}x ${c >= 0 ? '+' : '−'} ${Math.abs(c)})`,
+             a: `${ab}x${sign}${Math.abs(ac)}`,
+             accept: [`${ab}x ${sign} ${Math.abs(ac)}`, `${ab}x${ac>=0?'+':''}${ac}`, `${ab}*x${sign}${Math.abs(ac)}`],
+             theme: 'Développement' };
+  },
+  '4e_eq_membres': () => {
+    // ax + b = cx + d, isole x = (d-b)/(a-c)
+    let a = Math.floor(Math.random()*5+2);
+    let c = Math.floor(Math.random()*5);
+    while (a === c) c = Math.floor(Math.random()*5);
+    const x = Math.floor(Math.random()*9-4);
+    const b = Math.floor(Math.random()*9-4);
+    const d = (a-c)*x + b;
+    return { q: `Résous : ${a}x ${b>=0?'+':'−'} ${Math.abs(b)} = ${c}x ${d>=0?'+':'−'} ${Math.abs(d)}`,
+             a: signedFr(x), accept: [String(x)], theme: 'Équations' };
+  },
+  '4e_mediane': () => {
+    const n = 5;
+    const arr = [];
+    for (let i = 0; i < n; i++) arr.push(Math.floor(Math.random()*18 + 2));
+    arr.sort((a, b) => a - b);
+    const med = arr[2]; // médiane d'une liste de 5
+    return { q: `Médiane de : ${arr.join(', ')}`, a: String(med), theme: 'Statistiques' };
+  },
 };
 
 // Helpers
@@ -5021,9 +5253,10 @@ function simpFrac(n, d) {
 const AUTO_POOLS = {
   'auto_6e': ['6e_add_dec','6e_sub_dec','6e_mult_simple','6e_mult_10_100','6e_div_10_100','6e_frac_add_same','6e_percent_easy','6e_double_half','6e_perim_rect','6e_complement_100'],
   'auto_5e': ['5e_relat_add','5e_relat_sub','5e_relat_mult','5e_powers','5e_priorities','5e_priorities_par','5e_calc_litt','5e_frac_mult','5e_percent_full','5e_propor','5e_angle_tri'],
+  'auto_4e': ['4e_pyth_hyp','4e_pyth_cote','4e_notation_sci','4e_powers_mult','4e_powers_div','4e_developpe','4e_eq_membres','4e_mediane'],
   'auto_mix': null  // initialisé dynamiquement
 };
-AUTO_POOLS['auto_mix'] = [...AUTO_POOLS.auto_6e, ...AUTO_POOLS.auto_5e];
+AUTO_POOLS['auto_mix'] = [...AUTO_POOLS.auto_6e, ...AUTO_POOLS.auto_5e, ...AUTO_POOLS.auto_4e];
 
 // État
 let autoState = {
@@ -5813,7 +6046,18 @@ const TRUEFALSE_STATEMENTS = [
   { text: "10% de 200 vaut 25", isTrue: false, explain: "Faux : 10% de 200 = 0,1 × 200 = 20 (et non 25)." },
   { text: "Une vitesse de 60 km/h, c'est 1 km par minute", isTrue: true, explain: "60 km/h ÷ 60 min = 1 km/min. Conversion utile." },
   { text: "Si on lance un dé à 6 faces, P(obtenir 7) = 0", isTrue: true, explain: "Aucune face ne porte le chiffre 7 : événement impossible, probabilité = 0." },
-  { text: "Un carré est un rectangle", isTrue: true, explain: "Oui ! Un carré est un cas particulier de rectangle (avec L = ℓ). Vocabulaire géométrique de 6e." }
+  { text: "Un carré est un rectangle", isTrue: true, explain: "Oui ! Un carré est un cas particulier de rectangle (avec L = ℓ). Vocabulaire géométrique de 6e." },
+  // 4e — Pythagore, scientifique, calcul littéral, équations, stats
+  { text: "Dans un triangle rectangle 5-12-13, l'hypoténuse mesure 13", isTrue: true, explain: "5² + 12² = 25 + 144 = 169 = 13². Triangle rectangle classique." },
+  { text: "Pythagore s'applique à tous les triangles", isTrue: false, explain: "Faux ! Pythagore concerne UNIQUEMENT les triangles RECTANGLES. Pour les autres, il faut d'autres outils (Al-Kashi, hauteurs...)." },
+  { text: "10⁰ = 0", isTrue: false, explain: "Faux ! Convention mathématique : pour tout a ≠ 0, a⁰ = 1. Donc 10⁰ = 1." },
+  { text: "1,5 × 10⁴ = 15 000", isTrue: true, explain: "1,5 × 10⁴ = 1,5 × 10 000 = 15 000. On décale la virgule de 4 rangs à droite." },
+  { text: "(2x + 3)² = 4x² + 9", isTrue: false, explain: "Piège classique ! (a+b)² = a² + 2ab + b². Donc (2x+3)² = 4x² + 12x + 9 (le double produit 12x est oublié)." },
+  { text: "Si x + 5 = 12, alors x − 5 = 2", isTrue: true, explain: "Si x = 7 (12 − 5), alors x − 5 = 7 − 5 = 2. Vrai." },
+  { text: "Une équation 2x + 3 = 2x − 1 a une infinité de solutions", isTrue: false, explain: "Faux ! 2x + 3 = 2x − 1 donne 3 = −1, impossible. <strong>Aucune solution</strong>." },
+  { text: "La médiane de 5, 8, 12, 14, 20 est 12", isTrue: true, explain: "Liste triée, 5 valeurs : médiane = 3e valeur = 12. Vrai." },
+  { text: "L'étendue d'une série de notes 10, 14, 18 est 8", isTrue: true, explain: "Étendue = max − min = 18 − 10 = 8. Vrai." },
+  { text: "Une rotation conserve les longueurs", isTrue: true, explain: "Vrai ! Translation, rotation et symétrie centrale sont des ISOMÉTRIES — elles préservent toutes les longueurs et angles." }
 ];
 
 let tfState = {
@@ -6175,6 +6419,84 @@ const STORY_MISSIONS = [
         answers: ["14", "26", "−26", "−14"],
         correct: 0,
         feedback: "Priorités : (−5)×(−4) = +20 (moins × moins). (−3)×2 = −6. Somme : 20 + (−6) = <strong>14</strong>."
+      }
+    ]
+  },
+  {
+    title: "📐 La tour de Konoha",
+    decor: "🏯",
+    intro: "Le maître <em>Iruka</em> veut connaître la hauteur de la grande tour de <em>Konoha</em>. Il utilise <strong>Pythagore</strong> et des mesures astucieuses. Aide-le à mener l'enquête !",
+    steps: [
+      {
+        narrative: "<em>Iruka</em> se place à 12 m de la base de la tour. Il observe le sommet sous un certain angle. Il mesure une distance directe (sol → sommet) de 15 m.",
+        question: "Quelle est la hauteur de la tour ?",
+        type: "Pythagore",
+        answers: ["9 m", "27 m", "3 m", "√81 m"],
+        correct: 0,
+        feedback: "Triangle rectangle : hauteur² + 12² = 15². Donc h² = 225 − 144 = 81. h = √81 = <strong>9 m</strong>."
+      },
+      {
+        narrative: "<em>Iruka</em> veut vérifier ses mesures et plante un piquet de 1,5 m projetant une ombre de 2 m.",
+        question: "À cet instant, l'ombre de la tour de 9 m devrait mesurer ?",
+        type: "Proportionnalité",
+        answers: ["12 m", "13,5 m", "6 m", "9 m"],
+        correct: 0,
+        feedback: "Proportionnalité (Thalès) : ombre/hauteur est constante. 2/1,5 = ombre_tour/9. Donc ombre = (2 × 9)/1,5 = <strong>12 m</strong>."
+      },
+      {
+        narrative: "Il consigne ses mesures et écrit : « La tour fait 9 × 10⁰ m. »",
+        question: "Comment s'écrit 9 × 10⁰ ?",
+        type: "Puissances",
+        answers: ["9", "90", "9,0", "0"],
+        correct: 0,
+        feedback: "Convention : <strong>10⁰ = 1</strong> (pour tout nombre non nul, exposant 0 → 1). Donc 9 × 10⁰ = 9 × 1 = <strong>9</strong>."
+      },
+      {
+        narrative: "Pour la documenter, il convertit 9 m en mm avec la notation scientifique.",
+        question: "9 m en mm avec notation scientifique ?",
+        type: "Notation scientifique",
+        answers: ["9 × 10³ mm", "9 × 10² mm", "9 × 10⁶ mm", "0,9 × 10⁴ mm"],
+        correct: 0,
+        feedback: "1 m = 1000 mm = 10³ mm. Donc 9 m = 9 × 10³ mm = <strong>9000 mm</strong>. Notation scientifique : un chiffre avant la virgule."
+      }
+    ]
+  },
+  {
+    title: "📊 Le tournoi de Konoha",
+    decor: "📊",
+    intro: "Le village organise un tournoi de techniques. <em>Tsunade</em> demande à <em>Shikamaru</em> d'analyser les résultats pour identifier les meilleurs élèves et calculer les moyennes équitables.",
+    steps: [
+      {
+        narrative: "Notes des 7 finalistes : <span class='math'>10, 12, 13, 14, 14, 18, 19</span>.",
+        question: "Quelle est la médiane des notes ?",
+        type: "Statistiques",
+        answers: ["14", "13", "15", "14,3"],
+        correct: 0,
+        feedback: "7 valeurs triées. La médiane est la valeur du milieu (4e position) : <strong>14</strong>. La médiane partage l'effectif en deux moitiés égales."
+      },
+      {
+        narrative: "Pour mesurer la dispersion des notes...",
+        question: "Quelle est l'étendue ?",
+        type: "Statistiques",
+        answers: ["9", "14", "7", "19"],
+        correct: 0,
+        feedback: "Étendue = max − min = 19 − 10 = <strong>9</strong>. Mesure de la dispersion (écart entre extrêmes)."
+      },
+      {
+        narrative: "Le tournoi a deux épreuves : Taijutsu (note 14, coef 3) et Ninjutsu (note 18, coef 2).",
+        question: "Quelle est la moyenne pondérée d'un finaliste ?",
+        type: "Moyenne pondérée",
+        answers: ["15,6", "16", "32", "14"],
+        correct: 0,
+        feedback: "Moyenne pondérée = (14×3 + 18×2) ÷ (3+2) = (42 + 36) ÷ 5 = 78 ÷ 5 = <strong>15,6</strong>."
+      },
+      {
+        narrative: "<em>Tsunade</em> annonce : « Les premiers reçoivent un bonus. Pour avoir un bonus, il faut une moyenne pondérée d'au moins 14. »",
+        question: "Si Naruto a 12 en Taijutsu (coef 3) et veut le bonus, quelle note minimum en Ninjutsu (coef 2) ?",
+        type: "Équations",
+        answers: ["17", "16", "15", "18"],
+        correct: 0,
+        feedback: "On cherche x tel que (12×3 + 2x)/5 ≥ 14. Donc 36 + 2x ≥ 70, soit 2x ≥ 34, soit x ≥ <strong>17</strong>. Mise en équation : transformer un mot en lettre."
       }
     ]
   }
