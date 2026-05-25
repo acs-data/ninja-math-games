@@ -410,33 +410,6 @@
     #topbar-menu-btn { font-size: 1.25rem; }
   }
 
-  /* ─── Top bar — fix responsive mobile ─── */
-  /* Empêche le logo + HUD de wrapper sur plusieurs lignes */
-  header { flex-wrap: nowrap; gap: 8px; }
-  .logo { white-space: nowrap; }
-  .hud { flex-wrap: nowrap; }
-
-  @media(max-width: 600px) {
-    header {
-      padding: calc(8px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 8px calc(12px + env(safe-area-inset-left));
-      gap: 6px;
-    }
-    .logo { font-size: 1.25rem; letter-spacing: 1px; }
-    .hud { gap: 6px; }
-    .hud-item { padding: 3px 8px; font-size: .8rem; gap: 4px; }
-    .hud-item .icon { font-size: .85rem; }
-    .xp-bar { width: 50px; height: 6px; }
-    .xp-bar-wrap { gap: 5px; }
-  }
-  /* Sur mobile (<= 480px), on cache la barre XP visuelle —
-     on garde l'icône 💎 et le niveau "Nv.X". L'écran de stats
-     affiche la progression détaillée. */
-  @media(max-width: 480px) {
-    .xp-bar { display: none; }
-    .hud-item { padding: 3px 7px; font-size: .75rem; }
-    .logo { font-size: 1.15rem; letter-spacing: .5px; }
-  }
-
   /* ─── Drawer latéral (menu burger) ─── */
   .drawer-overlay {
     /* Hérite de .modal-overlay : position:fixed, inset:0, backdrop, z-index 1000 */
@@ -572,6 +545,33 @@
     height: 100%; background: linear-gradient(90deg, var(--blue), var(--orange));
     border-radius: 4px;
     transition: width .6s ease;
+  }
+
+  /* ─── Top bar — fix responsive mobile (placé APRÈS les règles
+     originales .hud / .hud-item / .xp-bar pour gagner la cascade) ─── */
+  header { flex-wrap: nowrap; gap: 8px; }
+  .logo { white-space: nowrap; }
+  .hud { flex-wrap: nowrap; }
+
+  @media(max-width: 600px) {
+    header {
+      padding: calc(8px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 8px calc(12px + env(safe-area-inset-left));
+      gap: 6px;
+    }
+    .logo { font-size: 1.25rem; letter-spacing: 1px; }
+    .hud { gap: 6px; }
+    .hud-item { padding: 3px 8px; font-size: .8rem; gap: 4px; }
+    .hud-item .icon { font-size: .85rem; }
+    .xp-bar { width: 50px; height: 6px; }
+    .xp-bar-wrap { gap: 5px; }
+  }
+  /* Sur mobile (<= 480px), on cache la barre XP visuelle —
+     on garde l'icône 💎 et le niveau "Nv.X". L'écran de stats
+     affiche la progression détaillée. */
+  @media(max-width: 480px) {
+    .xp-bar { display: none; }
+    .hud-item { padding: 3px 7px; font-size: .75rem; }
+    .logo { font-size: 1.15rem; letter-spacing: .5px; }
   }
 
   /* ── ÉCRAN D'ACCUEIL ── */
@@ -1425,6 +1425,10 @@
     cursor: pointer;
     transition: all var(--transition-fast);
     min-height: 44px;
+    /* Fix iOS Safari : supprime le délai 300ms et garantit que le tap
+       déclenche bien le click sur les boutons à l'intérieur d'un layout flex */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(255,215,0,.3);
   }
   /* Hover uniquement sur devices qui le supportent (PC, pas touch sticky) */
   @media (hover: hover) {
@@ -1433,11 +1437,14 @@
   .mission-tab.active {
     background: linear-gradient(135deg, var(--dark3), rgba(255,215,0,.18));
     border-color: var(--yellow);
+    border-width: 3px;
     color: var(--yellow);
     box-shadow: 0 2px 10px rgba(255,215,0,.20);
-    /* Petit indicateur visuel supplémentaire pour bien distinguer du hover */
-    transform: translateY(-1px);
     font-weight: 900;
+    /* Compensation du border-width supplémentaire (3-2=1px) pour ne pas
+       décaler le layout — au lieu d'un translateY qui posait des soucis
+       de hit-testing sur iOS Safari. */
+    padding: 8px 7px;
   }
   .mission-tab[data-classe="mix"].active {
     background: linear-gradient(135deg, var(--dark3), rgba(255,107,0,.10));
@@ -2366,11 +2373,11 @@
     <div class="mission-section" id="mission-section">
       <p class="section-label">📚 Choisir une partie</p>
       <div class="mission-tabs" role="tablist" aria-label="Niveau de classe">
-        <button type="button" class="mission-tab active" data-classe="6e" onclick="selectMissionClass('6e')" role="tab" aria-selected="true">🟢 6ème</button>
-        <button type="button" class="mission-tab" data-classe="5e" onclick="selectMissionClass('5e')" role="tab" aria-selected="false">🔵 5ème</button>
-        <button type="button" class="mission-tab" data-classe="4e" onclick="selectMissionClass('4e')" role="tab" aria-selected="false">📘 4ème</button>
-        <button type="button" class="mission-tab" data-classe="3e" onclick="selectMissionClass('3e')" role="tab" aria-selected="false">📕 3ème · DNB</button>
-        <button type="button" class="mission-tab" data-classe="mix" onclick="selectMissionClass('mix')" role="tab" aria-selected="false">🔀 Mix</button>
+        <button type="button" class="mission-tab active" data-classe="6e" role="tab" aria-selected="true">🟢 6ème</button>
+        <button type="button" class="mission-tab" data-classe="5e" role="tab" aria-selected="false">🔵 5ème</button>
+        <button type="button" class="mission-tab" data-classe="4e" role="tab" aria-selected="false">📘 4ème</button>
+        <button type="button" class="mission-tab" data-classe="3e" role="tab" aria-selected="false">📕 3ème · DNB</button>
+        <button type="button" class="mission-tab" data-classe="mix" role="tab" aria-selected="false">🔀 Mix</button>
       </div>
 
       <div class="mission-quick-label">⚡ Démarrage rapide <span id="mission-quick-classe-label" style="color:var(--yellow)">— 6ème</span></div>
@@ -11306,6 +11313,27 @@ function selectMissionClass(classe) {
   document.getElementById('mission-quick-classe-label').textContent = '— ' + MISSION_CLASSE_LABELS[classe];
   renderMissionChips();
 }
+
+// Attache les listeners sur les onglets de classe via addEventListener
+// plutôt qu'avec des inline onclick — plus fiable sur iOS Safari où
+// certains taps semblaient ne pas déclencher les inline handlers.
+(function bindMissionTabs() {
+  function bind() {
+    document.querySelectorAll('.mission-tabs .mission-tab').forEach(btn => {
+      if (btn._bound) return;
+      btn._bound = true;
+      btn.addEventListener('click', () => {
+        const cls = btn.dataset.classe;
+        if (cls) selectMissionClass(cls);
+      });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bind);
+  } else {
+    bind();
+  }
+})();
 
 function renderMissionChips() {
   const grid = document.getElementById('mission-chips');
