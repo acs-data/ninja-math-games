@@ -7392,10 +7392,28 @@ function installPWA() {
   });
 }
 
-// Enregistrement du service worker (offline-first)
+// Enregistrement du service worker (offline-first) + détection de mise à jour
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => {
+    navigator.serviceWorker.register('sw.js').then((reg) => {
+      // Cas 1 : un SW en attente existe déjà au démarrage (laissé d'une session précédente)
+      if (reg.waiting && navigator.serviceWorker.controller) {
+        showUpdateAvailable();
+      }
+      // Cas 2 : un nouveau SW vient d'être trouvé et s'installe
+      reg.addEventListener('updatefound', () => {
+        const newSW = reg.installing;
+        if (!newSW) return;
+        newSW.addEventListener('statechange', () => {
+          if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+            // Un SW contrôle déjà la page : c'est donc une mise à jour, pas la 1re install
+            showUpdateAvailable();
+          }
+        });
+      });
+      // Vérifie les mises à jour toutes les heures pour les longues sessions
+      setInterval(() => reg.update().catch(() => {}), 60 * 60 * 1000);
+    }).catch(() => {
       // Échec silencieux (file:// ou autres) — l'app fonctionne quand même
     });
   });
@@ -7657,6 +7675,44 @@ function resetPlayerStats() {
 
 // Restaure les stats au chargement
 restorePlayerStats();
+
+// Affiche un toast persistant invitant à recharger pour avoir la dernière version
+function showUpdateAvailable() {
+  if (window._updateNotified) return;
+  window._updateNotified = true;
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.innerHTML = '🔄 Nouvelle version disponible &nbsp;<button type="button" onclick="applyUpdate()" style="background:var(--yellow);color:var(--dark);border:none;padding:4px 12px;border-radius:8px;font-weight:900;cursor:pointer;margin-left:8px">METTRE À JOUR</button>';
+  t.classList.add('show');
+  if (typeof announceToScreenReader === 'function') {
+    announceToScreenReader('Nouvelle version de l\'application disponible. Bouton METTRE À JOUR dans la notification.');
+  }
+  if (typeof toastTimer !== 'undefined') clearTimeout(toastTimer);
+}
+
+// Activation manuelle déclenchée par le bouton "METTRE À JOUR"
+function applyUpdate() {
+  if (!('serviceWorker' in navigator)) {
+    window.location.reload();
+    return;
+  }
+  navigator.serviceWorker.getRegistration().then((reg) => {
+    if (reg && reg.waiting) {
+      // Demande au nouveau SW de prendre la main, puis recharge
+      reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      // Attend que le nouveau SW soit actif avant de recharger
+      const onControllerChange = () => {
+        navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+        window.location.reload();
+      };
+      navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+      // Failsafe : si pas de controllerchange dans 2s, on recharge quand même
+      setTimeout(() => window.location.reload(), 2000);
+    } else {
+      window.location.reload();
+    }
+  });
+}
 
 // ── Initialisation différée : restaure la sauvegarde et affiche le tutoriel ──
 (function initExtensions() {
