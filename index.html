@@ -9298,13 +9298,19 @@ function applyTheme(theme) {
     }
   }
   // Re-render des canvas actifs (car ils utilisent des couleurs JS hardcodées
-  // qui doivent maintenant lire les CSS vars via getComputedStyle)
-  if (typeof renderPyth === 'function' && document.getElementById('screen-pythagore') &&
-      document.getElementById('screen-pythagore').style.display !== 'none') renderPyth();
-  if (typeof renderGraph === 'function' && document.getElementById('screen-graph-reader') &&
-      document.getElementById('screen-graph-reader').style.display !== 'none') renderGraph();
-  if (typeof renderCanvas === 'function' && document.getElementById('screen-draw') &&
-      document.getElementById('screen-draw').style.display !== 'none') renderCanvas();
+  // qui doivent maintenant lire les CSS vars via getComputedStyle).
+  // IMPORTANT : on utilise getComputedStyle pour détecter la visibilité réelle,
+  // car .style.display ne reflète que les inline styles. À l'init, les screens
+  // sont cachés via la classe .screen-page (display:none CSS) → style.display
+  // est "" et non "none" → le test "!== 'none'" serait faussement vrai et on
+  // appellerait renderPyth() avant la déclaration de pythState (TDZ error).
+  const isVisible = (id) => {
+    const el = document.getElementById(id);
+    return el && getComputedStyle(el).display !== 'none';
+  };
+  if (typeof renderPyth === 'function' && isVisible('screen-pythagore')) renderPyth();
+  if (typeof renderGraph === 'function' && isVisible('screen-graph-reader')) renderGraph();
+  if (typeof renderCanvas === 'function' && isVisible('screen-draw')) renderCanvas();
   // Re-init particules avec opacité adaptée
   if (typeof initParticles === 'function') initParticles();
 }
@@ -9362,18 +9368,10 @@ function initTheme() {
   }
 }
 
-// ── Initialisation différée : restaure la sauvegarde et affiche le tutoriel ──
-(function initExtensions() {
-  restoreProgress();
-  updateSaveToggleUI();
-  initTheme();  // ← thème AVANT le render pour éviter le flash
-  // Re-render univers + persos avec l'état restauré
-  if (typeof renderUniverseGrid === 'function') renderUniverseGrid();
-  if (typeof renderCharGrid === 'function') renderCharGrid();
-  // Render la grille des chapitres dans la section mission unifiée
-  if (typeof renderMissionChips === 'function') renderMissionChips();
-  maybeShowTutorialOnLoad();
-})();
+// ── Initialisation différée : déplacée à la toute fin du script
+// (cf. bloc "Init au chargement" en fin de fichier) ──
+// Ne PAS exécuter ici : pythState / activeMissionClasse / etc. sont
+// déclarés avec `let` plus bas → TDZ si on initialise avant.
 
 
 
@@ -11380,11 +11378,21 @@ function startMissionChapter(chap) {
   startGame(activeMissionClasse + ':' + chap);
 }
 
-// Init au chargement
-if (typeof renderMissionChips === 'function') {
-  // Render initial chips (en différé pour que DOM soit prêt)
-  setTimeout(renderMissionChips, 0);
-}
+// ═══════════════════════════════════════════════════════════
+// INITIALISATION AU CHARGEMENT — doit s'exécuter en TOUT DERNIER,
+// après TOUTES les déclarations `let`/`const` du script (pythState,
+// dnbState, probaState, graphState, activeMissionClasse, etc.) pour
+// éviter les erreurs TDZ (Cannot access X before initialization).
+// ═══════════════════════════════════════════════════════════
+(function initExtensions() {
+  if (typeof restoreProgress === 'function') restoreProgress();
+  if (typeof updateSaveToggleUI === 'function') updateSaveToggleUI();
+  if (typeof initTheme === 'function') initTheme();  // thème AVANT render pour éviter flash
+  if (typeof renderUniverseGrid === 'function') renderUniverseGrid();
+  if (typeof renderCharGrid === 'function') renderCharGrid();
+  if (typeof renderMissionChips === 'function') renderMissionChips();
+  if (typeof maybeShowTutorialOnLoad === 'function') maybeShowTutorialOnLoad();
+})();
 
 </script>
 </body>
