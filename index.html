@@ -2282,6 +2282,10 @@
           <span class="drawer-icon" aria-hidden="true">⚖️</span>
           <span class="drawer-label">À propos &amp; Mentions légales</span>
         </button>
+        <button type="button" class="drawer-item" onclick="checkForUpdates()">
+          <span class="drawer-icon" aria-hidden="true">🔄</span>
+          <span class="drawer-label">Vérifier les mises à jour</span>
+        </button>
         <button type="button" class="drawer-item" id="drawer-save-toggle" onclick="toggleSave(); updateDrawerSaveLabel();">
           <span class="drawer-icon" aria-hidden="true" id="drawer-save-icon">💾</span>
           <span class="drawer-label" id="drawer-save-label">Sauvegarde : OFF</span>
@@ -8893,9 +8897,11 @@ function installPWA() {
 }
 
 // Enregistrement du service worker (offline-first) + détection de mise à jour
+window._swRegistration = null;
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').then((reg) => {
+      window._swRegistration = reg;
       // Cas 1 : un SW en attente existe déjà au démarrage (laissé d'une session précédente)
       if (reg.waiting && navigator.serviceWorker.controller) {
         showUpdateAvailable();
@@ -8911,11 +8917,43 @@ if ('serviceWorker' in navigator) {
           }
         });
       });
+      // Force une vérification immédiate à chaque chargement (court-circuite le cache HTTP de sw.js)
+      reg.update().catch(() => {});
       // Vérifie les mises à jour toutes les heures pour les longues sessions
       setInterval(() => reg.update().catch(() => {}), 60 * 60 * 1000);
     }).catch(() => {
       // Échec silencieux (file:// ou autres) — l'app fonctionne quand même
     });
+  });
+  // Re-vérifie quand l'utilisateur revient sur l'onglet/PWA (cas typique mobile)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && window._swRegistration) {
+      window._swRegistration.update().catch(() => {});
+    }
+  });
+}
+
+// Vérification manuelle déclenchée par l'item "Vérifier les mises à jour" du drawer.
+// Si une mise à jour est dispo → toast standard ; sinon → toast "Vous êtes à jour".
+function checkForUpdates() {
+  closeTopbarMenu();
+  if (!('serviceWorker' in navigator) || !window._swRegistration) {
+    showToast('⚠️ Service Worker non disponible');
+    return;
+  }
+  showToast('🔍 Vérification…');
+  window._swRegistration.update().then(() => {
+    // Laisse le temps au navigateur de détecter la nouvelle version
+    setTimeout(() => {
+      const reg = window._swRegistration;
+      if (reg && reg.waiting) {
+        showUpdateAvailable();
+      } else if (!window._updateNotified) {
+        showToast('✅ Vous êtes à jour');
+      }
+    }, 800);
+  }).catch(() => {
+    showToast('⚠️ Vérification impossible');
   });
 }
 
