@@ -1112,10 +1112,14 @@
     touch-action: none;
   }
   .graph-hint {
-    font-size: .72rem;
-    color: var(--gray);
+    font-size: .82rem;
+    color: var(--yellow);
     text-align: center;
-    margin-top: 6px;
+    margin-top: 8px;
+    padding: 6px 12px;
+    background: rgba(255, 215, 0, 0.06);
+    border-radius: var(--radius-sm);
+    line-height: 1.4;
   }
 
   /* ── ARBRE DE PROBABILITÉS ── */
@@ -2341,7 +2345,7 @@
     <!-- Timer -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
       <div class="timer-bar" style="flex:1;height:8px"><div class="timer-fill" id="tf-timer-fill" style="width:100%;background:var(--blue)"></div></div>
-      <div class="timer-num" id="tf-timer-num">7</div>
+      <div class="timer-num" id="tf-timer-num">9</div>
     </div>
 
     <!-- Affirmation -->
@@ -6781,12 +6785,14 @@ function submitAutoAnswer(timedOut) {
     announceToScreenReader(`Faux. La bonne réponse était ${q.a}.`);
   }
 
-  // Passe automatiquement à la suivante après 1.5s
+  // Passe automatiquement à la suivante après un délai suffisant
+  // (correct = temps de lire "Correct +X pts" ; faux = temps de lire l'explication
+  //  et mémoriser la bonne réponse)
   setTimeout(() => {
     autoState.qIdx++;
     if (autoState.qIdx >= 20) endAutoMode();
     else loadAutoQuestion();
-  }, ok ? 900 : 2000);
+  }, ok ? 2500 : 5000);
 }
 
 // Enter key on input
@@ -7459,7 +7465,7 @@ let tfState = {
   streak: 0,
   bestStreak: 0,
   timer: null,
-  timeLeft: 7,
+  timeLeft: 9,
   questions: [],
   answered: false
 };
@@ -7474,7 +7480,7 @@ function startTrueFalse() {
   }
   tfState = {
     qIdx: 0, score: 0, correct: 0, streak: 0, bestStreak: 0,
-    timer: null, timeLeft: 7, questions: pool.slice(0, 20), answered: false
+    timer: null, timeLeft: 9, questions: pool.slice(0, 20), answered: false
   };
   showScreen('tf');
   loadTfQuestion();
@@ -7484,7 +7490,7 @@ function loadTfQuestion() {
   const q = tfState.questions[tfState.qIdx];
   if (!q) { endTrueFalse(); return; }
   tfState.answered = false;
-  tfState.timeLeft = 7;
+  tfState.timeLeft = 9;
 
   document.getElementById('tf-progress').textContent = `Affirmation ${tfState.qIdx + 1} / ${tfState.questions.length}`;
   document.getElementById('tf-statement').textContent = q.text;
@@ -7512,7 +7518,7 @@ function loadTfQuestion() {
 }
 
 function updateTfTimerUI() {
-  const pct = (tfState.timeLeft / 7) * 100;
+  const pct = (tfState.timeLeft / 9) * 100;
   document.getElementById('tf-timer-fill').style.width = pct + '%';
   document.getElementById('tf-timer-num').textContent = Math.max(0, Math.ceil(tfState.timeLeft));
 }
@@ -7558,12 +7564,14 @@ function answerTf(userAnswer) {
   state.score += ok ? 50 : 0;
   updateHUD();
 
-  // Passe automatiquement à la suivante après un délai
+  // Passe automatiquement à la suivante après un délai suffisant pour lire
+  // l'explication (correcte ou erreur). Avant : 1.1s / 2.4s — trop rapide
+  // selon retours utilisateurs. Nouveau : 2.5s / 4.5s.
   setTimeout(() => {
     tfState.qIdx++;
     if (tfState.qIdx >= tfState.questions.length) endTrueFalse();
     else loadTfQuestion();
-  }, ok ? 1100 : 2400);
+  }, ok ? 2500 : 4500);
 }
 
 function showFeedbackTf(ok, msg, earned) {
@@ -9973,7 +9981,8 @@ function loadGraphChallenge() {
     let x = Math.floor(Math.random() * 7) - 3;
     if (x === 0) x = 1;  // pour éviter f(0)=b trivial
     challenge.target = { x, y: evalGraphFn(fn, x) };
-    challenge.question = `Quelle est l'<strong>image de ${x}</strong> par cette fonction ? Clique sur le point correspondant.`;
+    challenge.question = `Quelle est l'<strong>image de ${x}</strong> par cette fonction ?<br><span style="font-size:.85rem;color:var(--gray);font-weight:600">💡 Trouve le point de la droite dont l'<strong>abscisse</strong> (axe horizontal) vaut <strong>${x}</strong>, puis clique dessus pour révéler sa hauteur.</span>`;
+    challenge.hint = 'Monte ou descends verticalement depuis l\'abscisse ' + x + ' jusqu\'à la droite.';
   } else if (type === 'antecedent') {
     // Choisis un y entier dans la portée verticale
     // Pour que ce soit faisable, y doit être atteint par f sur entier
@@ -9981,7 +9990,8 @@ function loadGraphChallenge() {
     if (xTarget === 0) xTarget = 1;
     const y = evalGraphFn(fn, xTarget);
     challenge.target = { x: xTarget, y };
-    challenge.question = `Quel est l'<strong>antécédent de ${y}</strong> par cette fonction ? Clique sur le point correspondant.`;
+    challenge.question = `Quel est l'<strong>antécédent de ${y}</strong> par cette fonction ?<br><span style="font-size:.85rem;color:var(--gray);font-weight:600">💡 Trouve le point de la droite dont l'<strong>ordonnée</strong> (axe vertical) vaut <strong>${y}</strong>, puis clique dessus pour révéler son abscisse.</span>`;
+    challenge.hint = 'Avance horizontalement depuis l\'ordonnée ' + y + ' jusqu\'à la droite.';
   } else if (type === 'identif_expr') {
     challenge.mode = 'qcm';
     // Génère 4 expressions, la bonne + 3 leurres
@@ -10003,7 +10013,8 @@ function loadGraphChallenge() {
     }
     challenge.answers = variantList;
     challenge.correctIdx = variantList.indexOf(correct);
-    challenge.question = `Quelle expression correspond à <strong>cette droite</strong> ?`;
+    challenge.question = `Quelle expression <strong>f(x)</strong> correspond à cette droite ?<br><span style="font-size:.85rem;color:var(--gray);font-weight:600">💡 Repère la <strong>pente</strong> (a) et l'<strong>ordonnée à l'origine</strong> (b, là où la droite coupe l'axe y).</span>`;
+    challenge.hint = 'Choisis l\'expression dont les valeurs collent au graphique en 2 points.';
   } else if (type === 'coeff_directeur') {
     challenge.mode = 'qcm';
     const distractors = aChoices.filter(x => x !== a).slice(0, 3);
@@ -10015,7 +10026,8 @@ function loadGraphChallenge() {
     }
     challenge.answers = opts.map(v => 'a = ' + signedFr(v));
     challenge.correctIdx = opts.indexOf(a);
-    challenge.question = `Quel est le <strong>coefficient directeur</strong> de cette droite ?`;
+    challenge.question = `Quel est le <strong>coefficient directeur</strong> (la pente) de cette droite ?<br><span style="font-size:.85rem;color:var(--gray);font-weight:600">💡 Quand x avance de 1 (1 carreau à droite), de combien y monte (ou descend) ?</span>`;
+    challenge.hint = 'Prends 2 points : (x₁,y₁) puis (x₂,y₂). Pente = (y₂−y₁) / (x₂−x₁).';
   }
 
   graphState.current = challenge;
@@ -10028,9 +10040,9 @@ function loadGraphChallenge() {
   if (challenge.mode === 'click') {
     document.getElementById('graph-clicked-point').textContent = 'aucun';
     document.getElementById('graph-validate-btn').disabled = true;
-    document.getElementById('graph-hint').textContent = '💡 Clique sur le bon point de la droite.';
+    document.getElementById('graph-hint').textContent = '💡 ' + (challenge.hint || 'Clique sur le bon point de la droite.');
   } else {
-    document.getElementById('graph-hint').textContent = '💡 Observe la droite et choisis la bonne réponse parmi les 4.';
+    document.getElementById('graph-hint').textContent = '💡 ' + (challenge.hint || 'Observe la droite et choisis la bonne réponse parmi les 4.');
     renderGraphQcm();
   }
   renderGraph();
