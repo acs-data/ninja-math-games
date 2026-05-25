@@ -35,7 +35,7 @@
   <text x="600" y="370" font-family="Impact, 'Arial Black', sans-serif" font-size="86" font-weight="900" text-anchor="middle" fill="#FF6B00" filter="url(#textShadow)" letter-spacing="6">ANIME MATH ACADEMY</text>
 
   <!-- Sous-titre -->
-  <text x="600" y="430" font-family="'Nunito', 'Helvetica Neue', sans-serif" font-size="32" font-weight="700" text-anchor="middle" fill="#F0F0FF">Maths 6e &amp; 5e — Programmes 2025/2026 — DNB 2027</text>
+  <text x="600" y="430" font-family="'Nunito', 'Helvetica Neue', sans-serif" font-size="32" font-weight="700" text-anchor="middle" fill="#F0F0FF">Maths Collège 6e → 3e — DNB 2027 — Programmes officiels</text>
 
   <!-- Badges univers -->
   <g transform="translate(0,490)">

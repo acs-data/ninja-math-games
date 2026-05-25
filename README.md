@@ -1,8 +1,8 @@
 # 🥷 Anime Math Academy
 
-> Un jeu HTML pédagogique pour réviser les maths de 6ème et préparer la 5ème, dans l'univers des animes populaires.
+> Un jeu HTML pédagogique pour réviser **les maths du collège (6e → 3e)** et préparer le DNB 2027, dans l'univers des animes populaires.
 
-Un fichier HTML autonome (aucune installation, aucun serveur), conçu pour les collégiens fans de Naruto, One Piece, Dragon Ball, My Hero Academia, Demon Slayer et Pokémon.
+Un fichier HTML autonome (aucune installation, aucun serveur), PWA installable, conçu pour les collégiens fans de Naruto, One Piece, Dragon Ball, My Hero Academia, Demon Slayer et Pokémon.
 
 > ⚠️ **Mention importante** — Ce projet n'est **ni affilié, ni sponsorisé, ni endossé** par Shueisha, Toei Animation, The Pokémon Company, Nintendo, Bandai Namco, ufotable, Aniplex, BONES, ou tout autre ayant droit. Les noms cités sont des marques déposées de leurs titulaires respectifs et sont utilisés à titre purement référentiel à des fins éducatives, **sans reproduction d'éléments graphiques, sonores ou d'extraits** de ces œuvres.
 >
@@ -12,15 +12,15 @@ Un fichier HTML autonome (aucune installation, aucun serveur), conçu pour les c
 
 ## 🎯 Objectif
 
-Préparer concrètement les élèves au programme officiel **6ème (BO 17 avril 2025)** et **5ème (BO 5 mars 2026)**, en particulier la nouvelle épreuve d’**automatismes du DNB 2027** (20 min, sans calculatrice, 6 pts/40).
+Préparer les élèves au programme officiel **du collège complet (6e à 3e)**, conforme aux BO officiels et à la nouvelle épreuve d'**automatismes du DNB 2027** (20 min, sans calculatrice, 6 pts/40).
 
-L’idée : transformer la révision en quête épique. Le contenu pédagogique reste rigoureux, l’habillage est immersif.
+L'idée : transformer la révision en quête épique. Le contenu pédagogique reste rigoureux, l'habillage est immersif. **Couverture 90 % du programme** sur les 4 niveaux.
 
 -----
 
 ## ✨ Fonctionnalités
 
-### 🌍 6 univers anime
+### 🌍 6 univers anime, 36 personnages
 
 |Univers               |Personnages                                         |Grades                       |
 |----------------------|----------------------------------------------------|-----------------------------|
@@ -31,109 +31,163 @@ L’idée : transformer la révision en quête épique. Le contenu pédagogique 
 |⚔️ **Demon Slayer**    |Tanjiro, Nezuko, Zenitsu, Inosuke, Giyu, Rengoku    |Aspirant → Maître Pourfendeur|
 |⚡ **Pokémon**         |Sacha, Pikachu, Ondine, Pierre, Ouisticram, Léviator|Apprenti → Maître Pokémon    |
 
-**Adaptation dynamique** : changer d’univers reformule automatiquement les questions (“Naruto mange du ramen” devient “Luffy mange de la viande”, etc.), renomme les pouvoirs (“Kage Bunshin” → “Observation” → “Scouter”), change la devise (chakra → haki → ki), et modifie la couleur dominante de l’interface.
+**Adaptation dynamique** : changer d'univers reformule automatiquement les questions ("Naruto mange du ramen" devient "Luffy mange de la viande"), renomme les pouvoirs (jutsu → haki → ki), change la devise (chakra → haki → ki), et modifie la couleur dominante de l'interface.
 
-### 🎮 6 modes de jeu
+### 🎮 13 modes de jeu (4 niveaux × plusieurs formats)
 
-1. **🟢 Académie (6ème)** — 15 questions QCM pour réviser le programme de 6ème
-1. **🔵 Genin (5ème)** — 14 questions QCM pour anticiper la 5ème
-1. **🔴 Chunin (Mix)** — 10 questions piégées mélangeant les deux niveaux
-1. **💀 Boss (Kage)** — 7 questions expertes chronométrées avec vies limitées
-1. **✏️ Tracé géométrique** — 6 missions où on dessine au doigt sur un canvas (axes de symétrie, droites perpendiculaires, angles, diagonales). Évaluation automatique de la précision en %.
-1. **🧩 Puzzle d’emboîtement** — 6 puzzles drag & drop : fractions équivalentes, formes géométriques, classement de relatifs, priorités opératoires, identification d’hypoténuses
+**QCM par niveau de difficulté (legacy)** :
+
+1. **🟢 Académie (6e)** — 30 questions de révision 6e
+2. **🔵 Genin (5e)** — 26 questions d'anticipation 5e
+3. **🔴 Chunin (Mix)** — 20 questions piégées 6e+5e
+4. **💀 Boss (Kage)** — 12 questions expertes chronométrées
+5. **🧘 Entraînement libre (Zen)** — 20 questions sans timer ni vies perdues
+
+**Réviser par chapitre** (sélection par niveau + chapitre du programme) :
+
+- 🟢 **6e** : Décimaux, Fractions, Calcul & nombres, Géométrie, Stats & probas, Proportionnalité
+- 🔵 **5e** : Relatifs, Fractions 4 opérations, Puissances, Calcul littéral & équations, Géométrie, % & vitesse
+- 📘 **4e** : Pythagore, Puissances & notation scientifique, Calcul littéral, Équations, Statistiques, Transformations
+- 📕 **3e (DNB)** : Thalès, Trigonométrie, Fonctions, Identités & factorisation, Probabilités, Arithmétique
+
+**Modes interactifs** :
+
+6. **✏️ Tracé géométrique** — 6 missions au doigt sur canvas (axes de symétrie, droites, angles)
+7. **🧩 Puzzle d'emboîtement** — 6 puzzles drag&drop (fractions, formes, équations)
+8. **⚡ Vrai/Faux Speed** — 50 affirmations math en 7 sec chacune, raccourcis V/F au clavier
+9. **📖 Histoire interactive** — 5 aventures narratives multi-étapes (Naruto/Sakura/Sasuke/Jiraiya/Orochimaru/Tanjiro)
+
+**Modes interactifs Phase 4 (4e/3e + DNB)** :
+
+10. **🏆 DNB Blanc complet** — Épreuve simulée /40 (20 min auto + 4 exercices écrits = ~1h45)
+11. **🔺 Constructeur Pythagore/Thalès/Trigo** — Canvas tactile, 3 ateliers + défis aléatoires
+12. **🌳 Arbre de probabilités** — Drag&drop 6 branches × 3 scénarios + calcul composé
+13. **📈 Lecteur de graphique** — 10 défis : image, antécédent, identification d'expression, coefficient directeur
 
 ### ⚡ Mode Automatismes — Format DNB 2027
 
-- **20 questions en 20 minutes**, sans calculatrice (réplique exacte de la nouvelle épreuve du DNB)
-- **21 générateurs aléatoires** : calculs créés à la volée, pratique quasi-infinie
-- **Saisie clavier** (Entrée pour valider), normalisation tolérante (`5` = `+5`, `0,5` = `0.5`, `−3` = `-3`, etc.)
-- 3 niveaux : 6ème, 5ème, Mix
-- **Note DNB simulée sur 6** + analyse colorée par thème pour identifier les faiblesses
+- **20 questions en 20 minutes**, sans calculatrice (réplique exacte de l'épreuve DNB)
+- **39 générateurs aléatoires** (6e: 10, 5e: 11, 4e: 8, 3e: 10) → pratique quasi-infinie
+- **Saisie clavier** (Entrée pour valider), normalisation tolérante (`5` = `+5`, `0,5` = `0.5`, `−3` = `-3`)
+- **5 pools** : 6e seul, 5e seul, 4e seul, 3e seul, Mix tous niveaux, **Spécial DNB 2027** (4e + 3e mélangés)
+- **Note DNB simulée sur 6** + analyse colorée par thème
 
 ### 🧠 Pédagogie
 
-- **Répétition espacée** (méthode Ebbinghaus) : les questions ratées sont automatiquement remises dans la pile toutes les 3 questions, puis en phase de révision en fin de session
+- **Conformité stricte aux programmes officiels** :
+  - 6e : BO du 17 avril 2025 (cycle 3)
+  - 5e à 3e : BO du 5 mars 2026 (cycle 4)
+- **Répétition espacée** (méthode Ebbinghaus) : les questions ratées sont remises dans la pile toutes les 3 questions, puis en phase de révision en fin de session
 - **Feedback détaillé** après chaque réponse avec la méthode complète
-- **Multimodalité** : QCM (récupération active), tracé (kinesthésique), drag & drop (manipulation), calcul mental (fluidité)
+- **Multimodalité** : QCM, tracé kinesthésique, drag & drop, calcul mental, canvas interactif
 - **Récompenses variables** : XP, combos, jutsus, trophées
 - **Charge cognitive contrôlée** : interface épurée, formatage minimal
 
 ### 🎁 Gamification
 
-- **Système de vies** (cœurs) et **chakra/haki/ki** (selon l’univers)
+- **Système de vies** (cœurs) et **chakra/haki/ki** (selon l'univers)
 - **Combo multiplier** : enchaîner les bonnes réponses booste le score
 - **3 jutsus/power-ups** : 50/50, indice subtil, arrêt du temps
-- **XP & niveaux** persistants en session
+- **XP & niveaux** persistants (avec sauvegarde locale opt-in)
 - **Trophées débloquables** : score parfait, combo légendaire, pur chakra, révision active, apprenant tenace
+- **Streak quotidien** : compteur de jours consécutifs
+
+### 📈 Statistiques personnelles
+
+- Écran **"Mes stats"** accessible depuis l'accueil (si sauvegarde activée)
+- Compteurs : parties jouées, taux de réussite global, niveau XP, streak
+- **Top univers / personnages** utilisés
+- **Chapitres maîtrisés** (≥ 75 %) vs **à retravailler** (< 50 %)
+- Reset utilisateur disponible à tout moment
+
+### 📊 Analytique admin
+
+- **GoatCounter** (gratuit, sans cookies, RGPD-safe) — hébergement EU
+- Events trackés : univers/perso choisis, modes lancés, taux de complétion, chapitres révisés
+- Dashboard sur https://ninja-math.goatcounter.com
+- Respect de `navigator.doNotTrack`
 
 -----
 
 ## 📚 Couverture du programme
 
-### Programme 6ème (BO 17 avril 2025)
+| Niveau | BO | Couverture | Notions principales |
+|---|---|---|---|
+| **6e** | BO 17/04/2025 cycle 3 | ✅ ~90 % | Décimaux, fractions, calcul mental, PGCD, symétrie axiale, angles, aires/volumes simples, moyenne, probas (nouveau 2025), proportionnalité, pré-algèbre en mots |
+| **5e** | BO 05/03/2026 cycle 4 | ✅ ~90 % | Relatifs, fractions 4 opérations, puissances, priorités, calcul littéral, équations 1er degré (nouveau 2026), somme angles triangle, %, vitesse, probas |
+| **4e** | BO 05/03/2026 cycle 4 | ✅ ~90 % | **Pythagore**, **notation scientifique**, calcul littéral avancé, équations 2 membres, **médiane/étendue/moyenne pondérée**, transformations |
+| **3e** | BO 05/03/2026 cycle 4 + DNB 2027 | ✅ ~90 % | **Thalès**, **trigonométrie**, **fonctions linéaires/affines**, identités remarquables, factorisation, équation produit-nul, probas composées, arithmétique (PGCD/premiers) |
 
-Fractions (équivalence, addition, soustraction, multiplication, division), décimaux, calcul mental, PGCD/multiples/divisibilité, symétrie axiale, angles complémentaires, périmètres, aires, volume du cube, statistiques (moyenne), probabilités, proportionnalité, conversions d’unités.
-
-### Programme 5ème (BO 5 mars 2026)
-
-Nombres relatifs (addition, soustraction, multiplication, classement), fractions (4 opérations), priorités opératoires, puissances entières, calcul littéral (substitution + développement), équations 1er degré, symétrie centrale, somme des angles d’un triangle, pourcentages, proportionnalité (échelles, vitesse), probabilités.
-
-### Couverture estimée
-
-- **6ème** : ~80%
-- **5ème** : ~80%
+⚠️ **Respect strict** : pas de Pythagore en 5e (réservé 4e), pas de calcul littéral avec lettres en 6e (mots seulement), Thalès et trigo en 3e uniquement.
 
 -----
 
 ## 🚀 Utilisation
 
-1. Télécharge `ninja-math-academy.html`
-1. Double-clique dessus — il s’ouvre dans ton navigateur
-1. Choisis ton univers, ton personnage, et ton mode
+### Pour les élèves
 
-**C’est tout.** Aucune installation, aucun compte, aucun serveur, aucun cookie. Le jeu fonctionne 100% en local et hors-ligne.
+1. Aller sur `https://acs-data.github.io/ninja-math-games/`
+2. Choisir un univers, un personnage, un mode
+3. Optionnellement, activer **💾 Sauvegarde** pour conserver sa progression
+4. Optionnellement, **📲 Installer l'app** (Chrome/Android, ou "Ajouter à l'écran d'accueil" sur iOS) pour jouer hors-ligne
+
+**C'est tout.** Aucune installation obligatoire, aucun compte, aucun serveur, aucun cookie. Le jeu fonctionne 100 % en local et hors-ligne après la première visite.
 
 ### Compatibilité
 
 - ✅ Chrome, Firefox, Safari, Edge (versions récentes)
 - ✅ Mobile (iOS, Android) — interface tactile optimisée
 - ✅ Tablette
-- ✅ Hors-ligne (les polices Google sont chargées en ligne mais ont un fallback Impact/Arial Black)
+- ✅ Hors-ligne après la 1re visite (service worker cache-first)
+- ✅ PWA installable
+- ✅ Accessibilité WCAG 2.1 niveau AA (focus visible, ARIA, raccourcis clavier, lecteur d'écran, prefers-reduced-motion)
 
-### Comment l’utiliser au quotidien
+### Recommandation d'usage
 
 - **20-30 min/jour** en mode QCM ou Automatismes : suffisant pour ancrer les notions
-- **Mode Automatismes** : à pratiquer **3 fois/semaine** pour préparer le DNB
-- **Modes Tracé et Puzzle** : pour varier les approches et renforcer la mémoire kinesthésique
-- **Mode Boss** : à réserver aux fins de chapitre, pour challenge
+- **Mode Automatismes / DNB Blanc** : à pratiquer **3 fois/semaine** pour préparer le DNB
+- **Modes Tracé, Puzzle, Constructeur, Arbre, Graphique** : pour varier les approches et renforcer la mémoire kinesthésique
+- **Mode Boss / DNB Blanc** : à réserver aux fins de chapitre, pour challenge
+- **Mode Entraînement libre / Réviser par chapitre** : pour le travail au calme sans pression
 
 -----
 
 ## 🛠 Stack technique
 
-- **HTML5 + CSS3 + JavaScript vanilla** — un seul fichier, zéro dépendance npm
-- **Canvas API** pour le mode tracé géométrique (avec gestion mouse + touch)
-- **Drag & Drop manuel** (mouse + touch) pour le mode puzzle
-- **Polices** : Bangers (titres) et Nunito (corps) via Google Fonts, avec fallback Impact/Arial Black pour iOS et offline
-- **Sauvegarde locale opt-in** : `localStorage` activable explicitement par l'utilisateur sur l'écran d'accueil (RGPD-safe, jamais activé par défaut)
-- **Pas d'API externe** : tout est embarqué
-- **PWA installable** : `manifest.json` + service worker (`sw.js`) pour un fonctionnement hors-ligne complet après la 1re visite
+- **HTML5 + CSS3 + JavaScript vanilla** — un seul fichier, **zéro dépendance npm, zéro build**
+- **PWA installable** : `manifest.json` + service worker (`sw.js`)
+- **Cache-versionné automatiquement** : le SHA du commit est injecté dans le SW au déploiement (workflow GitHub Pages)
+- **Canvas API** pour les modes tracé, constructeur Pythagore/Thalès/Trigo, lecteur de graphique
+- **Drag & Drop manuel** (mouse + touch) pour les modes puzzle et arbre de probabilités
+- **Polices** : Bangers (titres) et Nunito (corps) via Google Fonts, fallback Impact/Arial Black
+- **Sauvegarde locale opt-in** (`localStorage`) : XP, niveau, univers, perso, stats. RGPD-safe.
+- **Service worker** : cache-first, offline-ready, notification de mise à jour avec bouton "METTRE À JOUR"
+- **Analytique** : GoatCounter (sans cookies, EU-hosted, RGPD)
 
 ### Structure du fichier
 
 ```
-ninja-math-academy.html  (≈ 160 KB, ≈ 3700 lignes)
-├── <head>
-│   └── <style>   (variables CSS, ~700 lignes)
-├── <body>
-│   ├── Header HUD (score, combo, XP)
-│   ├── Écran accueil (sélecteur univers + personnage + mode)
-│   ├── Écran QCM
-│   ├── Écran Tracé (canvas)
-│   ├── Écran Puzzle (drag & drop)
-│   ├── Écran Automatismes (input clavier)
-│   ├── Écran Résultats (général + automatismes)
-│   └── <script>  (logique de jeu, ~2000 lignes)
+index.html  (≈ 475 KB, ≈ 10 200 lignes — mono-fichier volontaire)
+├── <head>          (lignes 1-50)    Meta, OG, favicon SVG inline, manifest, polices
+├── <style>         (lignes 50-1180) CSS complet : variables, layout, écrans, animations, a11y
+├── <body>          (lignes 1180-2300) 13 écrans + modals + footer
+└── <script>        (lignes 2300-10200) Logique de jeu, état, modes, rendu
+```
+
+### Fichiers du projet
+
+```
+/
+├── index.html              Fichier principal (à modifier)
+├── manifest.json           Manifest PWA
+├── sw.js                   Service Worker (cache-first, versionné)
+├── icon-192.png            Icône PWA Android
+├── icon-512.png            Icône PWA haute résolution
+├── og-image.png            Image OpenGraph 1200×630
+├── og-image.svg            Source vectorielle de l'image OG
+├── .github/workflows/pages.yml  Déploiement automatique sur GitHub Pages
+├── README.md               Ce fichier
+└── CLAUDE.md               Guide pour IA assistantes
 ```
 
 -----
@@ -141,19 +195,28 @@ ninja-math-academy.html  (≈ 160 KB, ≈ 3700 lignes)
 ## 📊 Statistiques de contenu
 
 - **6 univers** × 6 personnages × 5 grades = **36 personnages**, **30 grades**
-- **46 questions QCM** réparties sur 4 modes
+- **167 questions QCM** réparties sur 4 modes legacy + 12 chapitres
+  - 88 QCM legacy (6e: 30, 5e: 26, mixte: 20, boss: 12)
+  - 39 QCM 4e par chapitre (6 chapitres)
+  - 40 QCM 3e par chapitre (6 chapitres)
 - **6 missions de tracé géométrique**
-- **6 puzzles d’emboîtement**
-- **21 générateurs aléatoires** pour les automatismes (= pratique quasi-illimitée)
-- **Dictionnaire d’adaptation** : ~25 termes traduits par univers
+- **6 puzzles d'emboîtement**
+- **39 générateurs d'automatismes** (10 par niveau en moyenne)
+- **9 aventures narratives** multi-étapes (32 sous-questions)
+- **4 exercices DNB Blanc** (16 sous-questions)
+- **50 affirmations Vrai/Faux Speed**
+- **3 scénarios d'arbres de probabilités** + 3 questions composées
+- **3 ateliers Pythagore/Thalès/Trigo** + défis aléatoires illimités
+- **10 défis Lecteur de graphique** par session (générés aléatoirement)
+- **Dictionnaire d'adaptation** : ~25 termes traduits par univers
 
 -----
 
 ## 🎓 Conformité aux programmes officiels
 
-- **Cycle 3 (6ème)** : programme du [BO du 17 avril 2025](https://www.education.gouv.fr/bo/2025/Hebdo16/MENE2504620A), en vigueur depuis la rentrée 2025
-- **Cycle 4 (5ème)** : programme du [BO du 5 mars 2026](https://eduscol.education.fr/280/mathematiques-cycle-4), en vigueur dès la rentrée 2026
-- **DNB 2027** : prise en compte de la nouvelle épreuve d’automatismes (20 min, sans calculatrice, 6 pts/40)
+- **Cycle 3 (6e)** : programme du [BO du 17 avril 2025](https://www.education.gouv.fr/bo/2025/Hebdo16/MENE2504620A), en vigueur depuis la rentrée 2025
+- **Cycle 4 (5e, 4e, 3e)** : programme du BO du 5 mars 2026, en vigueur dès la rentrée 2026
+- **DNB 2027** : nouvelle épreuve d'automatismes (20 min, sans calculatrice, 6 pts/40) + 4 exercices écrits (34 pts/40)
 
 -----
 
@@ -161,38 +224,47 @@ ninja-math-academy.html  (≈ 160 KB, ≈ 3700 lignes)
 
 Le code est volontairement lisible et modulaire. Pour modifier ou enrichir :
 
-- **Ajouter des questions** : éditer le tableau `QUESTIONS` dans le `<script>`, format :
-  
+- **Ajouter une question QCM legacy** : éditer `QUESTIONS['6e_facile']`, etc. dans le `<script>`. Format :
   ```js
   {
-    type: "Catégorie",
+    type: "Catégorie",                     // doit matcher un TYPE_TO_CHAPTER_* pour apparaître par chapitre
     theme: "🎨 Contexte narratif",
     text: "Énoncé avec <span class='math'>formule</span>",
     answers: ["A", "B", "C", "D"],
-    correct: 0,  // index de la bonne réponse
+    correct: 0,                             // index 0..3
     feedback: "Explication détaillée de la méthode"
   }
   ```
-- **Ajouter un univers** : compléter l’objet `UNIVERSES` avec une nouvelle clé contenant `chars`, `ranks`, `place`, `mission`, `hero`, `powerName`, `currency`. Puis ajouter une entrée correspondante dans `UNIVERSE_THEMES_MAP` pour l’adaptation des questions.
-- **Ajouter un générateur d’automatismes** : ajouter une fonction à `AUTO_GENERATORS` qui retourne `{ q, a, theme }`, puis l’inclure dans le pool souhaité (`AUTO_POOLS`).
-- **Ajouter une mission de tracé** : compléter `DRAW_MISSIONS` avec `title`, `instruction`, `guide` (forme géométrique attendue), `tolerance`, `feedback_ok`, `feedback_bad`, `xp`.
+- **Ajouter une question par chapitre 4e/3e** : éditer `QUESTIONS_BY_CHAPTER['4e']['pythagore']`, etc.
+- **Ajouter un chapitre** : créer la clé dans `QUESTIONS_BY_CHAPTER` + ajouter les métadonnées dans `CHAPTER_LABELS`.
+- **Ajouter un univers** : compléter l'objet `UNIVERSES` + entrée correspondante dans `UNIVERSE_THEMES_MAP` et `UNIVERSE_EMOJI_MAP`.
+- **Ajouter un générateur d'automatismes** : ajouter une fonction à `AUTO_GENERATORS` qui retourne `{ q, a, theme }`, puis l'inclure dans le pool souhaité (`AUTO_POOLS`).
+- **Ajouter une mission de tracé** : compléter `DRAW_MISSIONS` avec `title`, `instruction`, `guide`, `tolerance`, `feedback_ok`, `feedback_bad`, `xp`.
+- **Ajouter un puzzle** : compléter `PUZZLES` (type `match` ou `sort`).
+- **Ajouter une aventure narrative** : compléter `STORY_MISSIONS` avec `title`, `decor`, `intro`, `steps[]`.
+- **Ajouter une affirmation V/F** : compléter `TRUEFALSE_STATEMENTS`.
+- **Ajouter un exercice DNB Blanc** : compléter `DNB_EXERCISES`.
+- **Ajouter un scénario d'arbre** : compléter `PROBA_SCENARIOS`.
+
+Voir `CLAUDE.md` pour la documentation détaillée à destination des IA assistantes.
 
 -----
 
-## 🐛 Limitations connues
+## 🚧 Limitations connues
 
-- **Persistance opt-in uniquement** : la sauvegarde locale (XP, niveau, univers, personnage) doit être activée par l'utilisateur via le bouton dédié sur l'écran d'accueil
-- **Pas de dashboard de suivi long terme** : pas d'historique des erreurs sur plusieurs sessions
+- **Persistance opt-in uniquement** : la sauvegarde locale doit être activée par l'utilisateur via le bouton dédié sur l'écran d'accueil (choix RGPD volontaire pour le public mineur)
 - **Questions QCM en banque fixe** (sauf mode Automatismes) : limité à ce qui est codé en dur
-- **Mode tracé** : la validation est tolérante mais imparfaite pour les angles complexes
+- **Mode tracé** : validation tolérante mais imparfaite pour les angles complexes
 - **Pas d'audio** : pas de sons ni de musique (volontaire pour le calme de l'étude)
+- **Pas d'IA générative côté élève** : tout est statique, déterministe et contrôlable pédagogiquement
 
 -----
 
 ## 📝 Crédits
 
-- **Conception pédagogique** : alignée sur les programmes officiels français du collège, cycles 3 et 4 (BO 17/04/2025 et BO 05/03/2026).
-- **Polices** : Bangers et Nunito via Google Fonts (licence SIL Open Font).
+- **Conception pédagogique** : alignée sur les programmes officiels français du collège, cycles 3 et 4 (BO 17/04/2025 et BO 05/03/2026)
+- **Polices** : Bangers et Nunito via Google Fonts (licence SIL Open Font)
+- **Édité par** : ACS Dataformation — France
 
 -----
 
@@ -228,6 +300,7 @@ Ce projet est **strictement non commercial** :
 - Aucune donnée personnelle collectée par défaut
 - Aucun transfert vers des tiers
 - La sauvegarde locale est opt-in explicite (`localStorage` navigateur uniquement)
+- Analytique anonyme via GoatCounter (sans cookies, EU-hosted, respect de DNT)
 
 ### Données personnelles (RGPD)
 
@@ -243,14 +316,15 @@ Ce projet ne crée aucun droit sur les œuvres tierces citées, qui restent la p
 
 -----
 
-## 💡 Idées d’évolution
+## 💡 Idées d'évolution future
 
-- Mode “Révision sans timer” pour le travail au calme
-- Dashboard de progression par thème sur plusieurs sessions (avec opt-in localStorage)
-- Génération de questions par IA (via API externe optionnelle)
-- Mode multijoueur local (deux élèves sur le même écran)
-- Export PDF des erreurs pour révision papier
-- Mode “Brevet blanc” simulant une épreuve complète
+- **Plus de scénarios** dans les modes interactifs Phase 4 (arbres, ateliers, graphiques)
+- **Extension des grades par univers** : 7 paliers naturellement alignés sur 6e → 3e → DNB
+- **Stats par chapitre dans l'écran résultat** : « tu maîtrises Pythagore à 80 % »
+- **Mode multijoueur local** (deux élèves sur le même écran, duel auto)
+- **Export PDF des erreurs** pour révision papier
+- **Plus de fonctions** dans le Lecteur de graphique (paraboles, racine carrée, etc.)
+- **Mode Constructeur Géométrique étendu** : aires, périmètres, volumes interactifs
 
 -----
 
