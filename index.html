@@ -3513,12 +3513,13 @@
     <div class="modal-emoji" style="text-align:center" aria-hidden="true">🥷</div>
     <h3 id="modal-tutorial-title" style="text-align:center">BIENVENUE NINJA !</h3>
     <div id="modal-tutorial-desc" style="font-size:.9rem;line-height:1.6;color:var(--white);margin:14px 0">
-      <p class="mb-3"><strong class="text-orange">🎯 Le but :</strong> réviser les maths de 6e / 5e en t'amusant dans 6 univers anime.</p>
-      <p class="mb-3"><strong class="text-red">❤️ 3 vies</strong> par partie. Tu en perds une à chaque mauvaise réponse ou temps écoulé.</p>
+      <p class="mb-3"><strong class="text-orange">🎯 Le but :</strong> réviser tout le programme de maths du collège (6<sup>e</sup> à 3<sup>e</sup>) en t'amusant dans 6 univers anime, avec un mode <strong>DNB Blanc</strong> aligné sur l'épreuve 2027.</p>
+      <p class="mb-3"><strong class="text-blue">📚 Plusieurs modes :</strong> QCM par classe ou par chapitre, automatismes type brevet, tracé géométrique, puzzle, vrai/faux, histoire, ateliers Pythagore/Thalès/Trigo, arbre de probabilités, lecteur de graphique.</p>
+      <p class="mb-3"><strong class="text-red">❤️ 3 vies</strong> par partie QCM. Tu en perds une à chaque mauvaise réponse ou temps écoulé.</p>
       <p class="mb-3"><strong class="text-blue">💧 Chakra</strong> : ressource pour utiliser les <strong>jutsus</strong> (✂️ 50/50, 💡 indice, ⏸️ stop le temps). Bonne réponse = +15 chakra.</p>
       <p class="mb-3"><strong class="text-yellow">🔥 Combo</strong> : enchaîne les bonnes réponses pour multiplier ton score.</p>
       <p class="mb-3"><strong class="text-green">🔁 Répétition espacée</strong> : les questions ratées reviennent automatiquement plus tard.</p>
-      <p style="margin-bottom:0;color:var(--gray);font-size:.85rem">💡 Astuce : tu peux jouer entièrement au clavier (touches 1-4 pour répondre, Échap pour la pause).</p>
+      <p style="margin-bottom:0;color:var(--gray);font-size:.85rem">💡 Astuce : tu peux jouer entièrement au clavier (touches 1-4 pour répondre, Échap pour la pause). L'ordre des réponses est mélangé à chaque question, donc évite de mémoriser la position.</p>
     </div>
     <div class="modal-actions">
       <button type="button" class="btn-main" onclick="closeTutorial()" autofocus>✓ J'AI COMPRIS, JE JOUE !</button>
@@ -3540,7 +3541,7 @@
     <h3 id="modal-legal-title" style="text-align:center">À propos &amp; Mentions légales</h3>
     <div id="modal-legal-desc" style="font-size:.88rem;line-height:1.55;color:var(--white);margin:14px 0">
       <p style="margin-bottom:10px"><strong class="text-orange">📚 Projet pédagogique</strong></p>
-      <p style="margin-bottom:14px">Anime Math Academy est un jeu éducatif <strong>gratuit, sans publicité, sans inscription, sans collecte de données personnelles</strong>, conçu pour aider les collégiens de 6e et 5e à réviser les mathématiques selon les programmes officiels (BO 17/04/2025 et 05/03/2026).</p>
+      <p style="margin-bottom:14px">Anime Math Academy est un jeu éducatif <strong>gratuit, sans publicité, sans inscription, sans collecte de données personnelles</strong>, conçu pour aider les collégiens de la 6<sup>e</sup> à la 3<sup>e</sup> à réviser les mathématiques selon les programmes officiels (BO 17/04/2025 cycle 3 et BO 05/03/2026 cycle 4), avec un mode DNB Blanc aligné sur l'épreuve 2027.</p>
 
       <p style="margin-bottom:10px"><strong class="text-orange">🎌 Univers anime cités</strong></p>
       <p style="margin-bottom:14px">Ce projet n'est <strong>ni affilié, ni sponsorisé, ni endossé</strong> par les ayants droit des œuvres suivantes : Shueisha, Toei Animation, The Pokémon Company, Nintendo, Bandai Namco, ufotable, Aniplex, BONES, ou tout autre titulaire de droits. Les noms cités (Naruto, One Piece, Dragon Ball, My Hero Academia, Demon Slayer, Pokémon et les noms de personnages associés) sont des marques déposées de leurs titulaires respectifs et sont utilisés <strong>à titre purement référentiel à des fins éducatives</strong>, sans reproduction d'éléments graphiques, sonores ou d'extraits de ces œuvres.</p>
@@ -5472,6 +5473,22 @@ const UNIVERSE_EMOJI_MAP = {
   pokemon:     { '🥷': '🧢', '🍜': '🍓', '⚡': '⚡', '🌸': '🌷', '📖': '📔', '💪': '💪', '☁️': '☁️', '🎯': '🎯', '🐸': '🐸', '🌀': '🔵', '🌪️': '💨', '🌊': '💧', '🔥': '🔥', '🎌': '🎌', '🏯': '🏠' }
 };
 
+// Helper : retourne un NOUVEAU question-like avec les `answers` mélangées et
+// l'index `correct` ajusté en conséquence. Tous les autres champs sont copiés.
+// Idempotent : si q est invalide, retourne q tel quel. Ne mute jamais q.
+function shuffleQcmAnswers(q) {
+  if (!q || !Array.isArray(q.answers) || q.answers.length < 2) return q;
+  const pairs = q.answers.map((a, i) => ({ a, i }));
+  for (let k = pairs.length - 1; k > 0; k--) {
+    const j = Math.floor(Math.random() * (k + 1));
+    [pairs[k], pairs[j]] = [pairs[j], pairs[k]];
+  }
+  return Object.assign({}, q, {
+    answers: pairs.map(p => p.a),
+    correct: pairs.findIndex(p => p.i === q.correct)
+  });
+}
+
 function adaptQuestionToUniverse(q, universe) {
   if (universe === 'naruto' || !UNIVERSE_THEMES_MAP[universe]) return q;
   const map = UNIVERSE_THEMES_MAP[universe];
@@ -5542,12 +5559,15 @@ function startGame(mode) {
     rawQs = QUESTIONS[mode] ? [...QUESTIONS[mode]] : [];
     qs = rawQs.map(q => adaptQuestionToUniverse(q, currentUniverse));
   }
-  // Mélange final
+  // Mélange final de l'ordre des questions
   for (let i = qs.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [qs[i], qs[j]] = [qs[j], qs[i]];
   }
-  state.questions = qs;
+  // Mélange aussi l'ordre des réponses dans chaque question (évite que l'élève
+  // mémorise la position de la bonne réponse). Crée une copie défensive pour
+  // ne pas muter les banques originales.
+  state.questions = qs.map(shuffleQcmAnswers);
   state.qIndex = 0;
   state.score = 0;
   state.streak = 0;
@@ -8758,8 +8778,11 @@ function startStoryMode() {
 
 function loadStoryStep() {
   const mission = STORY_MISSIONS[storyState.missionIdx];
-  const step = mission.steps[storyState.stepIdx];
-  if (!step) { endStoryMode(); return; }
+  const rawStep = mission.steps[storyState.stepIdx];
+  if (!rawStep) { endStoryMode(); return; }
+  // Mélange l'ordre des réponses (copie défensive) et cache pour answerStoryStep
+  const step = shuffleQcmAnswers(rawStep);
+  storyState.currentStep = step;
   storyState.answered = false;
   document.getElementById('story-title').textContent = mission.title;
   document.getElementById('story-decor').textContent = mission.decor;
@@ -8788,7 +8811,8 @@ function answerStoryStep(idx) {
   if (storyState.answered) return;
   storyState.answered = true;
   const mission = STORY_MISSIONS[storyState.missionIdx];
-  const step = mission.steps[storyState.stepIdx];
+  // On utilise le step MÉLANGÉ cached par loadStoryStep — pas le brut du bank
+  const step = storyState.currentStep || mission.steps[storyState.stepIdx];
   const btns = document.querySelectorAll('#story-answers .answer-btn');
   btns.forEach(b => b.disabled = true);
   const ok = idx === step.correct;
@@ -9680,13 +9704,16 @@ function loadDnbExercise() {
 
 function loadDnbStep() {
   const ex = DNB_EXERCISES[dnbState.exerciseIdx];
-  const step = ex.steps[dnbState.stepIdx];
-  if (!step) {
+  const rawStep = ex.steps[dnbState.stepIdx];
+  if (!rawStep) {
     // Fin de l'exercice : passe au suivant
     dnbState.exerciseIdx++;
     loadDnbExercise();
     return;
   }
+  // Mélange l'ordre des réponses et cache pour answerDnbStep
+  const step = shuffleQcmAnswers(rawStep);
+  dnbState.currentStep = step;
   dnbState.exerciseAnswered = false;
   dnbState._inIntro = false;
   document.getElementById('dnb-ex-title').textContent = ex.title;
@@ -9717,7 +9744,8 @@ function answerDnbStep(idx) {
   if (dnbState.exerciseAnswered) return;
   dnbState.exerciseAnswered = true;
   const ex = DNB_EXERCISES[dnbState.exerciseIdx];
-  const step = ex.steps[dnbState.stepIdx];
+  // step MÉLANGÉ cached par loadDnbStep
+  const step = dnbState.currentStep || ex.steps[dnbState.stepIdx];
   const btns = document.querySelectorAll('#dnb-ex-answers .answer-btn');
   btns.forEach(b => b.disabled = true);
   const ok = idx === step.correct;
@@ -10704,7 +10732,9 @@ function resetProbaTree() {
 
 function renderProbaQuestion() {
   const sc = PROBA_SCENARIOS[probaState.scenarioIdx];
-  const q = sc.question;
+  // Mélange l'ordre des réponses (copie défensive) et cache pour answerProbaQuestion
+  const q = shuffleQcmAnswers(sc.question);
+  probaState.currentQuestion = q;
   document.getElementById('proba-question-text').innerHTML = q.text;
   const grid = document.getElementById('proba-question-answers');
   grid.innerHTML = '';
@@ -10725,7 +10755,8 @@ function answerProbaQuestion(idx) {
   if (probaState.questionAnswered) return;
   probaState.questionAnswered = true;
   const sc = PROBA_SCENARIOS[probaState.scenarioIdx];
-  const q = sc.question;
+  // Question MÉLANGÉE cached par renderProbaQuestion
+  const q = probaState.currentQuestion || sc.question;
   const btns = document.querySelectorAll('#proba-question-answers .answer-btn');
   btns.forEach(b => b.disabled = true);
   const ok = idx === q.correct;
