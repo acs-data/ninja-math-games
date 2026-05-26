@@ -9016,16 +9016,27 @@ function checkForUpdates() {
   };
   reg.addEventListener('updatefound', onUpdateFound);
 
-  // 3) Déclenche la vérif (force fetch sw.js sans cache HTTP grâce à updateViaCache:'none')
-  reg.update().catch(() => {
-    if (!resolved) {
-      resolved = true;
-      reg.removeEventListener('updatefound', onUpdateFound);
-      showToast('⚠️ Vérification impossible');
-    }
-  });
+  // 3) Court-circuit du HTTP cache du browser : fetch direct de sw.js avec
+  //    cache: 'reload' force une requête réseau ET met à jour le HTTP cache.
+  //    Ensuite reg.update() voit la fresh version. Indispensable pour les
+  //    users dont la registration date d'avant updateViaCache:'none' (le
+  //    setting n'est pas toujours appliqué rétroactivement par tous les
+  //    navigateurs, notamment iOS Safari).
+  // IMPORTANT : pas de query string sinon la réponse fresh est stockée sous
+  // une URL différente et reg.update() ne la voit pas. cache:'reload' suffit
+  // à bypasser le HTTP cache ET à mettre à jour celui-ci avec le résultat.
+  fetch('sw.js', { cache: 'reload' })
+    .catch(() => {})
+    .then(() => reg.update())
+    .catch(() => {
+      if (!resolved) {
+        resolved = true;
+        reg.removeEventListener('updatefound', onUpdateFound);
+        showToast('⚠️ Vérification impossible');
+      }
+    });
 
-  // 4) Failsafe : 4 secondes max pour laisser le temps à l'install
+  // 4) Failsafe : 5 secondes max pour laisser le temps à l'install (4G mobile)
   setTimeout(() => {
     if (resolved) return;
     resolved = true;
@@ -9036,7 +9047,7 @@ function checkForUpdates() {
     } else {
       showToast('✅ Vous êtes à jour');
     }
-  }, 4000);
+  }, 5000);
 }
 
 
