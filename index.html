@@ -2215,6 +2215,12 @@
     padding-bottom: max(28px, calc(28px + env(safe-area-inset-bottom)));
     max-width: 380px;
     width: 100%;
+    /* Borne la hauteur : si le contenu dépasse, on scrolle DANS la carte
+       au lieu de déborder hors de l'écran (titre coupé en haut, bouton
+       coupé en bas). overscroll-behavior empêche la propagation au body. */
+    max-height: 90vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     text-align: center;
     box-shadow: var(--shadow-lg), var(--shadow-glow-orange);
   }
