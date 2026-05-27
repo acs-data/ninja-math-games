@@ -7,7 +7,7 @@
 ## 0. TL;DR pour démarrer rapidement
 
 - **Stack** : un seul fichier HTML5 + CSS3 + JavaScript vanilla, aucune dépendance npm, aucun build.
-- **Localisation du code** : `index.html`, **≈ 10 200 lignes, ≈ 475 KB**.
+- **Localisation du code** : `index.html`, **≈ 10 400 lignes, ≈ 540 KB** (⚠️ au-dessus de la limite douce de 500 KB — voir §1.3).
 - **PWA installable** + service worker (`sw.js`) avec cache versionné automatiquement par le SHA du commit.
 - **Aucun npm/yarn/pnpm**. Aucune compilation. **Recharge le fichier dans un navigateur** pour tester.
 - **Tests** : il n'y en a pas. Valide manuellement les flux après chaque changement.
@@ -55,7 +55,7 @@ Le fichier monolithique se décompose en 4 zones (les numéros de ligne sont des
 - Envoyé par email à un parent ou enseignant
 - Hébergé sur n'importe quel CDN statique sans build
 
-**Si tu envisages de découper le fichier**, demande confirmation explicite à l'utilisateur. C'est un changement architectural majeur. Limite douce actuelle : **500 KB**. À ~475 KB on s'approche du seuil.
+**Si tu envisages de découper le fichier**, demande confirmation explicite à l'utilisateur. C'est un changement architectural majeur. Limite douce de référence : **500 KB**. ⚠️ Le fichier a **dépassé ce seuil (~540 KB)**. Pistes avant de découper : minification automatique en CI (déploiement Pages), ou compression des données. À discuter avec l'utilisateur si on continue d'ajouter du contenu.
 
 -----
 
@@ -79,7 +79,21 @@ Le fichier monolithique se décompose en 4 zones (les numéros de ligne sont des
 | Chapitre 4e | `screen-game` | `startGame('4e:pythagore')` etc. | `QUESTIONS_BY_CHAPTER['4e']` (6 chapitres × 6-8 Q) |
 | Chapitre 3e | `screen-game` | `startGame('3e:thales')` etc. | `QUESTIONS_BY_CHAPTER['3e']` (6 chapitres × 5-8 Q) |
 
-Le sélecteur de chapitre est sur l'accueil (onglets 6e/5e/4e/3e). Helper : `getChapterQuestions(classe, chap)` retourne le pool adapté à l'univers actif.
+Le sélecteur de chapitre est sur l'accueil (onglets 6e/5e/4e/3e). Helper : `getChapterQuestions(classe, chap)` retourne le pool curé adapté à l'univers actif.
+
+#### Pool infini (hybride QCM curés + générés)
+
+Les chapitres curés sont courts (2-8 Q). Pour offrir une révision quasi-infinie, le mode chapitre est **hybride** :
+
+1. Les **QCM curés** passent d'abord (feedback soigné) — c'est le noyau.
+2. Une fois épuisés (et la phase de répétition espacée terminée), `nextQuestion()` **génère un lot de 8 QCM** au lieu d'appeler `endGame()`, et continue indéfiniment.
+3. La session se termine uniquement via **Pause → « Terminer & voir mon score »** (`finishInfiniteSession()`) ou retour accueil.
+
+**Activation** : `startGame('CLASSE:chap')` pose `state.infiniteChapter = { classe, chapitre }` **si** le chapitre a des générateurs mappés dans `CHAPTER_AUTO_GENS` (sinon le chapitre reste **fini**). Helper de garde : `chapterHasInfinitePool(classe, chap)`.
+
+⚠️ Seuls les chapitres à réponses **numériques/fractions/puissances** sont infinis. Les chapitres **algébriques** (ex. `factorisation`, `calcul_litteral_4e`, `transformations_4e`) ne sont PAS mappés : leurs réponses (`18x−8`, `(x−2)(x+2)`) ne se prêtent pas à des distracteurs automatiques fiables. Ils restent en banque curée finie. Dans le sélecteur, les chapitres infinis affichent **∞**, les autres affichent `(N)`.
+
+Voir §3.13 pour les structures (`CHAPTER_AUTO_GENS`, `genToQcm`, `_genDistractors`, `generateChapterQcmBatch`).
 
 ### 2.3 Modes interactifs
 
@@ -292,6 +306,32 @@ Chaque générateur est une fonction qui retourne `{ q, a, theme, accept?, unit?
 ```
 
 Helpers : `recordGameStart(mode)`, `recordGameComplete(mode, correct, total)`, `recordUniverseSelect(u)`, `recordCharSelect(u, c)`. Tous sont appelés via les fonctions `start*` et `end*` correspondantes.
+
+### 3.13 Pool infini des chapitres (`CHAPTER_AUTO_GENS` + conversion QCM)
+
+Défini juste après `AUTO_POOLS`. Permet au mode chapitre de générer des QCM à l'infini à partir des générateurs d'automatismes existants (cf. §2.2).
+
+```js
+CHAPTER_AUTO_GENS = {
+  '6e': { fractions_6e: ['6e_frac_add_same'], decimaux_6e: ['6e_add_dec', ...], ... },
+  '5e': { relatifs: ['5e_relat_add', ...], ... },
+  '4e': { pythagore: ['4e_pyth_hyp','4e_pyth_cote'], ... },
+  '3e': { thales: ['3e_thales_long'], trigonometrie: [...], ... }
+};
+```
+
+Chaque chapitre mappe vers une liste de **clés `AUTO_GENERATORS`** dont la réponse est convertible en QCM. **N'y mappe que des générateurs à réponse numérique/fraction/puissance.** Les chapitres absents de ce dict restent finis.
+
+**Helpers de conversion** :
+
+- `_genDistractors(ansStr)` → array de 3-6 distracteurs plausibles. Gère fractions `n/d`, puissances `10^n`, nombres signés (`+3`/`−2`), décimaux à virgule. Retourne `null` si non numérique.
+- `genToQcm(genResult)` → transforme `{ q, a, theme, unit }` en `{ type, theme, text, answers[4], correct, feedback, _generated:true }`. Exclut les réponses contenant lettres/`×`/parenthèses (algébrique, notation scientifique) → retourne `null`. Mélange les 4 options.
+- `generateChapterQcmBatch(classe, chap, n)` → array de `n` QCM générés (réessaie si `genToQcm` renvoie `null`).
+- `chapterHasInfinitePool(classe, chap)` → booléen (présence de générateurs mappés).
+
+⚠️ Si tu ajoutes un générateur à réponse **algébrique** et que tu le mappes par erreur, `genToQcm` renverra `null` à chaque appel : `generateChapterQcmBatch` tournera dans le vide et le lot sera vide (la partie se terminera). Ne mappe que du numérique.
+
+⚠️ Le compteur `state.attempted` (incrémenté dans `answer()` et `timeOut()`) sert au calcul du total en fin de session infinie (`endGame()` utilise `state.attempted` quand `state.infiniteChapter` est posé, car `state.questions.length` inclut un lot généré non encore joué).
 
 -----
 

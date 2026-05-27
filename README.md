@@ -50,6 +50,8 @@ L'idée : transformer la révision en quête épique. Le contenu pédagogique re
 - 📘 **4e** : Pythagore, Puissances & notation scientifique, Calcul littéral, Équations, Statistiques, Transformations
 - 📕 **3e (DNB)** : Thalès, Trigonométrie, Fonctions, Identités & factorisation, Probabilités, Arithmétique
 
+> ♾️ **Pool infini (hybride)** — La plupart des chapitres (notés **∞** dans le sélecteur) ne s'arrêtent jamais : on commence par les **QCM curés** (feedback pédagogique soigné), puis dès qu'ils sont épuisés le jeu **génère en continu** de nouveaux QCM à partir des générateurs d'automatismes du chapitre (4 choix, distracteurs plausibles). La session se termine quand l'élève le décide (**Pause → « Terminer & voir mon score »**) ou perd l'envie de continuer. Les chapitres purement algébriques (factorisation, calcul littéral) restent en **banque finie** (les distracteurs automatiques n'y sont pas fiables).
+
 **Modes interactifs** :
 
 6. **✏️ Tracé géométrique** — 6 missions au doigt sur canvas (axes de symétrie, droites, angles)
@@ -167,7 +169,7 @@ L'idée : transformer la révision en quête épique. Le contenu pédagogique re
 ### Structure du fichier
 
 ```
-index.html  (≈ 475 KB, ≈ 10 200 lignes — mono-fichier volontaire)
+index.html  (≈ 540 KB, ≈ 10 400 lignes — mono-fichier volontaire)
 ├── <head>          (lignes 1-50)    Meta, OG, favicon SVG inline, manifest, polices
 ├── <style>         (lignes 50-1180) CSS complet : variables, layout, écrans, animations, a11y
 ├── <body>          (lignes 1180-2300) 13 écrans + modals + footer
@@ -201,7 +203,7 @@ index.html  (≈ 475 KB, ≈ 10 200 lignes — mono-fichier volontaire)
   - 40 QCM 3e par chapitre (6 chapitres)
 - **6 missions de tracé géométrique**
 - **6 puzzles d'emboîtement**
-- **39 générateurs d'automatismes** (10 par niveau en moyenne)
+- **39 générateurs d'automatismes** (10 par niveau en moyenne) — réutilisés pour alimenter le **pool infini** des chapitres numériques (QCM générés à la volée)
 - **9 aventures narratives** multi-étapes (32 sous-questions)
 - **4 exercices DNB Blanc** (16 sous-questions)
 - **50 affirmations Vrai/Faux Speed**
@@ -253,7 +255,7 @@ Voir `CLAUDE.md` pour la documentation détaillée à destination des IA assista
 ## 🚧 Limitations connues
 
 - **Persistance opt-in uniquement** : la sauvegarde locale doit être activée par l'utilisateur via le bouton dédié sur l'écran d'accueil (choix RGPD volontaire pour le public mineur)
-- **Questions QCM en banque fixe** (sauf mode Automatismes) : limité à ce qui est codé en dur
+- **Questions QCM en banque fixe** pour les modes legacy et les chapitres algébriques. Les autres chapitres et le mode Automatismes disposent d'un **pool infini généré** (QCM dérivés des générateurs d'automatismes)
 - **Mode tracé** : validation tolérante mais imparfaite pour les angles complexes
 - **Pas d'audio** : pas de sons ni de musique (volontaire pour le calme de l'étude)
 - **Pas d'IA générative côté élève** : tout est statique, déterministe et contrôlable pédagogiquement
