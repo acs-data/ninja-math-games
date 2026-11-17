@@ -15,6 +15,13 @@ const CORE_ASSETS = [
   './og-image.png',
   './og-image.svg'
 ];
+// Édition animée (anime.html) : ressources OPTIONNELLES. Elles sont mises en cache une par une
+// (jamais dans le addAll atomique ci-dessous) : si l'une d'elles manque, l'installation du
+// Service Worker réussit quand même et le jeu classique reste disponible hors-ligne.
+const OPTIONAL_ASSETS = [
+  './anime.html',
+  './manifest-anime.json'
+];
 
 // Installation : pré-cache les fichiers essentiels.
 // NB : on n'appelle PAS self.skipWaiting() ici. Le nouveau SW reste en
@@ -23,7 +30,11 @@ const CORE_ASSETS = [
 // abrupt en pleine session de jeu.
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(CORE_ASSETS))
+    caches.open(CACHE_NAME).then((cache) =>
+      cache.addAll(CORE_ASSETS).then(() =>
+        Promise.all(OPTIONAL_ASSETS.map((url) => cache.add(url).catch(() => {})))
+      )
+    )
   );
 });
 
@@ -67,7 +78,13 @@ self.addEventListener('fetch', (event) => {
         return response;
       }).catch(() => {
         // Hors-ligne et pas en cache : fallback sur index.html pour les navigations
-        if (req.mode === 'navigate') return caches.match('./index.html');
+        // (ou sur anime.html si c'est l'édition animée qui est demandée et qu'elle est en cache).
+        if (req.mode === 'navigate') {
+          if (url.pathname.endsWith('/anime.html')) {
+            return caches.match('./anime.html').then((anime) => anime || caches.match('./index.html'));
+          }
+          return caches.match('./index.html');
+        }
         return new Response('Hors-ligne', { status: 503, statusText: 'Offline' });
       });
     })

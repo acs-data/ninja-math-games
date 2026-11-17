@@ -1,0 +1,60 @@
+/* ═══ 00-core.css — socle de la couche d'animation ═══
+   Interrupteur racine : html[data-fx="off" | "leger" | "complet"] (+ data-fx-screen, data-fx-profile).
+   Tout sélecteur doit contenir « fx- » ou « data-fx » ; tout @keyframes et toute variable
+   commencent par « fx- » (vérifié par tools/build_anime.py). Aucune animation CSS ici :
+   le mouvement est fait en WAAPI ou sur le canvas, insensibles à la règle
+   prefers-reduced-motion du jeu. Jamais de transform/filter sur html, body, #app ou main. */
+
+/* Calque plein écran, enfant de #app : au-dessus des écrans et de l'en-tête (z-index 100),
+   sous le tiroir et les modales (1000 dans #app), sous le toast et les modales de body. */
+#fx-root {
+  position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+  z-index: 500; overflow: hidden; pointer-events: none;
+}
+#fx-root * { pointer-events: none; }
+html:not([data-fx]) #fx-root,
+html[data-fx="off"] #fx-root { display: none; }
+
+#fx-canvas { position: absolute; top: 0; left: 0; display: none; }
+#fx-root.fx-live #fx-canvas { display: block; }
+#fx-tint { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; }
+#fx-stage { position: absolute; top: 0; right: 0; bottom: 0; left: 0; }
+
+/* Texte flottant (dégâts, onomatopées…) : décoratif, toujours doublé par la sortie du jeu. */
+.fx-float {
+  position: absolute; opacity: 0; white-space: nowrap;
+  font-family: 'Bangers', Impact, 'Arial Black', cursive; font-size: 22px; letter-spacing: 1px;
+  color: var(--fx-ink, #F0F0FF);
+  text-shadow: 0 0 3px var(--fx-bg, #0D0D1A), 0 1px 0 var(--fx-bg, #0D0D1A), 0 -1px 0 var(--fx-bg, #0D0D1A),
+               1px 0 0 var(--fx-bg, #0D0D1A), -1px 0 0 var(--fx-bg, #0D0D1A);
+}
+/* Bandeau et cut-in : fond et texte pris dans les jetons du jeu (lisibles dans les deux thèmes). */
+.fx-banner, .fx-cutin {
+  position: absolute; opacity: 0; display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: var(--dark2); color: var(--white); white-space: nowrap;
+  font-family: 'Bangers', Impact, 'Arial Black', cursive; letter-spacing: 1.5px;
+}
+.fx-banner {
+  left: 50%; max-width: 94%; padding: 6px 18px; font-size: 1.35rem;
+  border: 2px solid var(--fx-c, var(--orange)); border-radius: 999px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .35);
+}
+.fx-cutin {
+  left: 0; right: 0; min-height: 56px; padding: 6px 12px; font-size: 1.8rem;
+  border-top: 3px solid var(--fx-c, var(--orange)); border-bottom: 3px solid var(--fx-c, var(--orange));
+}
+.fx-banner small, .fx-cutin small {
+  font-family: 'Nunito', sans-serif; font-size: .72rem; font-weight: 800; letter-spacing: 0; color: var(--gray);
+}
+.fx-emoji { font-family: 'Nunito', sans-serif; letter-spacing: 0; }
+
+/* Boutons de réglage (tiroir, accueil, modales de pause). */
+#fx-lite-drawer:disabled, #fx-set-drawer:disabled, #fx-set-home:disabled,
+#fx-set-pause:disabled, #fx-set-auto-pause:disabled { opacity: .45; cursor: default; }
+#fx-set-pause, #fx-set-auto-pause { font-size: .95rem; letter-spacing: 1px; }
+
+/* Niveau off : « OFF » arrête vraiment tout mouvement, y compris les boucles décoratives du jeu
+   (points de chakra, emoji flottant de l'accueil, spirale de chargement). */
+html[data-fx="off"] .chakra-dot,
+html[data-fx="off"] .hero-ninja,
+html[data-fx="off"] #screen-loading > div { animation-play-state: paused !important; }

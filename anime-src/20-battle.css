@@ -1,0 +1,159 @@
+/* ═══ 20-battle.css — arène du QCM, compaction de l'écran de jeu, verdict, carte VS ═══
+   L'arène (#fx-arena) est le seul nœud de la couche placé DANS la mise en page : enfant direct de
+   #screen-game, juste avant #question-wrap. Au niveau off (ou couche coupée) elle est en
+   display:none et aucune règle ci-dessous ne s'applique : la page est celle d'index.html.
+   Aucune animation CSS ici : l'arène est IMMOBILE entre deux évènements (états = attributs),
+   le mouvement vient de FX.anim (WAAPI) et du canvas. */
+
+#fx-arena {
+  display: none; position: relative; overflow: hidden; box-sizing: border-box;
+  align-items: center; justify-content: center; gap: 6px;
+  height: 64px; margin: 0 0 10px; padding: 0 10px;
+  border: 1px solid var(--border-medium); border-radius: 14px;
+  background: var(--dark2);
+  background: linear-gradient(90deg, var(--fx-ca, transparent), transparent 42%, transparent 58%, var(--fx-ua, transparent)), var(--dark2);
+  font-family: 'Nunito', sans-serif; line-height: 1;
+}
+html[data-fx="leger"] #fx-arena, html[data-fx="complet"] #fx-arena { display: flex; }
+
+/* Combattants : héros à gauche, adversaire (barre de vie au-dessus) à droite. */
+.fx-ar-f {
+  position: relative; z-index: 0; flex: 0 0 auto; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px; min-width: 48px; height: 100%;
+}
+.fx-ar-emo {
+  position: relative; display: block; white-space: nowrap;
+  font: 34px/1.15 "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
+/* Socle sous chaque combattant (jeton de surface du jeu : lisible dans les deux thèmes). */
+.fx-ar-f::after {
+  content: ''; position: absolute; z-index: -1; left: 50%; bottom: 6px; width: 38px; height: 7px; margin-left: -19px;
+  border-radius: 50%; background: var(--dark3);
+}
+/* Aura du héros : un cran FIXE par palier de combo (jamais de pulsation près d'un texte à lire).
+   Portée par l'émoji lui-même : elle le suit quand il se rue sur l'adversaire. */
+.fx-ar-hero { z-index: 0; }
+.fx-ar-hero::before {
+  content: ''; position: absolute; z-index: -1; left: 50%; top: 50%; width: 46px; height: 46px; margin: -23px 0 0 -23px;
+  border-radius: 50%; opacity: 0;
+  background: radial-gradient(circle, var(--fx-c, transparent) 0%, transparent 68%);
+}
+#fx-arena[data-fx-combo="1"] .fx-ar-hero::before { opacity: .32; }
+#fx-arena[data-fx-combo="2"] .fx-ar-hero::before { opacity: .55; width: 54px; height: 54px; margin: -27px 0 0 -27px; }
+#fx-arena[data-fx-combo="3"] .fx-ar-hero::before { opacity: .8; width: 62px; height: 62px; margin: -31px 0 0 -31px; }
+
+.fx-ar-m {
+  flex: 0 1 260px; min-width: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px; text-align: center;
+}
+.fx-ar-combo {
+  min-height: 1em; font: 400 1.4rem/1 'Bangers', Impact, 'Arial Black', cursive;
+  letter-spacing: 1px; color: var(--fx-c, var(--white));
+}
+/* Combat en cours et pas encore de combo : un « VS » discret occupe le centre. */
+#fx-arena[data-fx-etat=""] .fx-ar-combo:empty::before { content: 'VS'; color: var(--gray); opacity: .35; }
+.fx-ar-tag {
+  max-width: 100%; min-height: 1em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: .7rem; font-weight: 800; letter-spacing: .4px; color: var(--gray);
+}
+
+.fx-ar-hp { display: flex; gap: 2px; height: 6px; }
+.fx-ar-hp i { display: block; width: 30px; height: 100%; border-radius: 3px; background: var(--fx-u, currentColor); }
+.fx-ar-hp i.fx-off { opacity: .2; }
+#fx-arena[data-fx-foe="boss"] .fx-ar-hp i { width: 6px; }
+#fx-arena[data-fx-foe="boss"] .fx-ar-foe { font-size: 39px; }
+#fx-arena[data-fx-foe="gardien"] .fx-ar-foe { font-size: 37px; }
+
+/* États immobiles (posés dans le même tick que la réponse ; l'animation joue par-dessus). */
+#fx-arena[data-fx-etat="ko"] .fx-ar-foe { opacity: .3; transform: rotate(90deg) scale(.8); filter: grayscale(1); }
+#fx-arena[data-fx-etat="sorti"] .fx-ar-foe,
+#fx-arena[data-fx-etat="fuite"] .fx-ar-foe { opacity: 0; }
+#fx-arena.fx-tense .fx-ar-foe { transform: scale(1.14); }
+#fx-arena.fx-gel .fx-ar-foe { filter: grayscale(1) brightness(1.15); }
+#fx-arena.fx-down .fx-ar-hero { opacity: .55; transform: rotate(-90deg); }
+
+@media (min-width: 481px) {
+  #fx-arena { height: 80px; gap: 12px; margin-bottom: 9px; }
+  .fx-ar-f { min-width: 68px; gap: 4px; }
+  .fx-ar-f::after { width: 52px; height: 9px; margin-left: -26px; bottom: 7px; }
+  .fx-ar-emo { font-size: 48px; }
+  .fx-ar-m { flex-basis: 300px; gap: 5px; }
+  .fx-ar-combo { font-size: 1.9rem; }
+  .fx-ar-tag { font-size: .82rem; }
+  .fx-ar-hp { height: 8px; }
+  .fx-ar-hp i { width: 44px; }
+  #fx-arena[data-fx-foe="boss"] .fx-ar-hp i { width: 10px; }
+  #fx-arena[data-fx-foe="boss"] .fx-ar-foe { font-size: 54px; }
+  #fx-arena[data-fx-foe="gardien"] .fx-ar-foe { font-size: 52px; }
+  .fx-ar-hero::before { width: 62px; height: 62px; margin: -31px 0 0 -31px; }
+  #fx-arena[data-fx-combo="2"] .fx-ar-hero::before { width: 70px; height: 70px; margin: -35px 0 0 -35px; }
+  #fx-arena[data-fx-combo="3"] .fx-ar-hero::before { width: 78px; height: 78px; margin: -39px 0 0 -39px; }
+}
+
+/* ── Compaction de l'écran de jeu, UNIQUEMENT tant que l'arène est affichée ──
+   (html[data-fx-arena] est posé par 20-arena.js une fois la bande réellement insérée.)
+   Téléphone : vies et énergie côte à côte, marges resserrées → les réponses arrivent plus haut
+   qu'avec index.html malgré la bande de combat (mesures : voir tools/test_anime.js, scénario « arene »). */
+@media (max-width: 480px) and (orientation: portrait), (max-width: 480px) and (min-height: 501px) {
+  html[data-fx-arena]:not([data-fx="off"]) #screen-game .stats-row { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  html[data-fx-arena]:not([data-fx="off"]) #screen-game .stat-block { padding: 8px 10px !important; }
+  html[data-fx-arena]:not([data-fx="off"]) #screen-game .mission-card,
+  html[data-fx-arena]:not([data-fx="off"]) #screen-game .jutsu-bar { margin-bottom: 10px; }
+}
+/* Écrans larges : la bande (80 px) est payée par des marges resserrées et des jauges en ligne
+   (libellé · barre · valeur) — aucune information masquée, réponses à ±2 px de leur place d'origine. */
+@media (min-width: 481px) and (orientation: portrait), (min-width: 481px) and (min-height: 501px) {
+  html[data-fx-arena]:not([data-fx="off"]) #screen-game .mission-card { padding-top: 8px; padding-bottom: 8px; margin-bottom: 10px; }
+  html[data-fx-arena]:not([data-fx="off"]) #screen-game .stats-row,
+  html[data-fx-arena]:not([data-fx="off"]) #screen-game .jutsu-bar { margin-bottom: 10px; }
+  html[data-fx-arena]:not([data-fx="off"]) #screen-game .stat-block { display: flex; align-items: center; gap: 10px; padding: 6px 14px; }
+  html[data-fx-arena]:not([data-fx="off"]) #screen-game .stat-block .stat-bar { flex: 1 1 30px; min-width: 30px; }
+  html[data-fx-arena]:not([data-fx="off"]) #screen-game .stat-block .stat-label { margin: 0; white-space: nowrap; }
+  html[data-fx-arena]:not([data-fx="off"]) #screen-game .stat-block .stat-text { margin: 0; }
+}
+/* Paysage bas : pas d'arène (la fenêtre utile fait ~300 px), page classique. */
+@media (orientation: landscape) and (max-height: 500px) {
+  html[data-fx] #fx-arena { display: none; }
+}
+
+/* Bandeau de combo du jeu : masqué seulement quand il recouvrirait l'arène (attribut posé par 21-qcm.js). */
+html[data-fx-combo-off]:not([data-fx="off"]) .combo-display { opacity: 0 !important; transition: none !important; }
+
+/* Repère discret quand l'explication s'ouvre sous le bas de l'écran : une pastille dans le coin,
+   hors des réponses (retirée au premier défilement, à la question suivante ou après 2,6 s). */
+.fx-cue {
+  position: absolute; right: 10px; bottom: 14px; width: 36px; height: 36px; opacity: 0;
+  display: flex; align-items: center; justify-content: center; border-radius: 50%;
+  background: var(--dark3); border: 1px solid var(--border-medium); box-shadow: 0 4px 14px rgba(0, 0, 0, .3);
+  font: 18px/1 "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
+/* Cut-in « ULTIME » : tient dans 320 px de large. */
+@media (max-width: 480px) { .fx-ult { font-size: 1.3rem; } }
+
+/* ── Verdict : échelle des cinq rangs (marches montantes), posée sur l'emplacement du rang ── */
+.fx-ladder {
+  position: absolute; display: flex; align-items: flex-end; gap: 8px; transform: translate(-50%, -50%);
+  white-space: nowrap; font: 30px/1.15 "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
+/* Variante « vignette » (rang hors champ) : même échelle, sur une pastille, sous l'en-tête. */
+.fx-ladder-chip {
+  padding: 6px 16px 8px; border-radius: 999px; font-size: 24px;
+  background: var(--dark2); border: 1px solid var(--border-medium); box-shadow: 0 4px 16px rgba(0, 0, 0, .35);
+}
+.fx-rung { display: block; opacity: .3; filter: grayscale(1); }
+.fx-rung:nth-child(2) { margin-bottom: 5px; }
+.fx-rung:nth-child(3) { margin-bottom: 10px; }
+.fx-rung:nth-child(4) { margin-bottom: 15px; }
+.fx-rung:nth-child(5) { margin-bottom: 20px; }
+
+@media (min-width: 481px) { .fx-ladder { font-size: 40px; gap: 12px; } .fx-ladder-chip { font-size: 28px; } }
+
+/* ── Carte « VS » de l'écran de chargement (au-dessus de la spirale du jeu) ── */
+.fx-vs {
+  position: absolute; left: 0; right: 0; top: 20%; display: flex; align-items: center; justify-content: center;
+  gap: 18px; white-space: nowrap; font: 3rem/1.15 "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
+.fx-vs b {
+  font: 400 2.4rem/1 'Bangers', Impact, 'Arial Black', cursive; letter-spacing: 2px;
+  color: var(--fx-u, var(--white)); text-shadow: 2px 2px 0 var(--dark2);
+}
