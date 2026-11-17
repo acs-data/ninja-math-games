@@ -250,7 +250,9 @@ FX.onScreen = function (ids, fn) {
    Une portée est un nom libre ('screen', 'q', 'game', 'ui'…). Chaque effet en porte une
    (défaut 'screen'). FX.cancel(portée) arrête net ses animations, particules, nœuds et minuteries ;
    FX.bump(portée) fait de même et change le jeton : les évènements déjà en file sont abandonnés.
-   Le noyau fait bump('screen') et bump('q') à chaque changement réel d'écran. */
+   Le noyau fait bump('screen') et bump('q') à chaque changement réel d'écran.
+   Portée réservée « cue » : les repères « l'explication est plus bas » (👇, posés dans le repère de
+   la fenêtre). Le noyau la coupe au premier défilement de la page et avec la portée « q ». */
 var cancelers = [];      // fonctions (scope, all) fournies par le moteur
 var timers = [];
 
@@ -269,6 +271,7 @@ FX.cancel = function (scope) {
     try { cancelers[i](scope, all); } catch (e) { oops(e, 'cancel'); }
   }
   if (all) queue.length = 0;
+  if (scope === 'q') FX.cancel('cue');           // un repère d'explication ne survit pas à sa question
 };
 /* setTimeout protégé : annulé avec sa portée, ignoré si la couche est bloquée à l'échéance. */
 FX.after = function (ms, fn, scope) {

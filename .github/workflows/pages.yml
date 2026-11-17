@@ -36,6 +36,14 @@ jobs:
           echo "Cache version set to: amat-${SHA_SHORT}"
           grep "CACHE_NAME" sw.js
 
+      - name: Rebuild animated edition (anime.html)
+        # Régénère anime.html depuis l'index.html déployé : la production ne sert jamais une
+        # édition animée périmée. Ne bloque jamais le déploiement du jeu principal : si la
+        # construction échoue, l'anime.html versionné est conservé (écriture atomique).
+        run: |
+          python3 tools/build_anime.py || echo "::warning::build_anime.py a échoué : anime.html versionné conservé (édition animée peut-être périmée)"
+          chmod 644 anime.html || true
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

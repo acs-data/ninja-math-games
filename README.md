@@ -92,6 +92,20 @@ L'idée : transformer la révision en quête épique. Le contenu pédagogique re
 - **Trophées débloquables** : score parfait, combo légendaire, pur chakra, révision active, apprenant tenace
 - **Streak quotidien** : compteur de jours consécutifs
 
+### 🎬 Édition animée (`anime.html`)
+
+Le même jeu avec une couche d'animation par-dessus : `https://acs-data.github.io/ninja-math-games/anime.html`
+
+- **Bonne réponse** : en QCM, un court combat se joue dans une bande au-dessus de la question (le héros attaque, l'adversaire encaisse) ; dans les autres modes, un effet bref sur la réponse, la carte ou le cadre de la figure
+- **Écran de résultat** : arrivée du rang ou du palier, étoiles et confettis proportionnels au score
+- **Transitions** entre les écrans, accueil et changement d'univers animés
+- **Erreur** : aucun effet punitif, un repère discret vers l'explication ; les **épreuves** (Automatismes, DNB Blanc) restent volontairement sobres
+- Réglage **✨ Animations : ON / OFF** (accueil, menu, pause) et option « Effets légers » ; coupé par défaut si l'appareil demande moins d'animations (`prefers-reduced-motion`)
+- Questions, scores, chronos, raccourcis clavier et lecteur d'écran identiques au jeu classique ; **même progression** (même sauvegarde locale)
+- Mêmes contraintes légales : **émojis Unicode et formes abstraites uniquement**, aucun visuel, logo ni son des œuvres
+
+`anime.html` est généré à partir d'`index.html` et de `anime-src/` (`python3 tools/build_anime.py`) : il ne se modifie pas à la main.
+
 ### 📈 Statistiques personnelles
 
 - Écran **"Mes stats"** accessible depuis l'accueil (si sauvegarde activée)
@@ -179,6 +193,8 @@ index.html  (≈ 475 KB, ≈ 10 200 lignes — mono-fichier volontaire)
 ```
 /
 ├── index.html              Fichier principal (à modifier)
+├── anime.html              Édition animée — GÉNÉRÉE (+ manifest-anime.json), ne pas éditer
+├── anime-src/, tools/      Couche d'animation : sources, script de construction, tests
 ├── manifest.json           Manifest PWA
 ├── sw.js                   Service Worker (cache-first, versionné)
 ├── icon-192.png            Icône PWA Android

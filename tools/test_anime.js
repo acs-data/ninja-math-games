@@ -659,13 +659,25 @@ async function combatBoss(browser) {
   const boss = await open(browser, ANIME, { viewport: { width: 1280, height: 800 } });
   await boss.evaluate(() => startGame('boss')); await gameShown(boss); await wait(boss, 200);
   for (let i = 0; i < 2; i++) { await wrong(boss); await wait(boss, 40); await next(boss); await wait(boss, 40); }
+  /* Mesure DANS la page, sur une seule horloge (insensible à la charge de la machine de test) : instant où
+     la couche retombe au repos après la réponse, et instant où le jeu quitte l'écran (endGame, 1500 ms). */
+  await boss.evaluate(() => {
+    const t0 = performance.now(), game = document.getElementById('screen-game');
+    window.__ko = { idle: 0, gone: 0 };
+    (function poll() {
+      const s = FX.stats(), t = performance.now() - t0;
+      if (getComputedStyle(game).display !== 'block') { window.__ko.gone = t; return; }
+      window.__ko.idle = s.particles + s.shapes + s.anims + s.nodes + s.timers + s.queue === 0 ? (window.__ko.idle || t) : 0;
+      requestAnimationFrame(poll);
+    })();
+  });
   log = await during(boss, () => wrong(boss), 300);
   a = await arena(boss);
   check('boss : fin de combat (héros à terre, sans secousse ni teinte)', has(log, 'qcm-ko-heros') && /fx-down/.test(a.cls) && !has(log, 'anim[fx-tint]'), [log, a]);
-  await wait(boss, 1000);
-  check('boss : l\'effet tient dans les 1500 ms du jeu', isIdle(await leftovers(boss)) && (await boss.evaluate(() => getComputedStyle(document.getElementById('screen-game')).display)) === 'block', await leftovers(boss));
   await boss.evaluate(() => { FX.debug.log.length = 0; });
   await boss.waitForFunction(() => getComputedStyle(document.getElementById('screen-result')).display !== 'none');
+  const ko = await boss.evaluate(() => window.__ko);
+  check('boss : l\'effet tient dans les 1500 ms du jeu', ko.idle > 300 && ko.idle < ko.gone && (await leftovers(boss)).errors.length === 0, ko);
   await wait(boss, 200);
   log = await logOf(boss);
   check('boss : verdict doux après la défaite (sans échelle)', log.some((l) => /^bilan\[rang \d ko/.test(l)) && !has(log, 'anim[fx-rung]'), log);

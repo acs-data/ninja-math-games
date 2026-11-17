@@ -16,6 +16,7 @@
 - **A11y** : le jeu est conforme WCAG 2.1 AA sur les critères majeurs. **Ne pas régresser**.
 - **Légal** : aucun visuel des œuvres utilisé, uniquement des noms. Disclaimer + email `legal@acs-dataformation.fr` dans le footer/modal.
 - **Analytique** : GoatCounter (code `ninja-math`), sans cookies, RGPD-safe.
+- **Édition animée** : `anime.html` est **généré** (`index.html` + `anime-src/`) — ne jamais l'éditer à la main, et le reconstruire après toute modification d'`index.html` : `python3 tools/build_anime.py && node tools/test_anime.js` (voir § 13).
 
 -----
 
@@ -26,6 +27,8 @@
 ```
 /
 ├── index.html                       Fichier principal (à modifier)
+├── anime.html                       Édition animée — GÉNÉRÉ, ne pas éditer (§ 13) ; manifest-anime.json = son manifest PWA
+├── anime-src/ · tools/              Couche d'animation : sources + README (contrat), build_anime.py, test_anime.js
 ├── manifest.json                    Manifest PWA
 ├── sw.js                            Service Worker (cache-first, versionné par CI)
 ├── icon-192.png / icon-512.png      Icônes PWA
@@ -657,6 +660,37 @@ Quelques décisions importantes (à ne pas remettre en question sans discussion)
 9. **Pas de visuel des œuvres** : choix légal stratégique. Ne jamais ajouter de sprites, logos, fan-art, etc.
 10. **GoatCounter pour analytics** : sans cookies, EU-hosted, RGPD-safe. Code `ninja-math`. Respect de `navigator.doNotTrack`.
 11. **Cache versionné automatiquement** : `__CACHE_VERSION__` remplacé par le SHA du commit au déploiement. Notification utilisateur "METTRE À JOUR" via toast persistant.
+
+-----
+
+## 13. Édition animée (`anime.html`)
+
+`anime.html` = `index.html` (copié tel quel, **jamais modifié**) + une couche d'animation injectée (`<style id="fx-style">` et `<script id="fx-script">`, ≈ 99 Ko, une seule globale `FX`) : transitions d'écran, combat du QCM, moment de bonne réponse dans chaque mode, écrans de résultat animés. Le jeu classique reste `index.html` ; les deux pages sont déployées côte à côte (`https://acs-data.github.io/ninja-math-games/anime.html`).
+
+### 13.1 À savoir avant toute modification
+
+- **`anime.html` est GÉNÉRÉ** : ne jamais l'éditer à la main. Modifier `anime-src/`, puis `python3 tools/build_anime.py`.
+- **Toute modification d'`index.html` impose de reconstruire et de retester** : `python3 tools/build_anime.py && node tools/test_anime.js`. La couche enveloppe 50 fonctions globales du jeu par leur nom (`answer`, `showScreen`, `endGame`, `validateDraw`…) : le build avertit si l'une d'elles disparaît, les tests disent si son comportement a changé. `anime.html` est versionné ; le déploiement (`pages.yml`) le reconstruit aussi, sans jamais bloquer le jeu principal.
+- **La recette de validation du § 7.3 ne s'applique pas à `anime.html`** (deux blocs `<script>`) : utiliser `python3 tools/build_anime.py --check` (lints de la couche, `node --check` sur chaque bloc, code 1 si le fichier n'est pas à jour).
+- **Tests** : `node tools/test_anime.js` (Playwright + Chromium, ≈ 4 min, aucune dépendance ajoutée au dépôt ; `--only clé1,clé2` pour quelques scénarios). Principe : la même session scriptée sur `index.html` et `anime.html` doit donner le même état de jeu, le même focus, les mêmes toasts et annonces.
+- **`localStorage` partagé** entre les deux pages (même origine) : même progression, mêmes stats, même opt-in. La couche n'ajoute qu'une clé, `amat_fx_v1` (niveau d'animation), écrite seulement si `isSaveEnabled()`.
+- **Réglage joueur** : « Animations : ON / OFF » (accueil, tiroir, modales de pause) et « Effets légers » ; OFF par défaut si `prefers-reduced-motion`. Au niveau OFF, la page se comporte comme `index.html`.
+- **Contrat complet** (architecture, API `FX`, modules existants, ajout d'un module, tests) : `anime-src/README.md` — à lire avant de toucher à la couche.
+
+### 13.2 Règles de la couche (résumé)
+
+1. **Jeu intact** : aucun changement de score, de minuteur, de flux de questions, de focus, d'annonce lecteur d'écran ni de raccourci clavier. Un défaut d'`index.html` se corrige dans `index.html`, jamais par la couche (ni corrigé ni masqué).
+2. **Lecture d'abord** : effets finis (≤ ~700 ms après une réponse, ≤ ~2,5 s pour un résultat), aucune boucle sur un écran de question, rien ne couvre durablement une question, une réponse, une explication ou un champ.
+3. **Une erreur est une étape d'apprentissage** : ni flash rouge, ni secousse, ni moquerie — un repère calme vers l'explication.
+4. **Épreuves sobres** : Automatismes (6 pools) et DNB Blanc plafonnés au niveau léger, zéro particule ; seule leur page de résultat fête.
+5. **Un seul effet focal à la fois** : un niveau gagné ou un retour à l'accueil n'ajoute jamais un second effet sur le verdict d'un mode (`anime-src/README.md` § 6.8).
+6. **Trois niveaux** `off | leger | complet` : chaque effet a une forme légère, rien ne joue à off ; les plafonds sont appliqués par les primitives du noyau, pas par chaque effet.
+7. **Crochets en O(1)** via `FX.wrap`, jamais sur un chemin chaud (`render*`, `draw*`, `handle*Move`) ; une issue se lit sur un front d'état (avant/après), jamais sur le simple appel.
+8. **A11y** : tout nœud de la couche est `aria-hidden` et insensible au pointeur ; jamais de `focus()`, `showToast()`, `announceToScreenReader()` ni d'écriture dans une région live.
+9. **Légal (§ 8.10)** : émojis Unicode et formes abstraites uniquement ; aucune image, aucun son, aucune ressource externe, aucun nouveau mot de licence.
+10. **Univers et hasard** : couleurs et textes via `FX.palette()` (jamais « Naruto » ni une couleur en dur) ; hasard via `FX.rnd()`, jamais `Math.random` (à graine égale, les deux pages tirent les mêmes questions).
+
+La plupart de ces règles sont vérifiées par les lints du build et par la suite de tests.
 
 -----
 

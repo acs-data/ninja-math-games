@@ -269,7 +269,9 @@ function tick(t) {
       if (pn || shapes.length) {
         if (sizeDirty) measure();
         showCanvas(true);
-        step(lastT ? Math.min(t - lastT, 34) / 1000 : 0.016);
+        /* Pas réel, plafonné à 100 ms : jusqu'à 10 images/s les durées annoncées sont tenues (un
+           plafond à 34 ms jouait les particules au ralenti dès 29 images/s : appareil lent, page chargée). */
+        step(lastT ? Math.min(t - lastT, 100) / 1000 : 0.016);
       }
     }
   } catch (e) { oops(e, 'tick'); pn = 0; shapes.length = 0; }

@@ -10,7 +10,7 @@
 FX.module('combat', function (FX) {
   var A = FX.arena, D = document, PI = Math.PI;
   if (!A) return;
-  var qAt = 0, lvAt = 0, tense = false, gel = false, busy = 0, cueA = null, rep = null, repTok = 0, repAt = 0;
+  var qAt = 0, lvAt = 0, tense = false, gel = false, busy = 0, rep = null, repTok = 0, repAt = 0;
   var MELEE = { vortex: 1, impact: 1, crescent: 1 };       // gestes au corps à corps : le héros se rue
 
   function now() { return performance.now(); }
@@ -53,7 +53,7 @@ FX.module('combat', function (FX) {
   FX.wrap('loadQuestion', null, function () {
     var s = state, t = now();
     FX.bump('q');
-    tense = gel = false; cueA = null;
+    tense = gel = false;
     if (!s.questions[s.qIndex] || FX.env.screen() !== 'game') return;      // loadQuestion a terminé la partie
     if (t - qAt > 100 && FX.emit('qcm:q')) qAt = t;                        // une seule entrée par frame
   });
@@ -86,10 +86,12 @@ FX.module('combat', function (FX) {
     if (gel && !s.timeFrozen) { gel = false; FX.emit('qcm:degel', null, 'q'); }
     if (!tense && s.timeLeft <= 5 && s.timeLeft > 0.05 && !s.answered && !s.freeMode) { tense = true; FX.emit('qcm:tension', null, 'q'); }
   });
-  /* Niveau gagné (tous les modes) : plusieurs addXP dans le même tick ne donnent qu'un bandeau. */
+  /* Niveau gagné (tous les modes) : plusieurs addXP dans le même tick ne donnent qu'un effet. Portée
+     nulle : les fins de mode appellent addXP juste avant OU juste après showScreen(résultat), et
+     l'évènement doit survivre à ce changement d'écran (le gestionnaire décide d'après l'écran affiché). */
   FX.wrap('addXP', function () { return state.level; }, function (before) {
     var t = now();
-    if (state.level > before && t - lvAt > 100 && FX.emit('xp:niveau')) lvAt = t;
+    if (state.level > before && t - lvAt > 100 && FX.emit('xp:niveau', 0, null)) lvAt = t;
   });
 
   /* ── Entrée d'une question : image fixe recalculée, puis l'adversaire arrive (≤ 260 ms) ── */
@@ -209,18 +211,15 @@ FX.module('combat', function (FX) {
     }, 'q');
   }
 
-  /* Repère « l'explication est plus bas » : seulement si elle s'ouvre sous le bas de l'écran. */
+  /* Repère « l'explication est plus bas » : seulement si elle s'ouvre sous le bas de l'écran.
+     Portée « cue » du noyau : retiré au premier défilement et à la question suivante. */
   function cue() {
     var p = FX.rect('#feedback-panel'), n;
-    if (!p || p.y < FX.vh() - 40 || !(n = FX.node('fx-cue', 'q'))) return;
+    if (!p || p.y < FX.vh() - 40 || !(n = FX.node('fx-cue', 'cue'))) return;
     n.textContent = '👇';
-    cueA = FX.anim(n, [{ opacity: 0 }, { opacity: 1, offset: 0.1 }, { opacity: 1, offset: 0.85 }, { opacity: 0 }],
-                   { duration: 2600, scope: 'q', remove: true, name: 'fx-cue' });
-    if (!cueA && n.parentNode) n.parentNode.removeChild(n);
+    if (!FX.anim(n, [{ opacity: 0 }, { opacity: 1, offset: 0.1 }, { opacity: 1, offset: 0.85 }, { opacity: 0 }],
+                 { duration: 2600, scope: 'cue', remove: true, name: 'fx-cue' })) FX.cancel('cue');
   }
-  window.addEventListener('scroll', function () {
-    if (cueA) { try { cueA.cancel(); } catch (e) {} cueA = null; }
-  }, { passive: true });
 
   /* ── Erreur ou temps écoulé : contre PARÉ, puis on guide vers l'explication ── */
   function faux(d, lv, pal, g) {
@@ -299,16 +298,29 @@ FX.module('combat', function (FX) {
     });
   });
 
-  /* ── Niveau gagné : bandeau sur l'en-tête (le toast du jeu est écrasé dans le même tick en QCM) ── */
+  /* ── Niveau gagné (tous les modes) : jamais un second effet focal en même temps qu'un autre. Tout
+        se joue sur l'en-tête, et seulement s'il est entier à l'écran (jamais sur une zone de lecture).
+        · QCM : bandeau « NIVEAU n ! » 320 ms après le coup (le toast du jeu y est écrasé dans le même
+          tick), onde et étoiles sur le badge de niveau.
+        · Écran de résultat d'un autre mode : le même bandeau, en dernier temps de la fête (1,3 s).
+          Niveau léger : l'onde seule sur le badge, à 0,6 s (la fête courte reste sous 1,2 s).
+          Résultat du QCM : rien (la cérémonie du rang occupe l'écran, le niveau a été fêté en partie).
+        · Ailleurs (ateliers, Vrai/Faux, Histoire, accueil) le toast du jeu l'annonce déjà : onde et
+          étoiles sur le badge seulement, s'il est visible. Épreuves : l'onde seule (profil sobre). ── */
   FX.on('xp:niveau', function () {
+    var id = FX.env.screen(), game = id === 'game', fete = FX.env.profile() === 'ceremony',
+        txt = game || (fete && FX.effective() > 1);
     lvAt = 0;
-    FX.after(Math.max(0, busy - now()) + (FX.env.screen() === 'game' ? 320 : 0), function () {
+    if (id === 'result') return;
+    FX.after(game ? Math.max(0, busy - now()) + 320 : txt ? 1300 : fete ? 600 : 0, function () {
+      var hd = FX.rect('header'), r = FX.rect('level');
+      if (!hd || hd.y < -4 || !(txt || (r && r.inView))) return;          // en-tête sorti (même en partie) : rien
       FX.play('niveau', function (lv, pal) {
-        var st = FX.game.state(), hd = FX.rect('header'), r = FX.rect('level');
-        FX.fx.banner('NIVEAU ' + (st ? st.level : '') + ' !', { anchor: hd && hd.inView ? hd : null, y: 40, emoji: '⭐', color: pal.warn, ms: 1000 });
+        var st = FX.game.state();
+        if (txt) FX.fx.banner('NIVEAU ' + (st ? st.level : '') + ' !', { anchor: hd, emoji: '⭐', color: pal.warn, ms: 1000 });
         if (r && r.inView) {
           FX.fx.ring(r.cx, r.cy, { r1: 30, color: pal.warn });
-          FX.fx.burst(r.cx, r.cy, { n: 12, kind: 'star', speed: 140, gravity: 60, color: pal.warn });
+          FX.fx.burst(r.cx, r.cy, { n: 12, kind: 'star', speed: 140, gravity: 60, color: pal.warn, min: fete ? 2 : 1 });
         }
       });
     });

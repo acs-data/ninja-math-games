@@ -5,7 +5,8 @@
                  converge sur le héros, onde, scintillement le long du titre, puis une quinzaine
                  de lueurs aux couleurs de l'univers montent autour de lui (≤ 2,6 s). Léger : onde
                  et scintillement (0,4 s). Coupée au premier défilement de la page.
-     retour      à chaque retour sur l'accueil : onde et scintillement (≈ 0,5 s).
+     retour      à chaque retour sur l'accueil : onde et scintillement (≈ 0,5 s) ; rien si un bandeau
+                 d'un autre module (fin du Tracé ou du Puzzle) occupe déjà l'écran.
      univers     vrai changement d'univers : onde de couleur depuis la carte choisie, voile
                  (limiteur du noyau), éclat, émoji de l'univers ; puis une ondulation sur les six
                  nouvelles cartes de personnage (re-générées par le jeu 200 ms plus tard).
@@ -40,6 +41,7 @@ FX.module('accueil', function (FX) {
   function opening(full) {
     var r = vis('.hero-ninja'), t = vis('#hero-title');
     if (!r && !t) return;                       // page défilée : le joueur lit plus bas, rien ne joue
+    if (!full && D.querySelector('.fx-banner')) return;      // un bandeau (fin d'atelier) est l'effet focal
     FX.play('accueil', function (lv, pal) {
       var k, i;
       owed = false;

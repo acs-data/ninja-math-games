@@ -32,11 +32,12 @@ FX.module('textes', function (FX) {
     FX.anim(n, [{ opacity: 0 }, { opacity: 1, offset: 0.3 }, { opacity: 0 }], { duration: 380, scope: 'q', remove: true, name: 'fx-tm-box' });
   }
   /* Repère calme vers l'explication : un trait qui descend le long de son bord gauche ; si elle
-     s'ouvre sous le bas de l'écran, un 👇 immobile dans le coin bas droit (hors de la zone du toast). */
+     s'ouvre sous le bas de l'écran, un 👇 immobile dans le coin bas droit (hors de la zone du toast),
+     retiré au premier défilement (portée « cue » du noyau). */
   function guide(sel, pal, trait) {
     var r = FX.rect(sel);
     if (!r) return;
-    if (r.y > FX.vh() - 40) F.float('👇', FX.vw() - 30, FX.vh() - 40, Q({ size: 24, ms: 1800, dy: 0 }));
+    if (r.y > FX.vh() - 40) F.float('👇', FX.vw() - 30, FX.vh() - 40, { size: 24, ms: 1800, dy: 0, scope: 'cue' });
     else if (trait) F.slash(r.x + 2, r.y + 3, r.x + 2, r.y + r.h - 3, Q({ width: 4, ms: 420, color: pal.calm }));
   }
 

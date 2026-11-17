@@ -33,6 +33,9 @@ function installHooks() {
   };
   D.addEventListener('pointerdown', onInput, { capture: true, passive: true });
   D.addEventListener('keydown', onInput, { capture: true, passive: true });
+  /* Un repère « l'explication est plus bas » (portée « cue ») est retiré dès que la page défile :
+     il ne flotte jamais sur le texte qui arrive dessous. */
+  W.addEventListener('scroll', function () { if (!S.dead && S.pref !== 'off') FX.cancel('cue'); }, { passive: true });
   D.addEventListener('visibilitychange', function () {
     try { if (D.hidden) { if (S.pref !== 'off' && !S.dead) suspend('caché'); } else resume(); } catch (e) {}
   });

@@ -2417,6 +2417,11 @@ html[data-fx-combo-off]:not([data-fx="off"]) .combo-display { opacity: 0 !import
 }
 /* 40-textmodes.css */
 .fx-tm-box { position: absolute; opacity: 0; box-sizing: border-box; border: 3px solid; border-radius: 18px; box-shadow: 0 0 12px; }
+/* 50-interactive.css */
+.fx-at-stamp {
+  padding: 0 8px; border: 2px solid currentColor; border-radius: 7px;
+  background: var(--fx-bg, #0D0D1A);
+}
 </style>
 </head>
 <body>
@@ -12069,6 +12074,7 @@ FX.cancel = function (scope) {
     try { cancelers[i](scope, all); } catch (e) { oops(e, 'cancel'); }
   }
   if (all) queue.length = 0;
+  if (scope === 'q') FX.cancel('cue');
 };
 FX.after = function (ms, fn, scope) {
   if (S.dead || S.pref === 'off') return 0;
@@ -12367,7 +12373,7 @@ function tick(t) {
       if (pn || shapes.length) {
         if (sizeDirty) measure();
         showCanvas(true);
-        step(lastT ? Math.min(t - lastT, 34) / 1000 : 0.016);
+        step(lastT ? Math.min(t - lastT, 100) / 1000 : 0.016);
       }
     }
   } catch (e) { oops(e, 'tick'); pn = 0; shapes.length = 0; }
@@ -12694,6 +12700,7 @@ function installHooks() {
   };
   D.addEventListener('pointerdown', onInput, { capture: true, passive: true });
   D.addEventListener('keydown', onInput, { capture: true, passive: true });
+  W.addEventListener('scroll', function () { if (!S.dead && S.pref !== 'off') FX.cancel('cue'); }, { passive: true });
   D.addEventListener('visibilitychange', function () {
     try { if (D.hidden) { if (S.pref !== 'off' && !S.dead) suspend('caché'); } else resume(); } catch (e) {}
   });
@@ -12824,7 +12831,7 @@ try { (function () {
 FX.module('combat', function (FX) {
   var A = FX.arena, D = document, PI = Math.PI;
   if (!A) return;
-  var qAt = 0, lvAt = 0, tense = false, gel = false, busy = 0, cueA = null, rep = null, repTok = 0, repAt = 0;
+  var qAt = 0, lvAt = 0, tense = false, gel = false, busy = 0, rep = null, repTok = 0, repAt = 0;
   var MELEE = { vortex: 1, impact: 1, crescent: 1 };
   function now() { return performance.now(); }
   function Q(o) { o.scope = 'q'; return o; }
@@ -12853,7 +12860,7 @@ FX.module('combat', function (FX) {
   FX.wrap('loadQuestion', null, function () {
     var s = state, t = now();
     FX.bump('q');
-    tense = gel = false; cueA = null;
+    tense = gel = false;
     if (!s.questions[s.qIndex] || FX.env.screen() !== 'game') return;
     if (t - qAt > 100 && FX.emit('qcm:q')) qAt = t;
   });
@@ -12885,7 +12892,7 @@ FX.module('combat', function (FX) {
   });
   FX.wrap('addXP', function () { return state.level; }, function (before) {
     var t = now();
-    if (state.level > before && t - lvAt > 100 && FX.emit('xp:niveau')) lvAt = t;
+    if (state.level > before && t - lvAt > 100 && FX.emit('xp:niveau', 0, null)) lvAt = t;
   });
   FX.on('qcm:q', function () {
     var c;
@@ -12997,15 +13004,11 @@ FX.module('combat', function (FX) {
   }
   function cue() {
     var p = FX.rect('#feedback-panel'), n;
-    if (!p || p.y < FX.vh() - 40 || !(n = FX.node('fx-cue', 'q'))) return;
+    if (!p || p.y < FX.vh() - 40 || !(n = FX.node('fx-cue', 'cue'))) return;
     n.textContent = '👇';
-    cueA = FX.anim(n, [{ opacity: 0 }, { opacity: 1, offset: 0.1 }, { opacity: 1, offset: 0.85 }, { opacity: 0 }],
-                   { duration: 2600, scope: 'q', remove: true, name: 'fx-cue' });
-    if (!cueA && n.parentNode) n.parentNode.removeChild(n);
+    if (!FX.anim(n, [{ opacity: 0 }, { opacity: 1, offset: 0.1 }, { opacity: 1, offset: 0.85 }, { opacity: 0 }],
+                 { duration: 2600, scope: 'cue', remove: true, name: 'fx-cue' })) FX.cancel('cue');
   }
-  window.addEventListener('scroll', function () {
-    if (cueA) { try { cueA.cancel(); } catch (e) {} cueA = null; }
-  }, { passive: true });
   function faux(d, lv, pal, g) {
     var full = lv > 1, h, f, gap, t;
     if (g) {
@@ -13078,14 +13081,19 @@ FX.module('combat', function (FX) {
     });
   });
   FX.on('xp:niveau', function () {
+    var id = FX.env.screen(), game = id === 'game', fete = FX.env.profile() === 'ceremony',
+        txt = game || (fete && FX.effective() > 1);
     lvAt = 0;
-    FX.after(Math.max(0, busy - now()) + (FX.env.screen() === 'game' ? 320 : 0), function () {
+    if (id === 'result') return;
+    FX.after(game ? Math.max(0, busy - now()) + 320 : txt ? 1300 : fete ? 600 : 0, function () {
+      var hd = FX.rect('header'), r = FX.rect('level');
+      if (!hd || hd.y < -4 || !(txt || (r && r.inView))) return;
       FX.play('niveau', function (lv, pal) {
-        var st = FX.game.state(), hd = FX.rect('header'), r = FX.rect('level');
-        FX.fx.banner('NIVEAU ' + (st ? st.level : '') + ' !', { anchor: hd && hd.inView ? hd : null, y: 40, emoji: '⭐', color: pal.warn, ms: 1000 });
+        var st = FX.game.state();
+        if (txt) FX.fx.banner('NIVEAU ' + (st ? st.level : '') + ' !', { anchor: hd, emoji: '⭐', color: pal.warn, ms: 1000 });
         if (r && r.inView) {
           FX.fx.ring(r.cx, r.cy, { r1: 30, color: pal.warn });
-          FX.fx.burst(r.cx, r.cy, { n: 12, kind: 'star', speed: 140, gravity: 60, color: pal.warn });
+          FX.fx.burst(r.cx, r.cy, { n: 12, kind: 'star', speed: 140, gravity: 60, color: pal.warn, min: fete ? 2 : 1 });
         }
       });
     });
@@ -13223,6 +13231,7 @@ FX.module('accueil', function (FX) {
   function opening(full) {
     var r = vis('.hero-ninja'), t = vis('#hero-title');
     if (!r && !t) return;
+    if (!full && D.querySelector('.fx-banner')) return;
     FX.play('accueil', function (lv, pal) {
       var k, i;
       owed = false;
@@ -13365,7 +13374,7 @@ FX.module('textes', function (FX) {
   function guide(sel, pal, trait) {
     var r = FX.rect(sel);
     if (!r) return;
-    if (r.y > FX.vh() - 40) F.float('👇', FX.vw() - 30, FX.vh() - 40, Q({ size: 24, ms: 1800, dy: 0 }));
+    if (r.y > FX.vh() - 40) F.float('👇', FX.vw() - 30, FX.vh() - 40, { size: 24, ms: 1800, dy: 0, scope: 'cue' });
     else if (trait) F.slash(r.x + 2, r.y + 3, r.x + 2, r.y + r.h - 3, Q({ width: 4, ms: 420, color: pal.calm }));
   }
   function cut(id) { return function () { if (on(id)) FX.bump('q'); }; }
@@ -13506,6 +13515,193 @@ FX.module('textes', function (FX) {
   });
 });
 })(); } catch (e) { oops(e, 'fragment:40-textmodes.js'); }
+/* 50-interactive.js */
+try { (function () {
+FX.module('ateliers', function (FX) {
+  var D = document, F = FX.fx, FADE = [{ opacity: 0 }, { opacity: 1 }];
+  var H = {}, last, tok, at = -1e3, frein = at;
+  function on(id) { return FX.env.screen() === id; }
+  function Q(o) { o.scope = 'q'; return o; }
+  function send(t, s, v) {
+    var n = performance.now();
+    if (!on(s)) return;
+    last = { t: t, s: s, v: v }; tok = FX.token('q');
+    if (n - at > 100 && FX.emit('at:ev', 0, null)) at = n;
+  }
+  FX.on('at:ev', function () {
+    var d = last;
+    last = 0; at = -1e3;
+    if (d && tok === FX.token('q') && on(d.s) && FX.env.visible(d.s)) { FX.cancel('q'); H[d.t](d.v); }
+  });
+  function vu(t) {
+    var r = FX.rect(t), h = FX.rect('header'), y, b;
+    if (!r) return null;
+    y = Math.max(r.y, h && h.inView ? h.y + h.h : 0); b = Math.min(r.y + r.h, FX.vh());
+    return b - y < 16 ? null : { x: r.x, y: y, w: r.w, h: b - y, cx: r.cx, cy: (y + b) / 2 };
+  }
+  function tour(t, n, c) {
+    var r = vu(t), x, y, X, Y;
+    if (!r) return r;
+    x = r.x - 2; y = r.y - 2; X = x + r.w + 4; Y = y + r.h + 4;
+    F.slash(x, y, X, y, Q({ width: 3, ms: 420, color: c }));
+    F.slash(X, Y, x, Y, Q({ width: 3, ms: 420, color: c }));
+    F.trail([[x, Y], [x, y], [X, y], [X, Y], [x, Y]], Q({ n: n, size: 4, color: c, jitter: 3, stagger: 200 }));
+    return r;
+  }
+  function anneau(el, c) {
+    var r = vu(el);
+    if (r) F.ring(r.cx, r.cy, Q({ r0: 8, r1: Math.min(r.w, r.h) * 0.62, color: c }));
+  }
+  function eclat(sel, c) {
+    var b = vu(sel);
+    if (b) F.ring(b.x + 27, b.cy, Q({ r0: 12, r1: 25, color: c }));
+  }
+  function verdict(nom, ok, fb, txt, fn, info) {
+    FX.play(nom + (ok ? '-juste' : '-erreur'), function (lv, pal) {
+      var r = FX.rect(fb), v = vu(fb), h = FX.vh(), y = r && r.y;
+      if (ok) {
+        fn(pal.good, pal);
+        if (y > 76 && y < h - 24) F.float(txt, r.x + r.w - 44, y - 7, Q({ cls: 'fx-at-stamp', color: pal.good, size: 16, rotate: -6, dy: 0 }));
+      } else if (v) F.slash(v.x + 2, v.y + 3, v.x + 2, v.y + v.h - 3, Q({ width: 4, ms: 420, color: pal.calm }));
+      else if (y > h - 40) F.float('👇', FX.vw() - 30, h - 40, { size: 24, dy: 0, scope: 'cue' });
+    }, { info: info });
+  }
+  function cut(id) { return function () { if (on(id)) FX.bump('q'); }; }
+  FX.wrap('loadDrawMission', null, cut('draw'));
+  FX.wrap('loadPuzzle', null, cut('puzzle'));
+  FX.wrap('newPythChallenge', null, cut('pythagore'));
+  FX.wrap('loadProbaScenario', null, cut('proba-tree'));
+  FX.wrap('loadGraphChallenge', null, cut('graph-reader'));
+  FX.wrap('validateDraw', function () { return drawState.validated ? -1 : drawState.score; }, function (s) {
+    if (s >= 0 && drawState.validated) send('trace', 'draw', drawState.score - s);
+  });
+  FX.wrap('nextDrawMission', null, function () {
+    if (drawState.missionIdx === DRAW_MISSIONS.length) send('fin', 'home', 'MISSIONS TERMINÉES !');
+  });
+  FX.wrap('nextPuzzle', null, function () {
+    if (puzzleState.idx === PUZZLES.length) send('fin', 'home', 'PUZZLES TERMINÉS !');
+  });
+  FX.wrap('dropOnSlot', function (piece, slot) { return puzzleState.placements[slot.id]; }, function (pris, a) {
+    if (!pris && puzzleState.placements[a[1].id]) send('pose', 'puzzle', a[1]);
+  });
+  function avP() { return puzzleState.validated ? -1 : state.xp; }
+  function apP(x) { if (x >= 0 && puzzleState.validated) send('puzzle', 'puzzle', state.xp - x); }
+  FX.wrap('validateMatchPuzzle', avP, apP);
+  FX.wrap('validateSortPuzzle', avP, apP);
+  FX.wrap('autoValidatePuzzle', avP, apP);
+  FX.wrap('validatePythChallenge', function () {
+    return pythState.challenge && !pythState.challengeAnswered;
+  }, function (vif) {
+    var ok = pythState.challengeAnswered, n = performance.now();
+    if (vif && (ok || n - frein > 1500)) { frein = n; send('defi', 'pythagore', ok); }
+  });
+  FX.wrap('selectPythAtelier', function () { return pythState.atelier; }, function (avant, a) {
+    if (a[0] !== avant) send('onglet', 'pythagore', a[0]);
+  });
+  FX.wrap('placeProbaPiece', function (id) {
+    var p = probaState.placements[id];
+    return p ? p.pieceIdx : -1;
+  }, function (avant, a) {
+    if (avant !== a[1]) send('ppose', 'proba-tree', a[0]);
+  });
+  FX.wrap('validateProbaPlacement', function () { return probaState.validated; }, function (v) {
+    if (!v && probaState.validated) send('arbre', 'proba-tree');
+  });
+  FX.wrap('answerProbaQuestion', function () { return probaState.questionAnswered; }, function (v) {
+    var p = probaState;
+    if (!v && p.questionAnswered) send('pq', 'proba-tree', p.scenarioCorrect[p.scenarioIdx] === true);
+  });
+  FX.wrap('finalizeGraphAnswer', null, function (x, a) {
+    send('graph', 'graph-reader', a[0] ? graphState.combo : 0);
+  });
+  FX.wrap('endProbaTree', null, function () { send('bilan', 'proba-tree-result', 'proba'); });
+  FX.wrap('endGraphReader', null, function () { send('bilan', 'graph-reader-result', 'graph'); });
+  FX.wrap('showStatsScreen', function () { return !on('stats'); }, function (arrive) {
+    if (arrive) send('stats', 'stats');
+  });
+  H.trace = function (n) {
+    verdict('trace', n >= 70, '#draw-feedback', '✔ ' + n + ' %', function (c) {
+      tour('#draw-canvas', 24, c);
+    }, n);
+  };
+  function pose(nom, el, c) {
+    if (vu(el)) FX.play(nom, function (lv, pal) { anneau(el, pal[c]); });
+  }
+  H.pose = function (el) { pose('puzzle-pose', el, 'good'); };
+  H.ppose = function (id) { pose('proba-pose', D.querySelector('.proba-slot[data-slot="' + id + '"]'), 'calm'); };
+  H.puzzle = function (n) {
+    verdict('puzzle', n, '#puzzle-feedback', '+' + n + ' XP', function (c, pal) {
+      var l = D.querySelectorAll('.puzzle-slot.correct'), a = vu('#puzzle-game-area'), i;
+      for (i = 0; i < l.length; i++) FX.after(i * 70, anneau.bind(null, l[i], c), 'q');
+      if (a) F.burst(a.cx, a.y, Q({ n: 22, kind: 'star', angle: -1.57, spread: 3.14, colors: [pal.u, pal.warn] }));
+    }, n);
+  };
+  H.fin = function (txt) {
+    FX.play('atelier-fin', function (lv, pal) {
+      F.banner(txt, { anchor: 'header', emoji: '🏆', color: pal.warn, ms: 1100 });
+    }, { info: txt });
+  };
+  H.defi = function (ok) {
+    verdict('defi', ok, '#pyth-challenge-feedback', '+40 XP', function (c) {
+      if (!tour('#pyth-canvas', 24, c)) tour('#pyth-challenge-feedback', 24, c);
+    });
+  };
+  H.onglet = function (k) {
+    FX.play('atelier-onglet', function () {
+      FX.anim('#pyth-canvas', FADE, { duration: 200, scope: 'q' });
+    }, { info: k });
+  };
+  H.arbre = function () {
+    verdict('arbre', 1, '#proba-placement-feedback', '+40 XP', function (c, pal) {
+      var l = D.querySelectorAll('.proba-slot'), i;
+      function branche(i) {
+        var r = vu(l[i]), p = vu(i < 2 ? '.proba-root' : l[i < 4 ? 0 : 1]);
+        if (r && p) F.slash(p.cx, p.cy, r.cx, r.cy, Q({ min: 2, width: 3, ms: 280, color: pal.u }));
+        FX.after(180, anneau.bind(null, l[i], c), 'q');
+      }
+      for (i = 0; i < l.length; i++) FX.after(i < 2 ? 0 : 340, branche.bind(null, i), 'q');
+    });
+  };
+  H.pq = function (ok) {
+    verdict('proba', ok, '#proba-question-feedback', '+50 XP', function (c) {
+      eclat('#proba-question-answers .correct', c);
+    });
+  };
+  H.graph = function (n) {
+    var g = graphState, c = g.current, v = vu('#graph-canvas'), r = FX.rect('#graph-canvas'), k = r && r.w / g.W,
+      m = v && c.mode === 'click' && (n ? g.clickedPoint : c.target), p = m && mathToPx(m.x, m.y),
+      x = m && r.x + p.x * k, y = m && r.y + p.y * k;
+    m = m && y > v.y + 6 && y < v.y + v.h - 6;
+    verdict('graph', n, '#graph-feedback', '+' + (30 + 5 * n) + ' XP', function (col) {
+      if (m) F.ring(x, y, Q({ r0: 8, r1: 34, width: 4, color: col }));
+      else if (c.mode === 'qcm') eclat('#graph-qcm-answers .correct', col);
+      else tour('#graph-canvas', 16, col);
+    }, '×' + n);
+    if (m && !n) F.ring(x, y, Q({ r0: 30, r1: 8, ms: 560, color: FX.palette().calm }));
+  };
+  H.bilan = function (m) {
+    var e = D.getElementById(m + '-result-emoji'), k = Math.max(0, ['💪', '🥷', '⭐', '🏆'].indexOf(e.textContent));
+    FX.play('bilan-' + m, function (lv, pal) {
+      var r = vu(e) || { cx: FX.vw() / 2, cy: 0 };
+      FX.anim(e, [{ opacity: 0, transform: 'scale(.3)' }, { opacity: 1, transform: 'none' }],
+        { duration: 420, delay: 120, easing: 'cubic-bezier(.2,1.5,.4,1)', leger: FADE });
+      FX.after(360, function () {
+        F.ring(r.cx, r.cy, { r1: 58, color: pal.u });
+        F.burst(r.cx, r.cy, { n: 8 + 12 * k, kind: 'star', speed: 90 + 50 * k, life: 700, colors: pal.set });
+        if (k > 1) F.confetti({ n: 36 * k - 48, ms: 1100, min: 2 });
+      });
+    }, { info: k });
+  };
+  H.stats = function () {
+    var l = D.querySelectorAll('.stats-bar-fill'), i;
+    if (l.length) FX.play('stats', function () {
+      for (i = 0; i < l.length; i++) {
+        FX.anim(l[i], [{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0)' }], { duration: 420, delay: 160 + 40 * i, leger: FADE });
+      }
+    }, { info: l.length });
+  };
+});
+})(); } catch (e) { oops(e, 'fragment:50-interactive.js'); }
 /* 99-boot.js */
 W.FX = FX;
 (function boot() {

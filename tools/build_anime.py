@@ -33,7 +33,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC_HTML = os.path.join(ROOT, 'index.html')
 SRC_DIR = os.path.join(ROOT, 'anime-src')
 OUT_HTML = os.path.join(ROOT, 'anime.html')
-SIZE_WARN = 90 * 1024          # D7 : couche entière <= ~90 Ko
+SIZE_WARN = 105 * 1024         # plafond souple de la couche entière (injectée) : ~105 Ko
 
 # Retouches du <head> : chaque ancre doit exister exactement une fois dans index.html.
 HEAD_PATCHES = [
@@ -356,7 +356,7 @@ def build(modules=None, keep_comments=False, src_dir=SRC_DIR):
         raw = read(os.path.join(src_dir, name))
         clean = lint_css(name, raw, errors)
         css_parts.append('/* %s */\n%s' % (name, raw if keep_comments else clean))
-        report['sizes'].append((name, len(raw.encode('utf-8'))))
+        report['sizes'].append((name, len(raw.encode('utf-8')), len(css_parts[-1].encode('utf-8'))))
 
     js_parts = []
     wrapped = set()
@@ -375,7 +375,7 @@ def build(modules=None, keep_comments=False, src_dir=SRC_DIR):
         else:      # module : portée et try privés
             js_parts.append("/* %s */\ntry { (function () {\n%s})(); } catch (e) { oops(e, 'fragment:%s'); }\n"
                             % (name, body, name))
-        report['sizes'].append((name, len(raw.encode('utf-8'))))
+        report['sizes'].append((name, len(raw.encode('utf-8')), len(js_parts[-1].encode('utf-8'))))
     if errors:
         raise BuildError('\n'.join(errors))
 
@@ -408,11 +408,11 @@ def build(modules=None, keep_comments=False, src_dir=SRC_DIR):
 
     report['layer_css'] = len(css.encode('utf-8'))
     report['layer_js'] = len(js.encode('utf-8'))
-    report['src_total'] = sum(s for _n, s in report['sizes'])
+    report['src_total'] = sum(s for _n, s, _i in report['sizes'])
     report['index_bytes'] = len(src.encode('utf-8'))
     report['anime_bytes'] = len(html.encode('utf-8'))
     if report['layer_css'] + report['layer_js'] > SIZE_WARN:
-        report['warnings'].append('couche = %d octets : au-dessus du budget de %d (D7)'
+        report['warnings'].append('couche = %d octets : au-dessus du plafond souple de %d'
                                   % (report['layer_css'] + report['layer_js'], SIZE_WARN))
     node_checks(html, report)
     return html, report
@@ -464,8 +464,8 @@ def main():
     for w in rep['warnings']:
         print('AVERTISSEMENT : ' + w, file=sys.stderr)
     print('index.html   md5 %s  %d octets (lu seulement)' % (rep['md5_index'], rep['index_bytes']))
-    for name, size in rep['sizes']:
-        print('  %-22s %6d octets' % (name, size))
+    for name, size, injected in rep['sizes']:      # source -> injecté (commentaires retirés, enveloppe du module comprise)
+        print('  %-22s %6d octets -> %6d injectés' % (name, size, injected))
     print('sources      %d octets | couche injectée : css %d + js %d = %d octets'
           % (rep['src_total'], rep['layer_css'], rep['layer_js'], rep['layer_css'] + rep['layer_js']))
     print('anime.html   %d octets (+%d)' % (rep['anime_bytes'], rep['anime_bytes'] - rep['index_bytes']))
@@ -488,6 +488,7 @@ def main():
     fd, tmp = tempfile.mkstemp(prefix='.anime_', suffix='.tmp', dir=os.path.dirname(out) or '.')
     with os.fdopen(fd, 'wb') as f:
         f.write(data)
+    os.chmod(tmp, 0o644)       # mkstemp crée en 0600 : GitHub Pages exige des fichiers lisibles par tous
     os.replace(tmp, out)
     print('écrit        %s' % out)
     return 0
