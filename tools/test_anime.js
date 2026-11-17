@@ -14,7 +14,7 @@
 
    Dépendance : Playwright + Chromium (aucune dépendance ajoutée au dépôt). S'il est absent, le
    script explique comment le lancer et sort avec le code 0. Pour ajouter un scénario : écrire une
-   fonction async (browser) et l'inscrire dans SCENARIOS. */
+   fonction async (browser) et l'inscrire dans SCENARIOS, ou déposer un fichier dans tools/anime-tests/. */
 'use strict';
 const path = require('path');
 const { pathToFileURL } = require('url');
@@ -858,6 +858,19 @@ const SCENARIOS = [
   ['verdict', 'cérémonie du résultat', scenarioVerdict],
   ['parties', 'parties complètes (modes × univers × thèmes)', scenarioSessions]
 ];
+
+/* Scénarios des modules : un fichier par module dans tools/anime-tests/ (ordre alphabétique).
+   Chaque fichier exporte function (h) { return [[clé, titre, async (browser) => {…}], …]; }
+   où h regroupe les aides de ce fichier (voir HELPERS). */
+const HELPERS = { check, open, wait, waapi, gameShown, snap, firstDiff, logOf, during, leftovers, isIdle, harness,
+  ROOT, INDEX, ANIME, SEED };
+const fs = require('fs');
+const EXTRA_DIR = path.join(__dirname, 'anime-tests');
+if (fs.existsSync(EXTRA_DIR)) {
+  fs.readdirSync(EXTRA_DIR).filter((f) => /\.js$/.test(f)).sort().forEach((f) => {
+    (require(path.join(EXTRA_DIR, f))(HELPERS) || []).forEach((s) => SCENARIOS.push(s));
+  });
+}
 
 (async () => {
   const t0 = Date.now();
