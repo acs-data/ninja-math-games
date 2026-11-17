@@ -1,0 +1,4 @@
+/* ═══ 40-textmodes.css — module « textes » (Vrai/Faux, Histoire, Automatismes, DNB Blanc) ═══
+   Un seul nœud de scène : le contour bref posé autour d'une carte ou d'une réponse (enfant de
+   #fx-stage, en coordonnées de fenêtre ; couleur = currentColor ; rien n'est dessiné à l'intérieur). */
+.fx-tm-box { position: absolute; opacity: 0; box-sizing: border-box; border: 3px solid; border-radius: 18px; box-shadow: 0 0 12px; }

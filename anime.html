@@ -2283,6 +2283,10 @@ html[data-fx="off"] #fx-root { display: none; }
   font-family: 'Nunito', sans-serif; font-size: .72rem; font-weight: 800; letter-spacing: 0; color: var(--gray);
 }
 .fx-emoji { font-family: 'Nunito', sans-serif; letter-spacing: 0; }
+.fx-blade {
+  position: absolute; z-index: -1; top: 0; right: 0; bottom: 0; left: 0; opacity: 0;
+  background: var(--dark);
+}
 #fx-lite-drawer:disabled, #fx-set-drawer:disabled, #fx-set-home:disabled,
 #fx-set-pause:disabled, #fx-set-auto-pause:disabled { opacity: .45; cursor: default; }
 #fx-set-pause, #fx-set-auto-pause { font-size: .95rem; letter-spacing: 1px; }
@@ -2411,6 +2415,8 @@ html[data-fx-combo-off]:not([data-fx="off"]) .combo-display { opacity: 0 !import
   font: 400 2.4rem/1 'Bangers', Impact, 'Arial Black', cursive; letter-spacing: 2px;
   color: var(--fx-u, var(--white)); text-shadow: 2px 2px 0 var(--dark2);
 }
+/* 40-textmodes.css */
+.fx-tm-box { position: absolute; opacity: 0; box-sizing: border-box; border: 3px solid; border-radius: 18px; box-shadow: 0 0 12px; }
 </style>
 </head>
 <body>
@@ -12016,19 +12022,27 @@ function dispatch(type, data) {
 FX.emit = function (type, data, scope) {
   if (S.dead || S.pref === 'off') return false;
   if (blocked()) { drop(type, 'bloqué'); return false; }
-  if (queue.length >= 32) { drop(type, 'file pleine'); return false; }
+  if (queue.length >= 32) {
+    purge();
+    if (queue.length >= 32 && type !== 'screen') { drop(type, 'file pleine'); return false; }
+  }
   if (scope === undefined) scope = 'screen';
   queue.push({ type: type, data: data, scope: scope, tok: scope ? (tokens[scope] || 0) : 0, scr: S.screen });
   wake();
   return true;
 };
+function stale(ev) { return !!ev.scope && ((tokens[ev.scope] || 0) !== ev.tok || ev.scr !== S.screen); }
+function purge() {
+  var i;
+  for (i = queue.length - 1; i >= 0; i--) if (stale(queue[i])) { drop(queue[i].type, 'portée'); queue.splice(i, 1); }
+}
 function flush() {
   if (!queue.length) return;
   var q = queue, i, ev;
   queue = [];
   for (i = 0; i < q.length; i++) {
     ev = q[i];
-    if (ev.scope && ((tokens[ev.scope] || 0) !== ev.tok || ev.scr !== S.screen)) { drop(ev.type, 'portée'); continue; }
+    if (stale(ev)) { drop(ev.type, 'portée'); continue; }
     dispatch(ev.type, ev.data);
   }
 }
@@ -12688,12 +12702,19 @@ function installHooks() {
 FX.module('arrivee', function (FX) {
   FX.on('screen', function (d) {
     if (d.profile === 'sobre') return;
-    var el = document.getElementById('screen-' + d.id);
-    if (!el) return;
-    FX.play('arrivee', function (lv) {
-      FX.anim(el, lv > 1 ? [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }]
-                         : [{ opacity: 0 }, { opacity: 1 }],
-              { duration: lv > 1 ? 220 : 140, name: 'arrivee' });
+    FX.play('arrivee', function (lv, pal) {
+      var n = FX.node('fx-blade'), h = FX.rect('header'), home = d.id === 'home', cer = d.profile === 'ceremony';
+      if (!n) return;
+      n.style.top = (h && h.inView ? Math.max(0, h.y + h.h) : 0) + 'px';
+      if (lv < 2 || d.prev === 'loading') {
+        FX.anim(n, [{ opacity: 1 }, { opacity: 0 }], { duration: 140, easing: 'linear', fill: 'none', remove: true, name: 'fx-blade' });
+        return;
+      }
+      n.style[cer ? 'borderTop' : home ? 'borderRight' : 'borderLeft'] = '10px solid ' + pal.u;
+      n.style.boxShadow = '0 0 26px 3px ' + FX.color.alpha(pal.u, 0.55);
+      FX.anim(n, [{ opacity: 1, transform: 'none' },
+                  { opacity: 1, transform: cer ? 'translateY(100%)' : 'translateX(' + (home ? '-' : '') + '100%)' }],
+              { duration: cer ? 340 : home ? 240 : 300, easing: 'cubic-bezier(.7,0,.2,1)', fill: 'none', remove: true, name: 'fx-blade' });
     }, { info: d.id });
   });
 });
@@ -13184,6 +13205,307 @@ FX.module('verdict', function (FX) {
   });
 });
 })(); } catch (e) { oops(e, 'fragment:25-result.js'); }
+/* 30-shell.js */
+try { (function () {
+FX.module('accueil', function (FX) {
+  var D = document, W = window, PI = Math.PI;
+  var t0 = now(), tok0 = FX.token('screen'), owed = true, tap = null, thAt = 0, liveTo = 0;
+  function now() { return performance.now(); }
+  function Q(o) { o.scope = 'q'; return o; }
+  function vis(t) {
+    var r = FX.rect(t), h;
+    if (!r || !r.inView || r.cy > FX.vh()) return null;
+    h = FX.rect('header');
+    return h && h.inView && r.cy < h.y + h.h ? null : r;
+  }
+  function later(ms, fn) { if (ms) FX.after(ms, fn); else fn(); }
+  function pal() { return FX.palette(); }
+  function opening(full) {
+    var r = vis('.hero-ninja'), t = vis('#hero-title');
+    if (!r && !t) return;
+    FX.play('accueil', function (lv, pal) {
+      var k, i;
+      owed = false;
+      full = full && lv > 1;
+      liveTo = now() + (full ? 2700 : 600);
+      if (r) {
+        if (full) for (k = -1; k < 2; k += 2) {
+          FX.fx.streaks(r.cx + k * 170, r.cy, r.cx + k * 26, r.cy, { n: 5, ms: 220, jitter: r.h * 0.3, color: pal.u });
+        }
+        later(full ? 210 : 0, function () {
+          FX.fx.ring(r.cx, r.cy, { r0: 12, r1: r.h * 0.62, color: pal.u, ms: full ? 420 : 340 });
+          FX.fx.burst(r.cx, r.cy + r.h * 0.4, { n: full ? 12 : 8, angle: -PI / 2, spread: 3.6, speed: 170, life: full ? 520 : 360, size: 3, color: pal.c, min: 2 });
+        });
+        if (full) for (i = 0; i < 3; i++) wave(r.cx + (i - 1) * r.w * 0.7, r.y + r.h, 480 + 220 * i, pal);
+      }
+      if (t) later(full ? 300 : 0, function () {
+        FX.fx.trail([[t.x, t.y], [t.x + t.w, t.y]], { n: full ? 14 : 8, life: full ? 460 : 260, stagger: full ? 300 : 90, size: 4, jitter: 3, color: pal.u });
+      });
+    }, { info: full ? 'ouverture' : 'retour' });
+  }
+  function wave(x, y, ms, pal) {
+    FX.after(ms, function () {
+      FX.fx.burst(x, y, { n: 5, angle: -PI / 2, spread: 1.2, speed: 52, gravity: -28, drag: 0.4, life: 1600, size: 5, kind: 'star', colors: [pal.u, pal.c] });
+    });
+  }
+  W.addEventListener('scroll', function () {
+    if (liveTo && now() < liveTo) FX.cancel('screen');
+    liveTo = 0;
+  }, { passive: true });
+  function boot() {
+    if (!owed) return;
+    if (FX.token('screen') !== tok0) owed = false;
+    else opening(true);
+  }
+  function arm() { FX.after(Math.max(400, 750 - (now() - t0)), boot); }
+  if (D.readyState === 'complete') arm(); else W.addEventListener('load', arm);
+  FX.on('fx:resume', function () { if (owed) FX.emit('sh:boot'); });
+  FX.on('sh:boot', boot);
+  FX.on('fx:level', function () { if (owed) arm(); });
+  function onTap(e) {
+    try {
+      var c = e.target && e.target.closest ? e.target.closest('.level-card') : null, r;
+      if (!c || FX.level() === 'off' || (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ')) return;
+      r = e.clientX || e.clientY ? null : c.getBoundingClientRect();
+      tap = { x: r ? r.left + r.width / 2 : e.clientX, y: r ? r.top + r.height / 2 : e.clientY, t: now() };
+    } catch (err) {}
+  }
+  D.addEventListener('click', onTap, { capture: true, passive: true });
+  D.addEventListener('keydown', onTap, { capture: true, passive: true });
+  FX.on('screen', function (d) {
+    var p = tap;
+    owed = false; tap = null; liveTo = 0;
+    if (d.id === 'home') { FX.after(160, function () { opening(false); }); return; }
+    if (!p || d.profile === 'sobre' || d.id === 'loading' || now() - p.t > 700) return;
+    FX.play('envol', function (lv, pal) {
+      FX.fx.ring(p.x, p.y, { r0: 10, r1: 76, color: pal.u, ms: 320 });
+      FX.fx.burst(p.x, p.y, { n: 14, kind: 'streak', speed: 460, life: 340, gravity: 0, drag: 2, size: 3, color: pal.u });
+    }, { info: d.id });
+  });
+  FX.wrap('selectUniverse', function () { return FX.game.universe(); }, function (before) {
+    if (FX.game.universe() !== before) { FX.bump('q'); FX.emit('sh:univers', null, 'q'); }
+  });
+  FX.on('sh:univers', function () {
+    var r = vis('.universe-card.selected');
+    if (!r) return;
+    FX.play('univers', function (lv, pal) {
+      FX.fx.tint(pal.u, { alpha: 0.1, ms: 420, scope: 'q' });
+      FX.fx.ring(r.cx, r.cy, Q({ r0: 20, r1: Math.max(FX.vw(), FX.vh()) * 0.8, width: 16, color: pal.u, ms: 520, min: 2 }));
+      FX.fx.ring(r.cx, r.cy, Q({ r0: 14, r1: r.w * 0.7, width: 4, color: pal.u, ms: 380 }));
+      FX.fx.burst(r.cx, r.cy, Q({ n: 18, speed: 260, life: 520, color: pal.u }));
+      FX.fx.sprite(pal.uniEmoji, r.cx, r.y + r.h * 0.3, Q({ size: 30, life: 560, speed: 90, drag: 1.5, min: 2 }));
+      if (lv > 1) FX.after(250, function () { ripple(pal.u); }, 'q');
+    }, { info: pal().universe });
+  });
+  function ripple(color) {
+    var l = D.querySelectorAll('#char-grid .char-card'), i;
+    function one(el, k) {
+      FX.after(45 * k, function () {
+        var c = vis(el);
+        if (c) FX.fx.ring(c.cx, c.cy, Q({ r0: 8, r1: c.w * 0.5, width: 2, color: color, ms: 300 }));
+      }, 'q');
+    }
+    for (i = 0; i < l.length && i < 6; i++) one(l[i], i);
+  }
+  FX.wrap('selectChar', function () { var s = FX.game.state(); return s && s.char; }, function (before, args) {
+    var s = FX.game.state();
+    if (s && s.char !== before) { FX.bump('q'); FX.emit('sh:perso', args[0], 'q'); }
+  });
+  FX.on('sh:perso', function (el) {
+    var r = vis(el), e = r && el.querySelector('.char-emoji');
+    if (!r) return;
+    FX.play('perso', function (lv, pal) {
+      FX.fx.ring(r.cx, r.cy, Q({ r0: 12, r1: Math.max(r.w, r.h) * 0.62, color: pal.c, ms: 340 }));
+      FX.fx.burst(r.cx, r.cy, Q({ n: 10, speed: 190, life: 420, size: 3, kind: 'star', color: pal.c }));
+      if (e) FX.anim(e, [{ transform: 'scale(1)' }, { transform: 'scale(1.35)', offset: 0.4 }, { transform: 'scale(1)' }],
+                     Q({ duration: 320, leger: false, name: 'perso' }));
+    }, { info: pal().char });
+  });
+  function classe() { return typeof activeMissionClasse === 'string' ? activeMissionClasse : ''; }
+  FX.wrap('selectMissionClass', classe, function (before) {
+    if (classe() !== before) { FX.bump('q'); FX.emit('sh:classe', null, 'q'); }
+  });
+  FX.on('sh:classe', function () {
+    var r = vis('.mission-tab.active');
+    if (r) FX.play('classe', function (lv, pal) {
+      FX.fx.slash(r.x + 8, r.y + r.h + 3, r.x + r.w - 8, r.y + r.h + 3, Q({ color: pal.u, width: 3, ms: 280 }));
+      FX.anim('#mission-chips', [{ opacity: 0.3 }, { opacity: 1 }], Q({ duration: 200, name: 'classe' }));
+    });
+  });
+  FX.wrap('applyTheme', pal, function (before) {
+    var t = now();
+    if (FX.game.theme() !== before.theme && t - thAt > 100 && FX.emit('sh:theme', before.bg, null)) thAt = t;
+  });
+  FX.on('sh:theme', function (bg) {
+    FX.bump('th');
+    FX.palette();
+    if (FX.env.profile() !== 'sobre') FX.play('theme', function () {
+      var n = FX.node('fx-blade', 'th');
+      if (!n) return;
+      n.style.background = bg;
+      FX.anim(n, [{ opacity: 0.55 }, { opacity: 0 }], { duration: 260, fill: 'none', remove: true, scope: 'th', name: 'theme' });
+    });
+  });
+});
+})(); } catch (e) { oops(e, 'fragment:30-shell.js'); }
+/* 40-textmodes.js */
+try { (function () {
+FX.module('textes', function (FX) {
+  var D = document, F = FX.fx, PI = Math.PI, VU = { opacity: 1, transform: 'none' }, FADE = [{ opacity: 0 }, { opacity: 1 }];
+  var TIER = { '🏆': 4, '⭐': 3, '⚡': 3, '🥷': 2, '📚': 1 };
+  function on(id) { return FX.env.screen() === id; }
+  function Q(o) { o.scope = 'q'; return o; }
+  function box(el, color) {
+    var r = FX.rect(el), n = r && r.inView && FX.node('fx-tm-box', 'q'), s;
+    if (!n) return;
+    s = n.style;
+    s.left = r.x - 4 + 'px'; s.top = r.y - 4 + 'px'; s.width = r.w + 8 + 'px'; s.height = r.h + 8 + 'px'; s.color = color;
+    FX.anim(n, [{ opacity: 0 }, { opacity: 1, offset: 0.3 }, { opacity: 0 }], { duration: 380, scope: 'q', remove: true, name: 'fx-tm-box' });
+  }
+  function guide(sel, pal, trait) {
+    var r = FX.rect(sel);
+    if (!r) return;
+    if (r.y > FX.vh() - 40) F.float('👇', FX.vw() - 30, FX.vh() - 40, Q({ size: 24, ms: 1800, dy: 0 }));
+    else if (trait) F.slash(r.x + 2, r.y + 3, r.x + 2, r.y + r.h - 3, Q({ width: 4, ms: 420, color: pal.calm }));
+  }
+  function cut(id) { return function () { if (on(id)) FX.bump('q'); }; }
+  FX.wrap('loadAutoQuestion', null, cut('auto'));
+  FX.wrap('loadTfQuestion', null, cut('tf'));
+  FX.wrap('loadDnbStep', null, cut('dnb-ex'));
+  FX.wrap('startStoryMode', null, function () { FX.emit('tm:scene', 0, 'q'); });
+  FX.wrap('loadStoryStep', null, function () {
+    if (!on('story')) return;
+    FX.bump('q');
+    FX.emit('tm:scene', storyState.stepIdx + 1, 'q');
+  });
+  FX.wrap('submitAutoAnswer', function () {
+    return autoState.answered ? -1 : autoState.history.length;
+  }, function (n, a) {
+    var h = n < 0 ? null : autoState.history[n];
+    if (h && on('auto')) FX.emit('tm:auto', { ok: h.ok, to: a[0] === true }, 'q');
+  });
+  FX.wrap('answerTf', function () {
+    var t = tfState;
+    return t.answered ? null : { c: t.correct, s: t.score };
+  }, function (p, a) {
+    var t = tfState;
+    if (p && on('tf')) FX.emit('tm:tf', { ok: t.correct > p.c, v: a[0], pts: t.score - p.s, n: t.streak }, 'q');
+  });
+  FX.wrap('answerStoryStep', function () {
+    return storyState.answered ? -1 : storyState.correct;
+  }, function (c, a) {
+    var s = storyState;
+    if (c >= 0 && on('story')) FX.emit('tm:qcm', { p: 'story', ok: s.correct > c, i: a[0], g: s.currentStep.correct }, 'q');
+  });
+  FX.wrap('answerDnbStep', function () {
+    var s = dnbState;
+    return s.exerciseAnswered ? -1 : s.exerciseCorrectByExo[s.exerciseIdx];
+  }, function (c, a) {
+    var s = dnbState;
+    if (c >= 0 && on('dnb-ex')) FX.emit('tm:qcm', { p: 'dnb-ex', ok: s.exerciseCorrectByExo[s.exerciseIdx] > c, i: a[0], g: s.currentStep.correct }, 'q');
+  });
+  function av(id) { return function () { return on(id); }; }
+  function ap(m) { return function (ok) { if (ok && on(m + '-result')) FX.emit('tm:bilan', m); }; }
+  FX.wrap('endAutoMode', av('auto'), ap('auto'));
+  FX.wrap('endTrueFalse', av('tf'), ap('tf'));
+  FX.wrap('endStoryMode', av('story'), ap('story'));
+  FX.wrap('endDnbBlanc', av('dnb-ex'), ap('dnb'));
+  FX.on('tm:auto', function (d) {
+    FX.play(d.ok ? 'auto-juste' : d.to ? 'auto-temps' : 'auto-erreur', function (lv, pal) {
+      var h = autoState.history, n = 0, r;
+      box('#screen-auto .question-wrap', d.ok ? pal.good : pal.calm);
+      if (!d.ok) { guide('#auto-feedback', pal); return; }
+      while (n < h.length && h[h.length - 1 - n].ok) n++;
+      if (n % 5 === 0 && (r = FX.rect('#auto-correct')) && r.y > 90) {
+        F.float('SÉRIE ×' + n, r.cx + 16, r.cy, Q({ color: pal.good, size: 15, dy: -8 }));
+      }
+    });
+  });
+  FX.on('tm:tf', function (d) {
+    var c = FX.rect('#tf-card'), b = d.v === null ? null : FX.rect(d.v ? '#tf-btn-true' : '#tf-btn-false');
+    if (!c) return;
+    FX.play(d.ok ? 'tf-juste' : b ? 'tf-erreur' : 'tf-temps', function (lv, pal) {
+      var k = Math.min(d.n, 5), y = c.y + c.h, x = b ? b.cx : c.cx, s = FX.rect(d.ok ? '#tf-streak' : '#tf-timer-num');
+      if (!d.ok) {
+        if (!b && s && s.inView) F.ring(s.cx, s.cy, Q({ r0: 24, r1: 5, ms: 420, color: pal.warn }));
+        guide('#tf-feedback', pal, 1);
+        return;
+      }
+      if (b && b.inView) F.slash(x, b.cy, x, y, Q({ width: 4 + k, ms: 220, color: pal.c }));
+      if (!c.inView) return;
+      F.slash(c.x + 12, y, c.x + c.w - 12, y, Q({ width: 3, ms: 320, color: pal.u, min: 2 }));
+      F.ring(x, y, Q({ r1: 20 + 3 * k, color: pal.good }));
+      F.burst(x, y, Q({ n: 8 + 3 * k, kind: 'streak', speed: 190 + 20 * k, life: 360, angle: PI / 2, spread: PI, gravity: 0, color: pal.c }));
+      F.float('+' + d.pts, x, y + 9, Q({ color: pal.warn, size: 20 + 2 * k, ms: 600, dy: -6 }));
+      if (d.n > 2 && s && s.y > 70) F.float('×' + k, s.cx + 24, s.cy, Q({ color: pal.u, size: 12 + 3 * k, ms: 600, dy: -12 }));
+    }, { info: '×' + d.n });
+  });
+  FX.on('tm:scene', function (n) {
+    var s = FX.rect('#story-scene');
+    if (!s || !s.inView) return;
+    FX.play('histoire-scene', function (lv, pal) {
+      FX.anim('#story-decor', [{ opacity: 0, transform: 'perspective(240px) rotateY(-90deg)' }, VU], { duration: 340, scope: 'q', leger: FADE });
+      F.slash(s.x + 10, s.y + 1, s.x + s.w - 10, s.y + 1, Q({ width: 3, ms: 340, color: pal.u }));
+      F.trail([[s.x + 10, s.y], [s.x + s.w - 10, s.y]], Q({ n: 9, min: 2, size: 4, color: pal.warn, life: 420 }));
+    }, { info: n });
+  });
+  FX.on('tm:qcm', function (d) {
+    var l = D.querySelectorAll('#' + d.p + '-answers .answer-btn'), recit = d.p === 'story';
+    FX.play((recit ? 'histoire-' : 'dnb-') + (d.ok ? 'juste' : 'erreur'), function (lv, pal) {
+      var b = FX.rect(l[d.i]), e = FX.rect('#story-decor'), x = 0, y = 0;
+      if (!d.ok) {
+        box(l[d.g], pal.good);
+        guide('#' + d.p + '-feedback', pal, 1);
+        return;
+      }
+      if (!recit) { box(l[d.i], pal.good); return; }
+      if (b && b.inView) {
+        x = b.x + 27; y = b.y;
+        F.ring(x, b.cy, Q({ r0: 12, r1: 25, color: pal.good }));
+        F.burst(x, y, Q({ n: 10, speed: 170, life: 340, angle: -PI / 2, spread: PI, gravity: 0, color: pal.c }));
+      }
+      if (!e || !e.inView) return;
+      if (x) F.streaks(x, y, e.cx, e.cy, Q({ n: 8, ms: 220, color: pal.c }));
+      FX.anim('#story-decor', [{ transform: 'none' }, { transform: 'translateY(-10px) scale(1.3) rotate(-8deg)', offset: 0.4 }, { transform: 'none' }],
+        { duration: 460, delay: 200, fill: 'none', scope: 'q', leger: false });
+      FX.after(200, function () {
+        F.ring(e.cx, e.cy, Q({ r1: 46, width: 4, color: pal.u }));
+        F.burst(e.cx, e.cy, Q({ n: 16, kind: 'star', speed: 190, life: 460, angle: -PI / 2, spread: PI * 1.3, gravity: -40, colors: [pal.u, pal.warn] }));
+      }, 'q');
+    });
+  });
+  FX.onScreen('dnb-transition', function () {
+    FX.play('dnb-transition', function () {
+      var l = D.querySelectorAll('#screen-dnb-transition > *'), i;
+      for (i = 0; i < l.length - 1; i++) FX.anim(l[i], FADE, { duration: 220, delay: 90 * i });
+    });
+  });
+  FX.on('tm:bilan', function (m) {
+    var e = D.getElementById(m + '-result-emoji'), k = TIER[e.textContent] || 0;
+    FX.play('bilan-' + m, function (lv, pal) {
+      var dnb = m === 'dnb', r = FX.rect(e), vu = r && r.inView && r.cy > 70, x = vu ? r.cx : FX.vw() / 2, y = vu ? r.cy : 100, i,
+        l = D.querySelectorAll('#screen-' + m + '-result .result-stat, #dnb-breakdown .dnb-phase-line'),
+        g = dnb && D.getElementById('dnb-result-grade').parentNode;
+      FX.anim(e, [{ opacity: 0, transform: 'scale(.3)' }, VU], { duration: 420, easing: 'cubic-bezier(.2,1.5,.4,1)', leger: FADE });
+      for (i = 0; i < l.length; i++) {
+        FX.anim(l[i], [{ opacity: 0, transform: 'translateY(8px)' }, VU], { duration: 240, delay: 260 + 110 * i, leger: FADE });
+      }
+      if (g) FX.anim(g, [{ opacity: 0, transform: 'scale(1.4)' }, VU], { duration: 360, delay: 420, leger: FADE });
+      if (!vu) F.banner(e.nextElementSibling.textContent, { y: y, emoji: e.textContent, ms: 1200 });
+      FX.after(260, function () {
+        F.ring(x, y, { r1: 58, width: k ? 5 : 3, ms: k ? 380 : 600, color: k ? pal.u : pal.calm });
+        F.burst(x, y, k ? { n: 8 + 8 * k, kind: 'star', speed: 150 + 25 * k, life: 700, gravity: dnb ? -30 : 120, colors: pal.set }
+          : { n: 7, kind: 'star', speed: 70, life: 1000, gravity: -50, spread: PI, angle: -PI / 2, color: pal.warn });
+        if (lv > 1 && k > 2 && !dnb) F.confetti({ n: 24 * k - 48, ms: 1100 });
+      });
+      if (g) FX.after(720, function () {
+        var q = FX.rect(g);
+        if (q && q.inView) F.ring(q.cx, q.cy, { r0: 30, r1: 60 + 12 * k, width: 4, ms: 480, color: pal.warn });
+      });
+    }, { info: 'palier ' + k });
+  });
+});
+})(); } catch (e) { oops(e, 'fragment:40-textmodes.js'); }
 /* 99-boot.js */
 W.FX = FX;
 (function boot() {

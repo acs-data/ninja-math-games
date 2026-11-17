@@ -14,7 +14,8 @@ Ce fichier est le **contrat** entre le noyau et les modules. Toute évolution du
 4. Le jeu est observé en **enveloppant** ses fonctions globales (`FX.wrap`) : l'original est appelé une fois, hors `try`.
 5. Un crochet ne dessine rien : il photographie l'état et appelle `FX.emit` (O(1), aucune lecture du DOM).
 6. La file est vidée à la **frame suivante** (le jeu a alors fini de remplir l'écran) ; un évènement est abandonné
-   si sa portée ou l'écran a changé, si une modale est ouverte ou si l'onglet est caché.
+   si sa portée ou l'écran a changé, si une modale est ouverte ou si l'onglet est caché. L'évènement `screen` du
+   noyau, lui, n'est jamais abandonné faute de place.
 7. Niveaux : `off | leger | complet` sur `html[data-fx]`. Chaque écran a un **profil** qui plafonne le niveau
    **dans les primitives** (pas dans chaque chorégraphie).
 8. Rendu : un canvas plein écran (particules, anneaux, entailles, émojis), des nœuds de texte dans `#fx-stage`,
@@ -36,8 +37,14 @@ Ce fichier est le **contrat** entre le noyau et les modules. Toute évolution du
 | `02-palette.js` | couleurs univers/personnage corrigées par thème |
 | `03-settings.js` | réglage « Animations » (5 boutons), persistance `amat_fx_v1` |
 | `04-hooks.js` | crochets du noyau : `showScreen`, `openModal`, `closeModal`, visibilité, signal d'appui |
-| `09-arrivee.js` | module générique `arrivee` (fondu d'arrivée d'écran) — remplaçable |
+| `09-arrivee.js` | module `arrivee` : transition d'écran (lame / fondu, panneau `.fx-blade`) — remplaçable |
 | `99-boot.js` | démarrage |
+| `20-arena.js`, `20-battle.css` | module `arene` : bande de combat du QCM (`#fx-arena`, API `FX.arena`) |
+| `21-qcm.js` | module `combat` : moments du QCM (réponse, combo, revanche, pouvoirs, tension, niveau) |
+| `25-result.js` | module `verdict` : cérémonie du rang (écran de résultat du QCM) et carte VS du chargement |
+| `30-shell.js` | module `accueil` : ouverture de l'accueil, univers, personnage, classe, envol d'un mode, thème |
+
+Les modules existants sont décrits au § 6 ; leurs scénarios de test sont dans `tools/anime-tests/` (§ 5).
 
 ## 2. Règles qu'un module doit respecter
 
@@ -61,6 +68,10 @@ focus, d'annonce lecteur d'écran ni de raccourci clavier. Ne corriger ni masque
 - Jamais de `transform`, `filter`, `will-change` sur `html`, `body`, `#app`, `main` ; jamais de `transform` animé
   sur `.answer-btn` (`FX.anim` refuse ces cibles).
 - Éléments du jeu : uniquement `FX.anim` (WAAPI finie, `fill: backwards`) → visibles par eux-mêmes si la couche tombe.
+- Jamais de `transform` sur un conteneur `#screen-*` (même bref) : `FX.rect` mesurerait de travers tous ses nœuds
+  pendant l'animation. La transition d'écran se joue sur un panneau de la couche (`09-arrivee.js`).
+- Un nœud FX qui COUVRE le jeu doit être invisible par lui-même (`opacity: 0` en CSS, montré par sa seule
+  animation, `fill: 'none'`, `remove: true`) : coupé ou fini, il ne peut rien masquer (modèle : `.fx-blade`).
 
 **Lecture d'abord.** Rien ne bouge durablement près d'un texte à lire ; pas de boucle sur un écran de question ;
 effets finis : ≤ ~700 ms après une réponse, ≤ ~1,1 s pour un moment spécial, ≤ ~2,5 s (complet) / ~1,2 s (léger) pour
@@ -137,7 +148,9 @@ FX.wrap(nom, avant, apres, opts) // -> boolean
 //   renderPuzzle, renderProbaTree, renderProbaPool, renderProbaQuestion, renderGraphQcm.
 
 FX.emit(type, data, portee)      // -> boolean. Met en file (false si off, modale ouverte, onglet caché ou file
-                                 //    pleine : 32). portee par défaut 'screen' ; null = ni filtre de portée ni d'écran.
+                                 //    pleine : 32 — les évènements déjà périmés sont d'abord retirés, et le type
+                                 //    'screen' passe toujours). portee par défaut 'screen' ; null = ni filtre de
+                                 //    portée ni filtre d'écran.
 FX.on(type, fn)                  // fn(data) à la frame suivante (sauf signaux 'fx:*', synchrones)
 FX.onScreen(ids, fn)             // fn({ id, prev, profile }) à l'arrivée sur un écran ; ids = 'game' | [...] | '*'
 FX.play(nom, fn, opts)           // -> boolean. Si le niveau effectif (>= opts.min) le permet : journalise « nom »
@@ -158,6 +171,11 @@ FX.module(nom, init)             // init(FX) appelée au démarrage dans son pro
 | `fx:kill` | synchrone : le disjoncteur a coupé la couche | raison |
 
 Au niveau off : `FX.emit` renvoie `false`, les crochets sans `always` ne tournent pas, rien n'est journalisé.
+
+Types d'évènements des modules (préfixe par module, pour éviter les collisions) : `qcm:*` et `xp:niveau`
+(`21-qcm.js`, `25-result.js`), `sh:*` (`30-shell.js`). Un nouveau module prend son propre préfixe.
+Un crochet appelé plusieurs fois par tick (jeu rapide, tests) ne doit prendre qu'UNE place dans la file par
+frame : garder la dernière donnée dans une variable et n'émettre qu'une fois (voir `emitRep` dans `21-qcm.js`).
 
 ### 3.3 Portées
 
@@ -285,8 +303,11 @@ FX.module('exemple', function (FX) {
   en CSS avec `html[data-fx="off"] #fx-… { display: none; }` : au niveau off, la mise en page doit être celle
   d'`index.html` (vérifié par le test « mise en page »).
 - Un module ne dépend que de l'API ci-dessus, jamais des variables internes du noyau.
-- Pour remplacer l'arrivée d'écran générique : `FX.module('arrivee', function (FX) { … })` dans un fichier de
-  préfixe ≥ 10.
+- Pour remplacer la transition d'écran : `FX.module('arrivee', function (FX) { … })` dans un fichier de
+  préfixe ≥ 10 (le module du noyau n'est alors pas démarré). Elle ne doit animer aucun nœud du jeu.
+- Un module qui réagit à l'arrivée d'un écran (`FX.onScreen`) joue PAR-DESSUS la transition : ses nœuds de scène
+  et le canvas passent au-dessus du panneau `.fx-blade` (z-index négatif), qui ne cache que le jeu pendant
+  ≤ 340 ms. Pour un effet ancré sur un nœud du jeu, attendre ~150 ms (`FX.after`) que la lame l'ait découvert.
 
 ## 5. Construire et tester
 
@@ -302,8 +323,95 @@ node tools/test_anime.js --anime /tmp/essai/anime.html --only diff,miseenpage
   garder). `anime.html` est versionné : le reconstruire après toute modification d'`index.html` ou de `anime-src/`.
 - Tester en `file://` (le service worker met `anime.html` en cache en http). Dans `page.evaluate`, les noms nus
   (`state`, `CHARS`, `FX`) fonctionnent ; `window.state` est `undefined`.
-- Scénarios du test : `diff` (même graine, même session QCM sur `index.html` et `anime.html` aux niveaux off,
-  complet et chaos : état, focus, `#toast`, `#sr-live`, HUD identiques), `reglages`, `reduit`, `miseenpage`,
-  `noyau`. Ajouter un scénario = une fonction `async (browser)` inscrite dans `SCENARIOS`.
+- Scénarios de `tools/test_anime.js` : `diff` (même graine, même session QCM sur `index.html` et `anime.html` aux
+  niveaux off, complet et chaos : état, focus, `#toast`, `#sr-live`, HUD identiques), `reglages`, `reduit`,
+  `miseenpage`, `noyau`, puis ceux du combat : `arene`, `combat`, `verdict`, `parties`.
+- **Scénarios des modules : un fichier par module dans `tools/anime-tests/`**, nommé comme son fragment
+  (`30-shell.js` pour `anime-src/30-shell.js`), chargé automatiquement par `test_anime.js` (ordre alphabétique).
+  Il exporte `function (h) { return [[clé, titre, async (browser) => { … }], …]; }` ; `h` fournit
+  `{ check, open, wait, waapi, gameShown, snap, firstDiff, logOf, during, leftovers, isIdle, harness, ROOT, INDEX,
+  ANIME, SEED }` (hasard du jeu à graine fixe, `setInterval` piloté par `__tick(n)`, tutoriel déjà vu). Les clés
+  commencent par le nom du module (`shell-diff`, `shell-nav`, `shell-accueil`) et servent à `--only`.
+  Chaque module prouve deux choses : (1) le jeu est inchangé — même session scriptée sur `index.html` et sur
+  l'édition animée aux niveaux off, complet et chaos, photographies identiques (`snap` + l'état propre au mode) ;
+  (2) les animations ont lieu — `FX.debug.log` (via `logOf` / `during`) montre les effets attendus au niveau
+  complet, la forme courte au niveau léger, rien au niveau off, et `leftovers` retombe à zéro (`isIdle`).
+  Un scénario ne suppose pas que la couche est au repos au chargement : l'accueil joue son ouverture ~0,75 s
+  après le chargement (≤ 2,6 s) ; partir d'un autre écran, ou attendre puis `FX.cancel('*')`.
 - Une construction privée placée hors du dépôt doit avoir `manifest-anime.json`, `sw.js` et les icônes à côté
   d'elle seulement si l'on teste la PWA ; en `file://` ce n'est pas nécessaire.
+
+## 6. Modules existants
+
+Chaque module est isolé (portée et `try` privés) ; ce qui suit est ce qu'un AUTRE module peut utiliser ou doit
+respecter. Les noms entre crochets sont ceux du journal (`FX.debug.log`, champ `fx[info]`).
+
+### 6.1 `arrivee` — transition d'écran (`09-arrivee.js`, noyau)
+
+Sur l'évènement `screen` : un panneau `.fx-blade` (couleur du fond de page, dans `#fx-stage`, sous l'en-tête
+s'il est visible) couvre le nouvel écran dès sa première frame peinte, puis s'en va. Journal : `arrivee[<id>]`
+puis `anim[fx-blade]`.
+
+| cas | forme |
+|---|---|
+| niveau complet | « lame » : le panneau glisse vers la droite en 300 ms, bord d'attaque de 10 px aux couleurs de l'univers |
+| complet, vers `home` | lame vers la gauche, 240 ms |
+| complet, vers un écran de profil `ceremony` | rideau vers le bas, 340 ms |
+| complet, `game` après `loading` (la carte VS a fait l'entrée) ; niveau léger partout | fondu de 140 ms |
+| profil `sobre` ; niveau off ; même écran redemandé (`showScreen('dnb-ex')` par exercice) | rien |
+
+Aucun nœud du jeu n'est animé (`FX.rect` reste exact) ; le panneau ne reçoit jamais le pointeur, est invisible
+sans son animation, et est retiré par sa portée (`screen`) à tout changement d'écran ou ouverture de modale.
+
+### 6.2 `arene` — la bande de combat du QCM (`20-arena.js`, `20-battle.css`)
+
+- `#fx-arena` : enfant direct de `#screen-game`, inséré avant `#question-wrap` — le seul nœud de la couche placé
+  DANS la mise en page du jeu (`display: none` au niveau off). `html[data-fx-arena]` est posé au démarrage et
+  active les règles CSS de compaction de l'écran de jeu (jamais sans la bande).
+- L'arène ne retient rien : son image fixe est recalculée depuis l'état du jeu. États = attributs de `#fx-arena` :
+  `data-fx-foe` (`sbire | boss | cible | revenant | gardien`), `data-fx-etat` (`'' | ko | fuite | sorti`),
+  `data-fx-combo` (cran d'aura 0–3) ; classes `fx-tense`, `fx-gel`, `fx-down`.
+- API privée du combat, `FX.arena` : `{ el, hero, foe, tag, combo, hp }` (nœuds), `sync()` (recalcule tout,
+  renvoie l'état ou `null` hors partie), `apres(issue, dernier)` (image fixe après une réponse : `'ok' | 'faux' |
+  'temps'`), `fin()` (dernière bonne réponse possible), `geo()` (`{ a, h, f }` : rectangles de l'arène, du héros
+  et de l'adversaire, ou `null` si la bande n'est pas réellement à l'écran).
+- Recalée sans animation sur `fx:level`, `fx:resume` et après `applyTheme`.
+
+### 6.3 `combat` — les moments du QCM (`21-qcm.js`)
+
+- Crochets : `loadQuestion` (change le jeton de la portée `q`), `answer`, `timeOut`, `useJutsu`, `updateTimerUI`
+  (10 Hz : deux comparaisons), `addXP`. Évènements : `qcm:q`, `qcm:rep`, `qcm:pouvoir`, `qcm:degel`,
+  `qcm:tension`, `xp:niveau`.
+- Journal : `qcm-question[<adversaire>]`, `qcm-juste[×n]`, `qcm-ultime[×5]`, `qcm-revanche`, `qcm-ko`,
+  `qcm-erreur`, `qcm-temps`, `qcm-ko-heros`, `qcm-pouvoir[50|hint|time]`, `qcm-tension`, `niveau`.
+- `html[data-fx-combo-off]` : posé tant que le bandeau de combo du jeu (`#combo-display`, fixe, au-dessus du
+  calque) recouvrirait l'arène ou le verdict ; une règle CSS le masque alors (sans effet au niveau off). L'arène
+  affiche le même mot. L'attribut est recalculé à chaque question : il appartient au combat, ne pas le poser ailleurs.
+- Le bandeau « NIVEAU n ! » (`niveau`) part du crochet `addXP`, quel que soit le mode (abandonné si l'écran
+  change dans le même tick) : un autre module n'a pas à fêter lui-même un niveau gagné.
+
+### 6.4 `verdict` — résultat du QCM et carte VS (`25-result.js`)
+
+- Crochet `endGame` → `qcm:bilan` : échelle des rangs (`.fx-ladder`, `.fx-rung`), arrivée du vrai `#result-rank`,
+  confettis proportionnels, trophées un par un. Journal : `bilan[rang <i> <pct> %]`, `bilan-passe` (tout appui
+  passe la cérémonie : signal `fx:input`). ≤ 2,5 s au niveau complet, ≤ 1,2 s au niveau léger.
+- Crochet `startGame` → `qcm:vs` : carte `.fx-vs` (héros VS adversaire générique) pendant les 1200 ms de
+  l'écran de chargement. Journal : `vs[<mode>]`.
+
+### 6.5 `accueil` — l'écran d'accueil et la coquille (`30-shell.js`)
+
+Aucun nœud persistant, aucune classe ni style sur le jeu ; chaque sélection change le jeton de la portée `q`
+(des clics rapides ne laissent que le dernier effet).
+
+| journal | déclencheur (comparaison avant / après) | complet | léger |
+|---|---|---|---|
+| `accueil[ouverture]` | une fois par chargement, ~0,75 s après (ou à la fermeture du tutoriel de première visite), si le héros ou le titre est à l'écran ; coupée au premier défilement | convergence sur le héros, onde, scintillement du titre, 15 lueurs qui montent (≤ 2,6 s) | onde + scintillement (0,4 s) |
+| `accueil[retour]` | arrivée sur `home` (160 ms après le début de la lame) | onde, éclat, scintillement (≈ 0,5 s) | onde + scintillement |
+| `univers[<clé>]` | `selectUniverse` quand `currentUniverse` a changé | voile (`FX.fx.tint`), onde de couleur depuis la carte, éclat, émoji, puis ondulation sur les 6 nouvelles cartes de personnage (+250 ms) | anneau + éclat réduit |
+| `perso[<clé>]` | `selectChar` quand `state.char` a changé | anneau + éclat à la couleur du personnage, rebond de `.char-emoji` | anneau + éclat réduit |
+| `classe` | `selectMissionClass` quand `activeMissionClasse` a changé | trait sous l'onglet, fondu d'opacité de `#mission-chips` (200 ms) | idem |
+| `envol[<écran>]` | arrivée sur un écran non sobre (hors `loading`) moins de 700 ms après l'activation d'une `.level-card` (clic : point d'appui ; clavier : centre de la carte) | anneau + éclat de traits, par-dessus la lame | anneau + éclat réduit |
+| `theme` | `applyTheme` quand `data-theme` a changé (un seul fondu pour des bascules à moins de 100 ms) | palette recalculée, voile de l'ANCIEN fond qui s'efface en 260 ms (jamais en profil sobre) | idem |
+
+Rien ne joue quand l'ancre est hors de la fenêtre ou sous l'en-tête collant (page défilée).
+

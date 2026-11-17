@@ -212,19 +212,29 @@ function dispatch(type, data) {
 FX.emit = function (type, data, scope) {
   if (S.dead || S.pref === 'off') return false;
   if (blocked()) { drop(type, 'bloqué'); return false; }      // modale ouverte ou onglet caché : rien n'est mis en attente
-  if (queue.length >= 32) { drop(type, 'file pleine'); return false; }
+  if (queue.length >= 32) {
+    purge();                                                   // les évènements déjà périmés libèrent la place
+    /* L'évènement 'screen' du noyau n'est jamais abandonné faute de place (il passe en plus des 32). */
+    if (queue.length >= 32 && type !== 'screen') { drop(type, 'file pleine'); return false; }
+  }
   if (scope === undefined) scope = 'screen';
   queue.push({ type: type, data: data, scope: scope, tok: scope ? (tokens[scope] || 0) : 0, scr: S.screen });
   wake();
   return true;
 };
+/* Évènement en file dont la portée ou l'écran a changé : il serait abandonné à la frame de toute façon. */
+function stale(ev) { return !!ev.scope && ((tokens[ev.scope] || 0) !== ev.tok || ev.scr !== S.screen); }
+function purge() {
+  var i;
+  for (i = queue.length - 1; i >= 0; i--) if (stale(queue[i])) { drop(queue[i].type, 'portée'); queue.splice(i, 1); }
+}
 function flush() {
   if (!queue.length) return;
   var q = queue, i, ev;
   queue = [];
   for (i = 0; i < q.length; i++) {
     ev = q[i];
-    if (ev.scope && ((tokens[ev.scope] || 0) !== ev.tok || ev.scr !== S.screen)) { drop(ev.type, 'portée'); continue; }
+    if (stale(ev)) { drop(ev.type, 'portée'); continue; }
     dispatch(ev.type, ev.data);
   }
 }

@@ -48,6 +48,15 @@ html[data-fx="off"] #fx-root { display: none; }
 }
 .fx-emoji { font-family: 'Nunito', sans-serif; letter-spacing: 0; }
 
+/* Panneau de transition d'écran (09-arrivee.js) et de fondu de thème : couleur du fond de page.
+   z-index négatif dans le contexte d'empilement de #fx-root : SOUS le canvas et sous les autres
+   nœuds de la scène, il ne cache que le jeu. Invisible par lui-même (opacity 0) : seule son
+   animation le montre — finie ou coupée, il ne peut rien masquer. */
+.fx-blade {
+  position: absolute; z-index: -1; top: 0; right: 0; bottom: 0; left: 0; opacity: 0;
+  background: var(--dark);
+}
+
 /* Boutons de réglage (tiroir, accueil, modales de pause). */
 #fx-lite-drawer:disabled, #fx-set-drawer:disabled, #fx-set-home:disabled,
 #fx-set-pause:disabled, #fx-set-auto-pause:disabled { opacity: .45; cursor: default; }
