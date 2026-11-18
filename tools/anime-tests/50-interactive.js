@@ -4,7 +4,7 @@
 
    · interactive-diff    : pour CHAQUE mode, la même session scriptée (appels du jeu, vrais clics, vrais
                            glisser-déposer à la souris, tracés sur le canvas, clavier, fenêtre
-                           redimensionnée en cours de mode, chrono fantôme du puzzle) sur index.html et
+                           redimensionnée en cours de mode, chrono fantôme du puzzle) sur classique.html et
                            sur l'édition animée aux niveaux off, complet et « chaos » : état de chaque
                            mode, focus, suite des messages de #toast et de #sr-live, HUD, texte ET
                            balisage des écrans, empreinte du DOM du jeu identiques. Chaque photographie
@@ -22,7 +22,7 @@
 'use strict';
 
 module.exports = function (h) {
-  const { check, wait, settle: quiesce, keepDom, domChecks, logOf, during, leftovers, isIdle, harness, INDEX, ANIME, SEED } = h;
+  const { check, wait, settle: quiesce, keepDom, domChecks, logOf, during, leftovers, isIdle, harness, CLASSIC, ANIME, SEED } = h;
   const has = (log, name) => log.some((l) => l.indexOf(name) === 0);
   const count = (log, name) => log.filter((l) => l.indexOf(name) === 0).length;
   const MINE = /^(trace-|puzzle-|defi-|atelier-|proba-|arbre-|graph-|bilan-|stats)/;      // chorégraphies du module
@@ -391,7 +391,7 @@ module.exports = function (h) {
       return out;
     };
     const [classic, off, full, chaos] = await Promise.all([
-      run(INDEX),
+      run(CLASSIC),
       run(ANIME, () => { FX.setLevel('off'); }),
       run(ANIME, () => { FX.seed(11); }),
       run(ANIME, () => { FX.debug.chaos = true; })
@@ -466,7 +466,7 @@ module.exports = function (h) {
   }, [sel, inset]);
   /* Les nœuds de texte de la couche (mentions, 👇) : contenu, position, dans la fenêtre ? */
   /* XP du joueur : une mention « +n XP » doit reprendre l'écart réellement donné par le jeu pendant l'action
-     (jamais un montant recopié d'index.html). */
+     (jamais un montant recopié de classique.html). */
   const xp = (page) => ev(page, () => state.xp);
   const floats = (page) => ev(page, () => Array.from(document.querySelectorAll('#fx-stage .fx-float')).map((n) => {
     const r = n.getBoundingClientRect();
@@ -692,7 +692,7 @@ module.exports = function (h) {
     check('arbre : tout est fini 1,05 s après la validation, avant que le jeu ne masque l\'arbre (1,5 s)', isIdle(await leftovers(page)) && k.arbre !== 'none' && k.q === false, [await leftovers(page), k]);
     await wait(page, 650);
     await center(page, '#proba-question-answers');
-    /* Pour cet essai, le jeu donne 30 XP de plus qu'aujourd'hui (addXP majoré, comme si index.html avait changé
+    /* Pour cet essai, le jeu donne 30 XP de plus qu'aujourd'hui (addXP majoré, comme si classique.html avait changé
        ses montants) : la mention doit suivre ce que le jeu a réellement donné, pas un montant recopié. */
     gain = await ev(page, () => { const real = window.addXP; window.__addXP = real; window.addXP = function (n) { return real.call(this, n + 30); }; return state.xp; });
     log = await during(page, async () => click(page, '#proba-question-answers .answer-btn:nth-child(' + ((await ev(page, () => probaState.currentQuestion.correct)) + 1) + ')'), 150);
@@ -971,7 +971,7 @@ module.exports = function (h) {
       await pg.touchscreen.tap(b.x + b.w / 2, b.y + b.h / 2); await wait(pg, 200);
       return { errs: pg.errors.slice(before), point: await ev(pg, () => graphState.clickedPoint), disabled: await ev(pg, () => document.getElementById('graph-validate-btn').disabled) };
     };
-    const classic = await open(browser, INDEX, TEL);
+    const classic = await open(browser, CLASSIC, TEL);
     const [a, b] = [await tap(classic), await tap(page)];
     await classic.context().close();
     check('téléphone, graphique : le toucher du canvas échoue comme dans le jeu d\'origine (même erreur, aucun point choisi)',

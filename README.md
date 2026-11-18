@@ -92,9 +92,11 @@ L'idée : transformer la révision en quête épique. Le contenu pédagogique re
 - **Trophées débloquables** : score parfait, combo légendaire, pur chakra, révision active, apprenant tenace
 - **Streak quotidien** : compteur de jours consécutifs
 
-### 🎬 Édition animée (`anime.html`)
+### 🎬 Édition animée (la page principale)
 
-Le même jeu avec une couche d'animation par-dessus : `https://acs-data.github.io/ninja-math-games/anime.html`
+Le jeu s'ouvre dans son **édition animée** : le même jeu avec une couche d'animation par-dessus, à l'adresse principale `https://acs-data.github.io/ninja-math-games/`. Le **jeu classique**, sans la couche, reste disponible à `https://acs-data.github.io/ninja-math-games/classique.html`. L'ancienne adresse de l'édition animée (`…/anime.html`) redirige vers la page principale : anciens liens, favoris et applications installées depuis elle continuent de mener au jeu (à confirmer sur de vrais appareils pour les applications installées).
+
+L'application installée (📲) ouvre toujours la page principale, même installée depuis `classique.html` (qui ne s'atteint que par son adresse) ; pour jouer sans animation, utiliser le réglage « Animations : OFF » ou ouvrir directement `…/classique.html`.
 
 - **Bonne réponse** : en QCM, un court combat se joue dans une bande au-dessus de la question (le héros attaque, l'adversaire encaisse) ; dans les autres modes, un effet bref sur la réponse, la carte ou le cadre de la figure
 - **Écran de résultat** : arrivée du rang ou du palier, étoiles et confettis proportionnels au score
@@ -104,7 +106,7 @@ Le même jeu avec une couche d'animation par-dessus : `https://acs-data.github.i
 - Questions, scores, chronos, raccourcis clavier et lecteur d'écran identiques au jeu classique ; **même progression** que le jeu classique dans un même navigateur (même sauvegarde locale, propre à chaque navigateur et à chaque profil : rien n'est synchronisé d'un appareil à l'autre)
 - Mêmes contraintes légales : **émojis Unicode et formes abstraites uniquement**, aucun visuel, logo ni son des œuvres
 
-`anime.html` est généré à partir d'`index.html` et de `anime-src/` (`python3 tools/build_anime.py`) : il ne se modifie pas à la main.
+`index.html` (la page principale) est **généré** à partir de `classique.html` et de `anime-src/` (`python3 tools/build_anime.py`) : il ne se modifie pas à la main. Le fichier édité à la main est `classique.html`.
 
 ### 📈 Statistiques personnelles
 
@@ -120,6 +122,7 @@ Le même jeu avec une couche d'animation par-dessus : `https://acs-data.github.i
 - Events trackés : univers/perso choisis, modes lancés, taux de complétion, chapitres révisés
 - Dashboard sur https://ninja-math.goatcounter.com
 - Respect de `navigator.doNotTrack`
+- Depuis la bascule de l'édition animée en page principale, « / » compte l'édition animée et `/classique.html` le jeu classique ; `/anime.html` redirige sans être compté. Avant la bascule, « / » comptait le jeu classique : comparer les chiffres d'avant et d'après avec prudence.
 
 -----
 
@@ -147,6 +150,8 @@ Le même jeu avec une couche d'animation par-dessus : `https://acs-data.github.i
 
 **C'est tout.** Aucune installation obligatoire, aucun compte, aucun serveur, aucun cookie. Le jeu fonctionne 100 % en local et hors-ligne après la première visite.
 
+Pour jouer sans connexion à partir d'une copie téléchargée du dépôt, ouvrir directement `index.html` (édition animée) ou `classique.html` (jeu classique) : ouverte depuis le disque, la page de redirection `anime.html` mène au dossier, pas au jeu.
+
 ### Compatibilité
 
 - ✅ Chrome, Firefox, Safari, Edge (versions récentes)
@@ -168,8 +173,8 @@ Le même jeu avec une couche d'animation par-dessus : `https://acs-data.github.i
 
 ## 🛠 Stack technique
 
-- **HTML5 + CSS3 + JavaScript vanilla** — un seul fichier, **zéro dépendance npm, zéro build**
-- **PWA installable** : `manifest.json` + service worker (`sw.js`)
+- **HTML5 + CSS3 + JavaScript vanilla** — un seul fichier par page, **zéro dépendance npm** ; le jeu classique (`classique.html`) s'ouvre tel quel, sans build ; la page principale (`index.html`) en est une copie augmentée de la couche d'animation, produite par un script Python (bibliothèque standard)
+- **PWA installable** : `manifest.json` (une seule application, page de départ `./`, l'édition animée) + service worker (`sw.js`)
 - **Cache-versionné automatiquement** : le SHA du commit est injecté dans le SW au déploiement (workflow GitHub Pages)
 - **Canvas API** pour les modes tracé, constructeur Pythagore/Thalès/Trigo, lecteur de graphique
 - **Drag & Drop manuel** (mouse + touch) pour les modes puzzle et arbre de probabilités
@@ -181,7 +186,7 @@ Le même jeu avec une couche d'animation par-dessus : `https://acs-data.github.i
 ### Structure du fichier
 
 ```
-index.html  (≈ 560 Ko, ≈ 11 750 lignes — mono-fichier volontaire)
+classique.html  (≈ 560 Ko, ≈ 11 750 lignes — mono-fichier volontaire ; index.html en est la copie animée)
 ├── <head>          (lignes 1-46)    Meta, OG, favicon SVG inline, manifest, polices
 ├── <style>         (lignes 47-2246) CSS complet : variables, layout, écrans, animations, a11y
 ├── <body>          (lignes 2248-3617) 13 écrans + modals + footer
@@ -192,17 +197,18 @@ index.html  (≈ 560 Ko, ≈ 11 750 lignes — mono-fichier volontaire)
 
 ```
 /
-├── index.html              Fichier principal (à modifier)
-├── anime.html              Édition animée — GÉNÉRÉE (+ manifest-anime.json), ne pas éditer
+├── classique.html          Jeu classique — fichier source du jeu (à modifier)
+├── index.html              Page principale = édition animée — GÉNÉRÉE (classique.html + anime-src/), ne pas éditer
+├── anime.html              Ancienne adresse de l'édition animée : petite page statique qui redirige vers ./
 ├── anime-src/, tools/      Couche d'animation : sources, script de construction, tests
-├── manifest.json           Manifest PWA
+├── manifest.json           Manifest PWA (commun aux deux pages)
 ├── sw.js                   Service Worker (cache-first, versionné)
 ├── icon-192.png            Icône PWA Android
 ├── icon-512.png            Icône PWA haute résolution
 ├── og-image.png            Image OpenGraph 1200×630
 ├── og-image.svg            Source vectorielle de l'image OG
 ├── .github/workflows/pages.yml  Déploiement automatique sur GitHub Pages
-├── .gitattributes          Fins de ligne LF pour index.html, anime.html, anime-src/, tools/, sw.js et les manifests
+├── .gitattributes          Fins de ligne LF pour classique.html, index.html, anime.html, anime-src/, tools/, sw.js et manifest.json
 ├── README.md               Ce fichier
 └── CLAUDE.md               Guide pour IA assistantes
 ```
@@ -241,7 +247,9 @@ index.html  (≈ 560 Ko, ≈ 11 750 lignes — mono-fichier volontaire)
 
 Le code est volontairement lisible et modulaire. Pour modifier ou enrichir :
 
-- **Ajouter une question QCM legacy** : éditer `QUESTIONS['6e_facile']`, etc. dans le `<script>`. Format :
+Toutes ces modifications se font dans **`classique.html`** (le fichier source, édité à la main), jamais dans `index.html` (généré : la construction suivante, locale ou au déploiement, écraserait la modification). Ensuite : `python3 tools/build_anime.py && node tools/test_anime.js`, puis versionner `classique.html` **et** `index.html`.
+
+- **Ajouter une question QCM legacy** : éditer `QUESTIONS['6e_facile']`, etc. dans le `<script>` de `classique.html`. Format :
   ```js
   {
     type: "Catégorie",                     // doit matcher un TYPE_TO_CHAPTER_* pour apparaître par chapitre

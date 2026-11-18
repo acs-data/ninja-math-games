@@ -1,7 +1,8 @@
 #!/usr/bin/env node
-/* Test de fumée différentiel de l'édition animée (anime.html) contre le jeu classique (index.html).
+/* Test de fumée différentiel de l'édition animée (index.html, la page principale, générée) contre le jeu classique
+   (classique.html, le fichier édité à la main).
 
-     node tools/test_anime.js                      teste ./anime.html
+     node tools/test_anime.js                      teste ./index.html
      node tools/test_anime.js --anime CHEMIN       teste une construction privée (build_anime.py --out)
      node tools/test_anime.js --only diff,reglages ne lance que certains scénarios
      node tools/test_anime.js --list               affiche les clés des scénarios
@@ -12,7 +13,7 @@
    3 = Playwright introuvable (rien n'a été testé : ce n'est jamais un succès, sauf dérogation explicite).
 
    Principe : même Math.random à graine fixe et même session QCM scriptée (clavier, clics, pause,
-   temps écoulé) sur index.html et sur anime.html (niveaux off, complet, puis « chaos » où chaque
+   temps écoulé) sur classique.html et sur index.html (niveaux off, complet, puis « chaos » où chaque
    crochet de la couche lève une exception). L'état du jeu, le focus, la suite des messages de
    #toast et de #sr-live, le HUD et l'empreinte du DOM du jeu doivent être IDENTIQUES à chaque étape.
    Les setInterval du jeu sont pilotés à la main (window.__tick) : le bonus de temps du score ne
@@ -50,8 +51,8 @@ try { ({ chromium } = require('playwright')); } catch (e) {
 }
 
 const ROOT = path.resolve(__dirname, '..');
-const INDEX = pathToFileURL(path.join(ROOT, 'index.html')).href;
-const ANIME_PATH = path.resolve(arg('--anime') || path.join(ROOT, 'anime.html'));
+const CLASSIC = pathToFileURL(path.join(ROOT, 'classique.html')).href;
+const ANIME_PATH = path.resolve(arg('--anime') || path.join(ROOT, 'index.html'));
 const ANIME = pathToFileURL(ANIME_PATH).href;
 const ONLY = arg('--only') ? arg('--only').split(',').map((k) => k.trim()).filter(Boolean) : null;
 const SEED = 20261117;
@@ -161,8 +162,9 @@ function harness(seed) {
      Tout <html> (attributs), <head> (balises) et <body> (balises, attributs triés, textes, valeur des champs),
      une fois retirés : les nœuds de la couche (id en « fx- », ou pas d'id et toutes les classes en « fx- » :
      calque, arène, boutons de réglage, <style> et <script> injectés), les attributs data-fx*, le contenu des
-     <script> / <style>, et les lignes du <head> que le build retouche (titre, descriptions, manifest : seule
-     la balise compte). Un nœud du JEU qui recevrait une classe « fx- » reste dans l'empreinte, classe comprise.
+     <script> / <style>. Le <head> est comparé en entier : balises, TOUS leurs attributs (titre, descriptions,
+     manifest compris : index.html reprend le <head> de classique.html tel quel) et le texte du <title>. Les
+     commentaires (dont le bandeau « fichier généré » posé avant <html>) ne comptent jamais. Un nœud du JEU qui recevrait une classe « fx- » reste dans l'empreinte, classe comprise.
      « volatile » = ids dont l'attribut class dépend d'une minuterie longue non retenue (#toast, #combo-display).
      Renvoie { h, n } ; le détail (un jeton par balise ouvrante, texte ou balise fermante) reste dans __domLog. */
   window.__domLog = [];
@@ -174,12 +176,11 @@ function harness(seed) {
       const cls = typeof el.className === 'string' ? el.className.trim() : '';
       return !!cls && cls.split(/\s+/).every(function (k) { return k.indexOf('fx-') === 0; });
     };
-    const open = function (el, bare) {
+    const open = function (el) {
       const a = [];
       for (let i = 0; i < el.attributes.length; i++) {
         const at = el.attributes[i];
         if (at.name.indexOf('data-fx') === 0 || (at.name === 'class' && skip[el.id])) continue;
-        if (bare && !/^(name|property|rel|charset|http-equiv)$/.test(at.name)) continue;
         a.push(at.name + '="' + at.value + '"');
       }
       a.sort();
@@ -203,7 +204,8 @@ function harness(seed) {
     out.push('<head>');
     for (let el = document.head.firstElementChild; el; el = el.nextElementSibling) {
       if (own(el)) continue;
-      out.push(open(el, /^(TITLE|META)$/.test(el.tagName) || (el.tagName === 'LINK' && el.rel === 'manifest')));
+      out.push(open(el));
+      if (el.tagName === 'TITLE') out.push('"' + el.textContent + '"');
       out.push('</' + el.tagName.toLowerCase() + '>');
     }
     out.push('</head>');
@@ -444,7 +446,7 @@ async function domChecks(prefix, runs) {
   check(prefix + ' : empreinte du DOM prise à chaque étape (document entier : plus de 1000 jetons)', doms.length > 0 && doms.every((d) => d.n > 1000), doms.map((d) => d.n).slice(0, 6));
   for (const [name, r] of runs.slice(1)) {
     const d = await domDiff(classic.page, r.page);
-    check(prefix + ' : DOM du jeu identique à index.html, hors nœuds fx- et attributs data-fx* (' + name + ')', !d, d);
+    check(prefix + ' : DOM du jeu identique à classique.html, hors nœuds fx- et attributs data-fx* (' + name + ')', !d, d);
   }
   await Promise.all(runs.map(([, r]) => r.page.context().close()));
 }
@@ -460,7 +462,7 @@ async function scenarioDiff(browser) {
     return { page, shots, fx, errors: page.errors, globals };
   };
   const [classic, off, full, chaos] = await Promise.all([
-    run(INDEX),
+    run(CLASSIC),
     run(ANIME, () => { FX.setLevel('off'); }),
     run(ANIME, () => { FX.seed(7); }),
     run(ANIME, () => { FX.debug.chaos = true; })
@@ -533,7 +535,7 @@ async function scenarioSettings(browser) {
   await page.click('#drawer-save-toggle'); s = await st();
   check('sauvegarde désactivée : clé effacée', s.key === null && s.drawer, s);
   /* Lu DANS le tick de la touche (écouteur posé après ceux du jeu) : sur l'accueil d'une page fraîche, le même
-     Échap ouvre ensuite la pause du QCM (défaut hérité d'index.html : #screen-game n'a pas encore de style en
+     Échap ouvre ensuite la pause du QCM (défaut hérité de classique.html : #screen-game n'a pas encore de style en
      ligne), dont le focus part 50 ms plus tard. Une lecture à délai fixe tombait avant ou après selon la machine. */
   await page.evaluate(() => window.addEventListener('keydown', () => {
     window.__esc = { drawer: document.getElementById('drawer-menu').classList.contains('show'), focus: document.activeElement && document.activeElement.id };
@@ -625,7 +627,7 @@ async function scenarioLayout(browser) {
     return out;
   });
   for (const vp of [{ width: 360, height: 640 }, { width: 1280, height: 800 }]) {
-    const res = await Promise.all([INDEX, ANIME].map(async (url) => {
+    const res = await Promise.all([CLASSIC, ANIME].map(async (url) => {
       const page = await open(browser, url, { viewport: vp });
       if (url === ANIME) await page.evaluate(() => FX.setLevel('off'));
       const out = {};
@@ -872,21 +874,21 @@ async function scenarioNetwork(browser) {
     await ctx.close();
     return { reqs: Array.from(new Set(reqs)).sort(), dom, errors: page.errors };
   };
-  const [classic, anime] = await Promise.all([run(INDEX), run(ANIME)]);
+  const [classic, anime] = await Promise.all([run(CLASSIC), run(ANIME)]);
   const short = (u) => (u.length > 140 ? u.slice(0, 140) + '…' : u);
-  /* Admis en plus : la page elle-même et son propre manifest (à la place de index.html et manifest.json). */
-  const own = (u) => u === ANIME || /\/manifest-anime\.json(\?.*)?$/.test(u);
+  /* Admis en plus : la page elle-même (à la place de classique.html). Le manifest est le même (manifest.json). */
+  const own = (u) => u === ANIME;
   const extra = anime.reqs.filter((u) => classic.reqs.indexOf(u) < 0 && !own(u));
   check('réseau : la session classique émet bien des requêtes observables (polices, compteur)', classic.reqs.length > 1 && classic.reqs.some((u) => /^https?:/.test(u)), classic.reqs.map(short));
-  check('réseau : l\'édition animée ne demande rien que index.html ne demande (son manifest excepté)', extra.length === 0, extra.map(short));
+  check('réseau : l\'édition animée ne demande rien que classique.html ne demande (manifest compris : le même)', extra.length === 0, extra.map(short));
   check('réseau : la couche a joué pendant la session (journal non vide)', anime.dom.played > 20, anime.dom.played);
   const want = Object.assign({}, classic.dom.tags, { script: classic.dom.tags.script + 1, style: classic.dom.tags.style + 1 });
   check('média : aucune balise img / audio / video / iframe / script / link / source / object / embed ajoutée (hors #fx-script et #fx-style du build)',
     JSON.stringify(anime.dom.tags) === JSON.stringify(want) && anime.dom.fxNodes.join() === 'style#fx-style,script#fx-script', [classic.dom.tags, anime.dom.tags, anime.dom.fxNodes]);
-  /* Seule différence admise : le manifest de la page (retouche du <head> par le build). */
-  const noManifest = (l) => l.filter((x) => !/^link manifest(-anime)?\.json$/.test(x));
-  check('média : mêmes attributs de ressource (src, href, srcset, poster) dans les deux pages, manifest excepté',
-    JSON.stringify(noManifest(classic.dom.res)) === JSON.stringify(noManifest(anime.dom.res)), [noManifest(anime.dom.res).filter((x) => classic.dom.res.indexOf(x) < 0)]);
+  /* Aucune différence admise : index.html reprend le <head> de classique.html tel quel (manifest compris). */
+  check('média : mêmes attributs de ressource (src, href, srcset, poster) dans les deux pages, manifest compris',
+    JSON.stringify(classic.dom.res) === JSON.stringify(anime.dom.res) && classic.dom.res.indexOf('link manifest.json') >= 0,
+    [anime.dom.res.filter((x) => classic.dom.res.indexOf(x) < 0), classic.dom.res.filter((x) => anime.dom.res.indexOf(x) < 0)]);
   check('média : une seule feuille de style en plus (#fx-style), aucune police déclarée en plus',
     anime.dom.sheets === classic.dom.sheets + 1 && anime.dom.fonts === classic.dom.fonts, [classic.dom.sheets, anime.dom.sheets, classic.dom.fonts, anime.dom.fonts]);
   check('aucune erreur de page (réseau)', classic.errors.length + anime.errors.length === 0, [classic.errors, anime.errors]);
@@ -953,12 +955,12 @@ async function scenarioArena(browser) {
   };
   /* [largeur, hauteur, tolérance en px, hauteur d'arène attendue (0 = masquée)] */
   const sizes = [[360, 640, 0, 64], [600, 800, 2, 80], [768, 1024, 2, 80], [1280, 800, 2, 80], [640, 360, 0, 0]];
-  const measured = await Promise.all(sizes.map(([w, h]) => Promise.all([measure(INDEX, { width: w, height: h }), measure(ANIME, { width: w, height: h }, 'complet')])));
+  const measured = await Promise.all(sizes.map(([w, h]) => Promise.all([measure(CLASSIC, { width: w, height: h }), measure(ANIME, { width: w, height: h }, 'complet')])));
   for (const [k, [w, h, tol, ah]] of sizes.entries()) {
     const tag = w + '×' + h, [c, a] = measured[k];
     console.log('    ' + tag + ' : haut des réponses (min/médiane/max sur 30 questions) classique ' + [c.min, c.med, c.max].join('/') +
       ' → animé ' + [a.min, a.med, a.max].join('/') + ' (écart médian ' + (a.med - c.med) + ' px) ; arène ' + a.arena.join(' ') + ' px');
-    check('arène : réponses pas plus basses que dans index.html (' + tag + ', tolérance ' + tol + ' px)', a.min - c.min <= tol && a.med - c.med <= tol && a.max - c.max <= tol, [c, a]);
+    check('arène : réponses pas plus basses que dans classique.html (' + tag + ', tolérance ' + tol + ' px)', a.min - c.min <= tol && a.med - c.med <= tol && a.max - c.max <= tol, [c, a]);
     check('arène : aucun débordement horizontal ajouté (' + tag + ')', a.sw === c.sw, [c.sw, a.sw]);
     check('arène : ' + (ah ? 'affichée (' + ah + ' px)' : 'masquée en paysage bas') + ' (' + tag + ')', ah ? a.arena[0] === 'flex' && a.arena[1] === ah : a.arena[0] === 'none', a.arena);
     check('arène : les 4 .answer-btn du document sont ceux de la grille (' + tag + ')', a.btns === '4/4', a.btns);
@@ -1606,7 +1608,7 @@ const SCENARIOS = [
    Chaque fichier exporte function (h) { return [[clé, titre, async (browser) => {…}], …]; }
    où h regroupe les aides de ce fichier (voir HELPERS). */
 const HELPERS = { check, open, wait, settle, waapi, gameShown, snap, firstDiff, keepDom, domChecks, VOLATILE, logOf, during, leftovers, isIdle, harness, watchers,
-  ROOT, INDEX, ANIME, SEED };
+  ROOT, CLASSIC, ANIME, SEED };
 const EXTRA_DIR = path.join(__dirname, 'anime-tests');
 if (fs.existsSync(EXTRA_DIR)) {
   fs.readdirSync(EXTRA_DIR).filter((f) => /\.js$/.test(f)).sort().forEach((f) => {

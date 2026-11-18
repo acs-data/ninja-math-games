@@ -6,7 +6,7 @@
    proportionnels au pourcentage ; les trophées sortent un par un.
    Les nœuds du JEU ne reçoivent que des animations WAAPI finies (fill « backwards ») : si la
    couche tombe ou si le joueur appuie (toute touche / tout appui passe la cérémonie), ils sont
-   visibles par eux-mêmes, dans l'état exact d'index.html.
+   visibles par eux-mêmes, dans l'état exact de classique.html.
    Le rang le plus bas reçoit une étincelle douce, jamais une moquerie.
    Un effet de résultat ne se pose JAMAIS sur un texte du résultat. Le jeu affiche l'écran depuis le haut
    (rang sous l'en-tête) : la cérémonie se joue à la place du rang. Si le rang n'est pourtant pas à l'écran
@@ -107,7 +107,7 @@ FX.module('verdict', function (FX) {
     }, { info: 'rang ' + d.ri + (d.ko ? ' ko' : '') + ' ' + Math.round(d.pct) + ' %' });
   });
 
-  /* Tout appui ou toute touche passe la cérémonie : état final immédiat (celui d'index.html). */
+  /* Tout appui ou toute touche passe la cérémonie : état final immédiat (celui de classique.html). */
   FX.on('fx:input', function () {
     if (!live) return;
     live = false;

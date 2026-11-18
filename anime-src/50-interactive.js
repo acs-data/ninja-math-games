@@ -150,7 +150,7 @@ FX.module('ateliers', function (FX) {
      fonction n'a aucun garde : un double clic la rejoue) ; question = front de questionAnswered.
      probaState est réassigné par le jeu : jamais en cache.
      Valeur d'un verdict réussi = les XP que le jeu a réellement donnés pendant l'appel (écart de state.xp,
-     comme pour le puzzle) : la mention « +n XP » ne recopie aucun montant d'index.html. false = raté. */
+     comme pour le puzzle) : la mention « +n XP » ne recopie aucun montant de classique.html. false = raté. */
   FX.wrap('placeProbaPiece', function (id) {
     var p = probaState.placements[id];
     return p ? p.pieceIdx : -1;

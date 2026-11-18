@@ -1,5 +1,5 @@
 /* Scénarios du DÉFILEMENT (aucun fragment ne porte ce numéro). Chargé par tools/test_anime.js (voir HELPERS).
-   Le jeu lui-même (index.html, donc les deux pages) fait défiler la page à deux endroits :
+   Le jeu lui-même (classique.html, donc les deux pages) fait défiler la page à deux endroits :
      · showScreen : un écran de résultat (id finissant par « result ») est toujours affiché depuis le haut ;
      · loadQuestion → bringIntoView(#question-wrap) : si la carte de question n'est pas entièrement visible entre
        l'en-tête collant et le bas de la fenêtre, la page défile aussitôt (sans animation, sans toucher au focus)
@@ -7,11 +7,11 @@
    La couche, elle, ne fait JAMAIS défiler la page (lint du build) ; elle en profite : l'arène, juste au-dessus de la
    carte, revient à l'écran avec elle, et le rang d'un résultat est à l'écran à l'arrivée.
 
-   · defilement        : sur index.html SEUL — après chaque loadQuestion la carte est entièrement visible dès
+   · defilement        : sur classique.html SEUL — après chaque loadQuestion la carte est entièrement visible dès
                          qu'elle tient dans la fenêtre, son haut n'est jamais sous l'en-tête, rien ne la déplace
                          dans les deux images suivantes, le focus est le même avant et après le défilement ; un écran
                          de résultat arrive avec scrollY = 0, un autre écran garde le défilement. Puis différentiel :
-                         anime.html au niveau off défile exactement comme index.html ; au niveau complet, sur
+                         index.html au niveau off défile exactement comme classique.html ; au niveau complet, sur
                          téléphone, les deux pages n'ont pas la même hauteur au-dessus de la carte (arène, bandeau
                          compacté) : on ne compare pas les positions brutes mais « carte entièrement visible », et
                          l'arène réserve bien sa hauteur dans le même tick (question 1 comprise).
@@ -23,7 +23,7 @@
 'use strict';
 
 module.exports = function (h) {
-  const { check, open, wait, gameShown, logOf, leftovers, INDEX, ANIME } = h;
+  const { check, open, wait, gameShown, logOf, leftovers, CLASSIC, ANIME } = h;
   const SIZES = [[360, 640], [390, 664], [1280, 800]];
 
   /* Dans la page : joue les 30 questions (réponse juste, page laissée là où se trouve « QUESTION SUIVANTE », question
@@ -95,24 +95,24 @@ module.exports = function (h) {
   async function scenarioScroll(browser) {
     await Promise.all(SIZES.map(async ([w, hh]) => {
       const tag = w + '×' + hh, phone = w < 600;
-      const [classic, off, full] = await Promise.all([run(browser, INDEX, w, hh), run(browser, ANIME, w, hh, 'off'), run(browser, ANIME, w, hh, 'complet')]);
+      const [classic, off, full] = await Promise.all([run(browser, CLASSIC, w, hh), run(browser, ANIME, w, hh, 'off'), run(browser, ANIME, w, hh, 'complet')]);
       const rows = classic.rows, moved = rows.filter((r) => r.sync.y !== r.y0).length, res = classic.shows.filter((s) => /result$/.test(s.id)), qcm = res.find((s) => s.id === 'result');
-      /* index.html seul */
-      check('défilement (index.html, ' + tag + ') : bringIntoView appelé à chaque question' + (phone ? ', et la page a réellement défilé (≥ 10 fois sur 30)' : ''),
+      /* classique.html seul */
+      check('défilement (classique.html, ' + tag + ') : bringIntoView appelé à chaque question' + (phone ? ', et la page a réellement défilé (≥ 10 fois sur 30)' : ''),
         rows.length >= 30 && (!phone || moved >= 10), [rows.length, moved]);
-      check('défilement (index.html, ' + tag + ') : après chaque loadQuestion, la carte de question est entièrement visible dès qu\'elle tient dans la fenêtre',
+      check('défilement (classique.html, ' + tag + ') : après chaque loadQuestion, la carte de question est entièrement visible dès qu\'elle tient dans la fenêtre',
         rows.filter((r) => fits(r.sync)).length >= 25 && rows.every((r) => !fits(r.sync) || visible(r.sync)), rows.filter((r) => fits(r.sync) && !visible(r.sync)).slice(0, 3));
-      check('défilement (index.html, ' + tag + ') : le haut de la carte n\'est jamais caché sous l\'en-tête', rows.every((r) => r.sync.top >= -0.5), rows.filter((r) => r.sync.top < -0.5).slice(0, 3));
-      check('défilement (index.html, ' + tag + ') : rien ne déplace la carte dans les deux images qui suivent', rows.every(still), rows.filter((r) => !still(r)).slice(0, 3));
-      check('défilement (index.html, ' + tag + ') : document.activeElement est le même avant et après le défilement', rows.every((r) => r.sameFocus), rows.filter((r) => !r.sameFocus).length);
-      check('défilement (index.html, ' + tag + ') : le résultat du QCM arrive avec scrollY = 0' + (phone ? ' (la page était défilée)' : ''), !!qcm && qcm.y1 === 0 && (!phone || qcm.y0 > 0), qcm);
-      check('défilement (index.html, ' + tag + ') : les 7 écrans de résultat arrivent avec scrollY = 0 depuis une page défilée ; un écran ordinaire garde le défilement',
+      check('défilement (classique.html, ' + tag + ') : le haut de la carte n\'est jamais caché sous l\'en-tête', rows.every((r) => r.sync.top >= -0.5), rows.filter((r) => r.sync.top < -0.5).slice(0, 3));
+      check('défilement (classique.html, ' + tag + ') : rien ne déplace la carte dans les deux images qui suivent', rows.every(still), rows.filter((r) => !still(r)).slice(0, 3));
+      check('défilement (classique.html, ' + tag + ') : document.activeElement est le même avant et après le défilement', rows.every((r) => r.sameFocus), rows.filter((r) => !r.sameFocus).length);
+      check('défilement (classique.html, ' + tag + ') : le résultat du QCM arrive avec scrollY = 0' + (phone ? ' (la page était défilée)' : ''), !!qcm && qcm.y1 === 0 && (!phone || qcm.y0 > 0), qcm);
+      check('défilement (classique.html, ' + tag + ') : les 7 écrans de résultat arrivent avec scrollY = 0 depuis une page défilée ; un écran ordinaire garde le défilement',
         res.length === 7 && res.every((s) => s.y1 === 0) && res.filter((s) => s.y0 > 0).length >= 6 && classic.shows.some((s) => s.id === 'stats' && s.y0 > 0 && s.y1 === Math.min(s.y0, s.max) && s.y1 > 0), classic.shows.filter((s) => s.id !== 'game' && s.id !== 'loading' && s.id !== 'home'));
       /* Différentiel */
       /* L'accueil de l'édition animée a une rangée de réglages en plus (54 px) : sa hauteur n'est pas comparée. */
       const after = (r) => r.rows.map((x) => [x.q, x.y0, x.sync.y, x.sync.top, x.sync.bottom, x.sync.h]);
       const arrive = (r) => r.shows.map((x) => [x.id, x.y0, x.y1, x.id === 'home' ? 0 : x.max]);
-      check('défilement (' + tag + ') : anime.html au niveau off défile exactement comme index.html (même position avant et après chaque question, même arrivée sur chaque écran)',
+      check('défilement (' + tag + ') : index.html au niveau off défile exactement comme classique.html (même position avant et après chaque question, même arrivée sur chaque écran)',
         JSON.stringify(after(off)) === JSON.stringify(after(classic)) && JSON.stringify(arrive(off)) === JSON.stringify(arrive(classic)),
         [after(off).filter((x, i) => JSON.stringify(x) !== JSON.stringify(after(classic)[i])).slice(0, 3), arrive(off).filter((x, i) => JSON.stringify(x) !== JSON.stringify(arrive(classic)[i])).slice(0, 3)]);
       /* Niveau complet : la hauteur au-dessus de la carte diffère (arène) — on compare « carte entièrement visible ». */
@@ -188,7 +188,7 @@ module.exports = function (h) {
   }
 
   return [
-    ['defilement', 'défilement du jeu : carte de question ramenée à l\'écran, résultats depuis le haut (index.html seul, puis différentiel)', scenarioScroll],
+    ['defilement', 'défilement du jeu : carte de question ramenée à l\'écran, résultats depuis le haut (classique.html seul, puis différentiel)', scenarioScroll],
     ['defilement-partie', 'défilement : partie de 30 questions en vrais appuis (arène à l\'écran, cérémonie complète)', scenarioGame]
   ];
 };

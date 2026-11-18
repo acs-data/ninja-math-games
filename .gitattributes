@@ -1,11 +1,11 @@
-# Fins de ligne : LF imposé aux fichiers dont dépend l'édition animée, quel que soit le réglage
-# core.autocrlf de la machine. anime.html est une copie exacte d'index.html plus la couche :
-# tools/build_anime.py refuse un index.html en CRLF, et « --check » compare octet par octet.
+# Fins de ligne : LF imposé aux fichiers dont dépend la page principale, quel que soit le réglage
+# core.autocrlf de la machine. index.html est une copie exacte de classique.html plus la couche :
+# tools/build_anime.py refuse un classique.html en CRLF, et « --check » compare octet par octet.
+classique.html        text eol=lf
 index.html            text eol=lf
 anime.html            text eol=lf
 sw.js                 text eol=lf
 manifest.json         text eol=lf
-manifest-anime.json   text eol=lf
 anime-src/*           text eol=lf
 tools/*.py            text eol=lf
 tools/*.js            text eol=lf

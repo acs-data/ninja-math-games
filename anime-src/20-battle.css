@@ -1,7 +1,7 @@
 /* ═══ 20-battle.css — arène du QCM, compaction de l'écran de jeu, verdict, carte VS ═══
    L'arène (#fx-arena) est le seul nœud de la couche placé DANS la mise en page : enfant direct de
    #screen-game, juste avant #question-wrap. Au niveau off (ou couche coupée) elle est en
-   display:none et aucune règle ci-dessous ne s'applique : la page est celle d'index.html.
+   display:none et aucune règle ci-dessous ne s'applique : la page est celle de classique.html.
    Aucune animation CSS ici : l'arène est IMMOBILE entre deux évènements (états = attributs),
    le mouvement vient de FX.anim (WAAPI) et du canvas. */
 
@@ -96,7 +96,7 @@ html[data-fx="leger"] #fx-arena, html[data-fx="complet"] #fx-arena { display: fl
 /* ── Compaction de l'écran de jeu, UNIQUEMENT tant que l'arène est affichée ──
    (html[data-fx-arena] est posé par 20-arena.js une fois la bande réellement insérée.)
    Téléphone : vies et énergie côte à côte, marges resserrées → les réponses arrivent plus haut
-   qu'avec index.html malgré la bande de combat (mesures : voir tools/test_anime.js, scénario « arene »). */
+   qu'avec classique.html malgré la bande de combat (mesures : voir tools/test_anime.js, scénario « arene »). */
 @media (max-width: 480px) and (orientation: portrait), (max-width: 480px) and (min-height: 501px) {
   html[data-fx-arena]:not([data-fx="off"]) #screen-game .stats-row { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
   html[data-fx-arena]:not([data-fx="off"]) #screen-game .stat-block { padding: 8px 10px !important; }
