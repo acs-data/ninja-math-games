@@ -355,6 +355,19 @@ module.exports = function (h) {
     const html = fs.readFileSync(path.join(ROOT, 'anime.html'), 'utf8');
     const body = html.slice(html.indexOf('<body'));
     const links = (html.match(/\b(href|src)\s*=\s*"[^"]*"/g) || []);
+    /* Le texte de la page sans ses commentaires HTML, retirés par balayage (indexOf) et non par une expression
+       régulière : CodeQL signale un « replace » de « <!-- … --> » comme un nettoyage incomplet (CLAUDE.md § 7.4).
+       Un commentaire non refermé est gardé tel quel : le contrôle qui suit le lit alors en entier. */
+    const sansCommentaires = (texte) => {
+      let reste = '', i = 0;
+      for (;;) {
+        const debut = texte.indexOf('<!--', i);
+        const fin = debut < 0 ? -1 : texte.indexOf('-->', debut + 4);
+        if (fin < 0) return reste + texte.slice(i);
+        reste += texte.slice(i, debut);
+        i = fin + 3;
+      }
+    };
     check('anime.html : HTML5 en français et UTF-8 (<!DOCTYPE html>, lang="fr", meta charset)',
       html.indexOf('<!DOCTYPE html>') === 0 && /<html lang="fr">/.test(html) && /<meta charset="UTF-8">/.test(html) && !/\r/.test(html), html.slice(0, 120));
     check('anime.html : titre en français, non indexée (robots noindex), meta refresh immédiat vers ./',
@@ -365,7 +378,7 @@ module.exports = function (h) {
     check('anime.html : un titre de niveau 1 qui dit que l\'adresse a changé, puis l\'explication (page principale)',
       /<h1>[^<]*adresse[^<]*<\/h1>\s*<p>[^<]*page principale[^<]*<\/p>/.test(body), (body.match(/<h1>[^]*?<\/p>/) || [])[0]);
     check('anime.html : aucun manifest, aucune ressource (seul lien : ./), aucun service worker, aucune adresse externe',
-      !/rel="manifest"|manifest-anime|serviceWorker|sw\.js|https?:|\/\/|<img|<link|<iframe|url\(/i.test(html.replace(/<!--[^]*?-->/g, '')) && links.join() === 'href="./"', links);
+      !/rel="manifest"|manifest-anime|serviceWorker|sw\.js|https?:|\/\/|<img|<link|<iframe|url\(/i.test(sansCommentaires(html)) && links.join() === 'href="./"', links);
     check('anime.html : aucun nom d\'œuvre (univers du jeu)', !/naruto|one piece|dragon ball|my hero|demon slayer|pok[ée]mon/i.test(html), null);
     check('anime.html : petite page statique, pas une copie du jeu (ni couche, ni script du jeu)', html.length < 3000 && !/fx-script|fx-style|screen-home/.test(html), html.length);
   }
