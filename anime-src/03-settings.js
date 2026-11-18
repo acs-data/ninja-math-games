@@ -14,7 +14,7 @@ var ui = [];        // { btn, label, kind: 'power' | 'lite', modal, wait }
 var choice = null;  // choix explicite du joueur : { n: niveau, d: dernier niveau actif, r: fait sous « mouvement réduit » }
 
 /* Écrit le choix si la sauvegarde est activée ET que le joueur a choisi ; sinon efface la clé
-   (la désactivation a pu se faire dans index.html, qui ne connaît pas cette clé). */
+   (la désactivation a pu se faire dans classique.html, qui ne connaît pas cette clé). */
 function storePref() {
   try {
     if (FX.game.saveOn() && choice) localStorage.setItem(FX_KEY, JSON.stringify({ v: 1, n: choice.n, d: choice.d, r: choice.r ? 1 : 0 }));

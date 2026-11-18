@@ -2,8 +2,8 @@
    Automatismes et DNB Blanc. Chargé par tools/test_anime.js (voir HELPERS).
 
    · txt-diff    : pour CHAQUE mode, la même session scriptée (clavier, clics, appels directs, pause,
-                   temps écoulé, abandon pendant la correction + minuteries fantômes) sur index.html et
-                   sur anime.html aux niveaux off, complet et « chaos » : état du jeu, focus, suite des
+                   temps écoulé, abandon pendant la correction + minuteries fantômes) sur classique.html et
+                   sur index.html aux niveaux off, complet et « chaos » : état du jeu, focus, suite des
                    messages de #toast et de #sr-live, HUD, textes des écrans, boutons, champs et empreinte
                    du DOM du jeu identiques à chaque étape. Chaque photographie attend le calme de la page
                    (annonce : 50 ms ; focus d'une modale : 50 ms ; focus du champ : 100 ms), sans délai fixe.
@@ -18,7 +18,7 @@
 'use strict';
 
 module.exports = function (h) {
-  const { check, wait, keepDom, domChecks, logOf, during, leftovers, isIdle, harness, INDEX, ANIME, SEED } = h;
+  const { check, wait, keepDom, domChecks, logOf, during, leftovers, isIdle, harness, CLASSIC, ANIME, SEED } = h;
   const has = (log, name) => log.some((l) => l.indexOf(name) === 0);
   const count = (log, name) => log.filter((l) => l.indexOf(name) === 0).length;
   const MINE = /^(tf-|histoire-|auto-|dnb-|bilan-)/;          // noms de chorégraphie du module
@@ -297,7 +297,7 @@ module.exports = function (h) {
       return { page, shots, played: Array.from(played), stats, errors: page.errors };
     };
     const [classic, off, full, chaos] = await Promise.all([
-      run(INDEX),
+      run(CLASSIC),
       run(ANIME, () => { FX.setLevel('off'); }),
       run(ANIME, () => { FX.seed(7); }),
       run(ANIME, () => { FX.debug.chaos = true; })

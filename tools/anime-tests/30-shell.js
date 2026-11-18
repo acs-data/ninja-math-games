@@ -1,6 +1,6 @@
 /* Scénarios de la coquille (anime-src/09-arrivee.js, 30-shell.js et correctifs du noyau) :
      shell-diff     même session scriptée (univers, personnage, onglets, thème, cartes de mode, tiroir,
-                    logo, QCM avec chargement, bouton Précédent) sur index.html et sur l'édition animée
+                    logo, QCM avec chargement, bouton Précédent) sur classique.html et sur l'édition animée
                     aux niveaux off, complet et chaos : état du jeu, focus, suite des messages de #toast
                     et de #sr-live, empreinte du DOM du jeu identiques ; chaque photographie attend le
                     calme de la page (aucun délai fixe), les états intermédiaires sont retenus (__hold) ;
@@ -12,7 +12,7 @@
 'use strict';
 
 module.exports = function (h) {
-  const { check, open, wait, waapi, gameShown, snap, firstDiff, domChecks, logOf, during, leftovers, isIdle, INDEX, ANIME } = h;
+  const { check, open, wait, waapi, gameShown, snap, firstDiff, domChecks, logOf, during, leftovers, isIdle, CLASSIC, ANIME } = h;
   const has = (log, name) => log.some((l) => l.indexOf(name) === 0);
   const count = (log, name) => log.filter((l) => l.indexOf(name) === 0).length;
   const blades = (page) => page.evaluate(() => document.querySelectorAll('.fx-blade').length);
@@ -113,11 +113,11 @@ module.exports = function (h) {
       return { page, shots, fx, errors: page.errors, lay, end };
     };
     const [classic, off, full, chaos, telClassic, telFull] = await Promise.all([
-      run(INDEX),
+      run(CLASSIC),
       run(ANIME, () => { FX.setLevel('off'); }),
       run(ANIME, () => { FX.seed(11); }),
       run(ANIME, () => { FX.debug.chaos = true; }),
-      run(INDEX, null, true),
+      run(CLASSIC, null, true),
       run(ANIME, () => { FX.seed(12); }, true)
     ]);
     const seen = (label, scr) => classic.shots.some((s) => s.label === label && s.screens.join() === 'screen-' + scr);
@@ -139,7 +139,7 @@ module.exports = function (h) {
     }
     const same = (a, b) => JSON.stringify(a) === JSON.stringify(b), diffKey = (a, b) => Object.keys(a).filter((k) => !same(a[k], b[k]));
     for (const [name, r] of [['off', off], ['complet', full], ['chaos', chaos]]) {
-      check('coquille : accueil — mise en page, nombre de nœuds et styles en ligne du jeu identiques à index.html, avant et après la session (' + name + ')',
+      check('coquille : accueil — mise en page, nombre de nœuds et styles en ligne du jeu identiques à classique.html, avant et après la session (' + name + ')',
         same(classic.lay, r.lay) && same(classic.end, r.end), [diffKey(classic.lay, r.lay), diffKey(classic.end, r.end)]);
     }
     check('coquille, niveau off : journal FX vide', off.fx.log.length === 0, off.fx.log);

@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Génère anime.html = index.html + la couche d'animation (anime-src/).
+"""Génère index.html (la page principale du site) = classique.html + la couche d'animation (anime-src/).
 
-    python3 tools/build_anime.py                 construit anime.html
-    python3 tools/build_anime.py --check         code 1 si anime.html diffère d'une construction fraîche
+Le fichier édité à la main est classique.html (le jeu classique) ; index.html est GÉNÉRÉ, jamais édité à la main.
+
+    python3 tools/build_anime.py                 construit index.html
+    python3 tools/build_anime.py --check         code 1 si index.html diffère d'une construction fraîche
     python3 tools/build_anime.py --out CHEMIN    écrit ailleurs (construction de test privée)
     python3 tools/build_anime.py --modules a,b   ne garde que les fragments de module dont le nom
                                                  contient une de ces clés (le noyau est toujours inclus)
@@ -17,7 +19,9 @@ Codes de sortie : 0 = construit (ou « à jour » avec --check) ; 1 = --check : 
 fraîche ; 2 = construction REFUSÉE, rien n'est écrit (lint, syntaxe, ou contrat du noyau rompu : voir plus bas).
 
 Règles (voir anime-src/README.md) :
-  - index.html n'est JAMAIS modifié (ouvert en lecture seule) ;
+  - classique.html n'est JAMAIS modifié (ouvert en lecture seule ; la sortie ne peut pas être classique.html) ;
+  - index.html = classique.html recopié tel quel (<head> compris : même titre, mêmes descriptions, même manifest),
+    plus un commentaire « fichier généré » juste après la ligne <!DOCTYPE html>, plus la couche :
   - anime-src/*.css  -> <style id="fx-style"> juste avant </head> ;
   - anime-src/*.js   -> UNE IIFE dans <script id="fx-script"> juste avant </body> ;
       fragments 00-09 et 99 = noyau (portée partagée) ; fragments 10-98 = modules, chacun isolé
@@ -26,13 +30,11 @@ Règles (voir anime-src/README.md) :
   - contrôles bloquants (lints : jeu intact, réseau, média, suivi, stockage — un fil d'alarme, pas un bac à
     sable ; ils sont eux-mêmes vérifiés à chaque construction sur un tableau de formes interdites et saines)
     + « node --check » sur chaque bloc de script ;
-  - contrat avec index.html : ce dont le NOYAU de la couche dépend (fonctions qu'il enveloppe ou appelle,
+  - contrat avec classique.html : ce dont le NOYAU de la couche dépend (fonctions qu'il enveloppe ou appelle,
     variables qu'il lit, #app, classe des modales, écrans des épreuves) est bloquant, de même que les
     fonctions enveloppées par les fragments qui tiennent l'arène du QCM (MIRROR_FRAGMENTS) — sans eux la
     page serait à moitié branchée ; une fonction enveloppée par un AUTRE module n'est qu'un avertissement :
-    ce module perd un effet, le reste de la page est intact ;
-  - retouches du <head> tolérantes : chaque balise est reconnue par son nom, pas par son texte ; seule celle
-    du manifest est obligatoire.
+    ce module perd un effet, le reste de la page est intact.
 Bibliothèque standard uniquement.
 """
 import argparse
@@ -45,69 +47,36 @@ import sys
 import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC_HTML = os.path.join(ROOT, 'index.html')
+SRC_HTML = os.path.join(ROOT, 'classique.html')
 SRC_DIR = os.path.join(ROOT, 'anime-src')
-OUT_HTML = os.path.join(ROOT, 'anime.html')
+OUT_HTML = os.path.join(ROOT, 'index.html')
 SIZE_WARN = 105000            # plafond de la couche entière (injectée), en octets : avertissement au-delà
 
-# Retouches du <head>. Chaque balise est reconnue par son NOM (<title>, <meta name=… / property=…>,
-# <link rel="manifest">), jamais par son texte : une retouche d'index.html (titre, description, SEO) ne fige
-# pas l'édition animée.
-#   connu : (texte d'index.html, texte de l'édition) — formulation soignée, appliquée tant que le texte
-#           d'index.html est celui-là (« debut » : seul le début du texte est comparé et remplacé) ;
-#   repli : forme générique appliquée à un texte inconnu, avec un avertissement (mettre « connu » à jour) ;
-#   fixe  : valeur propre à l'édition, quel que soit le texte d'index.html (nom court, manifest) ;
-#   obligatoire : sans cette retouche l'édition n'est pas viable → la construction est refusée.
-# Une balise facultative absente (ou présente plusieurs fois) : avertissement, <head> laissé tel quel.
-HEAD_PATCHES = [
-    dict(nom='<title>', tag='title',
-         connu=('Anime Math Academy — Maths Collège 6e → 3e en mode anime',
-                'Anime Math Academy — Édition animée · Maths Collège 6e → 3e'),
-         repli='%s — Édition animée'),
-    dict(nom='<meta name="description">', tag='meta', sel=('name', 'description'), attr='content', debut=True,
-         connu=('Jeu éducatif gratuit pour réviser',
-                'Édition animée (combats, effets visuels, écran de résultat animé) du jeu éducatif gratuit pour réviser'),
-         repli='Édition animée — %s'),
-    dict(nom='<meta name="application-name">', tag='meta', sel=('name', 'application-name'), attr='content',
-         connu=('Anime Math Academy', 'Anime Math Academy — Édition animée'),
-         repli='%s — Édition animée'),
-    dict(nom='<meta name="apple-mobile-web-app-title">', tag='meta', sel=('name', 'apple-mobile-web-app-title'),
-         attr='content', fixe='Math Animé'),
-    # Sans son propre manifest, la page animée déclarerait l'application classique (start_url = index.html).
-    dict(nom='<link rel="manifest">', tag='link', sel=('rel', 'manifest'), attr='href', fixe='manifest-anime.json',
-         obligatoire=True),
-    dict(nom='<meta property="og:title">', tag='meta', sel=('property', 'og:title'), attr='content',
-         connu=('Anime Math Academy 🥷 — Maths Collège 6e → 3e + DNB 2027',
-                'Anime Math Academy 🥷 — Édition animée · Maths Collège 6e → 3e + DNB 2027'),
-         repli='%s — Édition animée'),
-    dict(nom='<meta property="og:description">', tag='meta', sel=('property', 'og:description'), attr='content', debut=True,
-         connu=('Révise les maths', 'Édition animée : révise les maths'),
-         repli='Édition animée — %s'),
-    dict(nom='<meta name="twitter:title">', tag='meta', sel=('name', 'twitter:title'), attr='content',
-         connu=('Anime Math Academy 🥷 — Maths Collège 6e → 3e + DNB 2027',
-                'Anime Math Academy 🥷 — Édition animée · Maths Collège 6e → 3e + DNB 2027'),
-         repli='%s — Édition animée'),
-    dict(nom='<meta name="twitter:description">', tag='meta', sel=('name', 'twitter:description'), attr='content', debut=True,
-         connu=('Le jeu de maths qui', 'Édition animée : le jeu de maths qui'),
-         repli='Édition animée — %s'),
-]
+# Bandeau « fichier généré », posé juste après la ligne <!DOCTYPE html> de la sortie : la première chose que voit
+# quiconque ouvre index.html. Un commentaire placé avant <html> ne crée aucun nœud dans <html> (le DOM du jeu est
+# inchangé) et ne change pas le mode de rendu (la ligne <!DOCTYPE html> reste la première).
+DOCTYPE = re.compile(r'<!doctype html>\n', re.I)     # première ligne de classique.html (casse libre), recopiée telle quelle
+BANNER = ('<!-- FICHIER GÉNÉRÉ — ne pas éditer à la main.\n'
+          '     index.html = classique.html + la couche d\'animation (anime-src/), construit par tools/build_anime.py.\n'
+          '     Pour modifier le jeu : éditer classique.html, puis lancer python3 tools/build_anime.py\n'
+          '     (et node tools/test_anime.js). Voir anime-src/README.md. -->\n')
 TAIL = '</script>\n</body>\n</html>\n'
 
-# ── Contrat avec index.html ──
-# Ce dont le NOYAU (fragments 00–09 et 99) dépend. Absent d'index.html = construction REFUSÉE (code 2, rien
+# ── Contrat avec classique.html ──
+# Ce dont le NOYAU (fragments 00–09 et 99) dépend. Absent de classique.html = construction REFUSÉE (code 2, rien
 # n'est écrit) : la page serait à moitié branchée — écran courant jamais suivi (plus de profil « sobre » pour
 # les épreuves), effets joués sur une modale, réglage qui ne suit plus l'opt-in de sauvegarde… Mieux vaut
-# garder l'anime.html précédent, plus ancien mais cohérent, le temps d'adapter la couche.
+# garder l'index.html précédent, plus ancien mais cohérent, le temps d'adapter la couche.
 #   · les fonctions que le noyau ENVELOPPE sont lues dans ses fragments (FX.wrap), pas listées ici ;
 #   · KERNEL_CALLS : fonctions du jeu que le noyau APPELLE ; KERNEL_VARS : variables globales qu'il LIT ;
-#   · KERNEL_MARKS : repères du HTML (texte cherché dans index.html, texte témoin dans le noyau, rôle).
+#   · KERNEL_MARKS : repères du HTML (texte cherché dans classique.html, texte témoin dans le noyau, rôle).
 KERNEL_CALLS = ['isSaveEnabled']       # FX.game.saveOn : porte de l'opt-in (aucune écriture de amat_fx_v1 sans elle)
 KERNEL_VARS = ['state', 'currentUniverse', 'UNIVERSES', 'CHARS']      # FX.game.*, FX.palette
 KERNEL_MARKS = [
     ('id="app"', "'app'", 'point de montage de la couche (sans lui elle se coupe au démarrage)'),
     ('modal-overlay', 'modal-overlay', 'classe des modales (une modale ouverte suspend tous les effets)'),
 ]
-SOBER_PROFILE = 'sobre'                # FX.PROFILES : les écrans de ce profil (épreuves) doivent exister dans index.html
+SOBER_PROFILE = 'sobre'                # FX.PROFILES : les écrans de ce profil (épreuves) doivent exister dans classique.html
 # Fragments de MODULE dont tous les crochets sont bloquants eux aussi : ils tiennent un nœud PERSISTANT qui
 # reflète l'état du jeu (l'arène du QCM, #fx-arena). Privée d'un seul de ces crochets, l'arène ment : adversaire
 # et « Lis l'explication » de la question précédente restés sur la question suivante (loadQuestion), combo en
@@ -545,67 +514,7 @@ def indent(text):
     return ''.join(('  ' + ln if ln.strip() else ln) for ln in text.splitlines(True))
 
 
-# ── retouches du <head> ──
-
-_TAGS = {'meta': re.compile(r'<meta\b[^>]*>'), 'link': re.compile(r'<link\b[^>]*>')}
-_ATTR = re.compile(r'''([\w:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')''')
-_TITLE = re.compile(r'<title>([^<]*)</title>')
-
-
-def head_spans(head, patch):
-    """Emplacements, dans le <head>, du texte que la retouche remplace : [(début, fin)].
-    <title> : son contenu ; <meta> / <link> : la valeur de l'attribut « attr » de la balise choisie par « sel »."""
-    if patch['tag'] == 'title':
-        return [m.span(1) for m in _TITLE.finditer(head)]
-    key, value = patch['sel']
-    spans = []
-    for tag in _TAGS[patch['tag']].finditer(head):
-        attrs = {}
-        for m in _ATTR.finditer(tag.group(0)):
-            g = 2 if m.group(2) is not None else 3
-            attrs.setdefault(m.group(1).lower(), (tag.start() + m.start(g), tag.start() + m.end(g), m.group(g)))
-        if key in attrs and attrs[key][2] == value and patch['attr'] in attrs:
-            spans.append(attrs[patch['attr']][:2])
-    return spans
-
-
-def patch_head(src, report, errors):
-    """Applique HEAD_PATCHES à la partie <head> de src. Balise obligatoire absente : erreur. Balise facultative
-    absente ou multiple : avertissement, rien n'est touché. Texte inconnu : forme générique + avertissement."""
-    end = src.index('</head>')
-    head = src[:end]
-    edits = []
-    for patch in HEAD_PATCHES:
-        spans = head_spans(head, patch)
-        if len(spans) != 1:
-            what = 'introuvable' if not spans else 'présente %d fois' % len(spans)
-            if patch.get('obligatoire'):
-                errors.append('index.html : balise %s %s dans le <head> — retouche obligatoire (%s)'
-                              % (patch['nom'], what, patch['fixe']))
-            else:
-                report['warnings'].append('<head> : balise %s %s dans index.html : laissée telle quelle (retouche '
-                                          'facultative non appliquée)' % (patch['nom'], what))
-            continue
-        i, j = spans[0]
-        old = head[i:j]
-        if 'fixe' in patch:
-            new = patch['fixe']
-        else:
-            known, tuned = patch['connu']
-            if old.startswith(known) if patch.get('debut') else old == known:
-                new = tuned + old[len(known):]
-            else:
-                new = patch['repli'] % old
-                report['warnings'].append('<head> : le texte de %s a changé dans index.html : forme générique appliquée '
-                                          '(« %s ») — mettre à jour HEAD_PATCHES dans tools/build_anime.py pour une '
-                                          'formulation soignée' % (patch['nom'], new if len(new) <= 70 else new[:69] + '…'))
-        edits.append((i, j, new))
-    for i, j, new in sorted(edits, reverse=True):
-        head = head[:i] + new + head[j:]
-    return head + src[end:]
-
-
-# ── contrat avec index.html ──
+# ── contrat avec classique.html ──
 
 def has_function(src, name):
     """Déclaration de fonction globale (seule forme que FX.wrap sait envelopper : window[nom])."""
@@ -630,58 +539,58 @@ def read_profiles(kernel_code):
 
 
 def check_contract(src, kernel_code, kernel_wrapped, mirror_wrapped, module_wrapped, report, errors):
-    """Ce que la couche attend d'index.html. Noyau et arène : erreurs (construction refusée). Autres modules :
+    """Ce que la couche attend de classique.html. Noyau et arène : erreurs (construction refusée). Autres modules :
     avertissements. mirror_wrapped : { fonction: fragment } pour les fragments de MIRROR_FRAGMENTS."""
     for name in sorted(kernel_wrapped):
         if not has_function(src, name):
-            errors.append('contrat du noyau : la fonction « %s » (enveloppée par le noyau) n\'est plus déclarée dans index.html' % name)
+            errors.append('contrat du noyau : la fonction « %s » (enveloppée par le noyau) n\'est plus déclarée dans classique.html' % name)
     for name in sorted(set(mirror_wrapped) - kernel_wrapped):
         if not has_function(src, name):
             errors.append('contrat de l\'arène : la fonction « %s » (enveloppée par %s, qui tient l\'arène du QCM à l\'image '
-                          'du jeu) n\'est plus déclarée dans index.html — sans ce crochet l\'arène afficherait un état faux'
+                          'du jeu) n\'est plus déclarée dans classique.html — sans ce crochet l\'arène afficherait un état faux'
                           % (name, mirror_wrapped[name]))
     for name in KERNEL_CALLS:
         if not has_function(src, name):
-            errors.append('contrat du noyau : la fonction « %s » (appelée par le noyau) n\'est plus déclarée dans index.html' % name)
+            errors.append('contrat du noyau : la fonction « %s » (appelée par le noyau) n\'est plus déclarée dans classique.html' % name)
     for name in KERNEL_VARS:
         if not has_variable(src, name):
-            errors.append('contrat du noyau : la variable globale « %s » (lue par le noyau) n\'est plus déclarée dans index.html' % name)
+            errors.append('contrat du noyau : la variable globale « %s » (lue par le noyau) n\'est plus déclarée dans classique.html' % name)
     for token, _witness, role in KERNEL_MARKS:
         if token not in src:
-            errors.append('contrat du noyau : repère « %s » absent d\'index.html — %s' % (token, role))
+            errors.append('contrat du noyau : repère « %s » absent de classique.html — %s' % (token, role))
     screens = set(re.findall(r'\bid="screen-([\w-]+)"', src))
     profiles = read_profiles(kernel_code)
     for screen in sorted(profiles):
         if screen in screens:
             continue
         if profiles[screen] == SOBER_PROFILE:
-            errors.append('contrat du noyau : l\'écran d\'épreuve « screen-%s » (profil « %s ») n\'existe plus dans index.html — '
+            errors.append('contrat du noyau : l\'écran d\'épreuve « screen-%s » (profil « %s ») n\'existe plus dans classique.html — '
                           'sous un autre nom, il jouerait au profil par défaut, sans plafond' % (screen, SOBER_PROFILE))
         else:
-            report['warnings'].append('écran « screen-%s » de FX.PROFILES absent d\'index.html' % screen)
+            report['warnings'].append('écran « screen-%s » de FX.PROFILES absent de classique.html' % screen)
     unknown = sorted(screens - set(profiles))
     if unknown:
-        report['warnings'].append('écran(s) d\'index.html sans profil dans FX.PROFILES (profil « home » par défaut, plein niveau — '
+        report['warnings'].append('écran(s) de classique.html sans profil dans FX.PROFILES (profil « home » par défaut, plein niveau — '
                                   'à classer, surtout une épreuve) : ' + ', '.join('screen-' + x for x in unknown))
     for token, _witness, role in SOFT_MARKS:
         if token not in src:
-            report['warnings'].append('repère « %s » absent d\'index.html : %s indisponible' % (token, role))
+            report['warnings'].append('repère « %s » absent de classique.html : %s indisponible' % (token, role))
     if not any(token in src for token, _w, _r in SETTING_MARKS):
-        errors.append('contrat du noyau : aucun point de montage du réglage « Animations » dans index.html '
+        errors.append('contrat du noyau : aucun point de montage du réglage « Animations » dans classique.html '
                       '(le joueur ne pourrait plus couper les animations)')
     missing = sorted(w for w in module_wrapped - kernel_wrapped - set(mirror_wrapped) if not has_function(src, w))
     if missing:
-        report['warnings'].append('fonction(s) enveloppée(s) par un module absente(s) d\'index.html : %s — le crochet '
+        report['warnings'].append('fonction(s) enveloppée(s) par un module absente(s) de classique.html : %s — le crochet '
                                   'correspondant est inactif (FX.stats().missing), le reste de la couche fonctionne'
                                   % ', '.join(missing))
     # Les listes ci-dessus décrivent le noyau : un nom qu'il ne lit plus est une liste périmée.
     for name in KERNEL_CALLS + KERNEL_VARS:
         if not re.search(r'\b%s\b' % re.escape(name), kernel_code):
-            report['warnings'].append('tools/build_anime.py : « %s » est exigé d\'index.html mais le noyau ne le lit plus '
+            report['warnings'].append('tools/build_anime.py : « %s » est exigé de classique.html mais le noyau ne le lit plus '
                                       '(liste du contrat périmée)' % name)
     for token, witness, _role in KERNEL_MARKS + SOFT_MARKS:
         if witness not in kernel_code:
-            report['warnings'].append('tools/build_anime.py : le repère « %s » est attendu d\'index.html mais le noyau ne '
+            report['warnings'].append('tools/build_anime.py : le repère « %s » est attendu de classique.html mais le noyau ne '
                                       'le lit plus (liste du contrat périmée)' % token)
 
 
@@ -690,28 +599,30 @@ def build(modules=None, keep_comments=False, src_dir=SRC_DIR):
     selftest()
     lint_selftest()
     src = read(SRC_HTML)
-    report = {'warnings': [], 'sizes': [], 'md5_index': hashlib.md5(src.encode('utf-8')).hexdigest()}
+    report = {'warnings': [], 'sizes': [], 'md5_src': hashlib.md5(src.encode('utf-8')).hexdigest()}
     errors = []
 
     for anchor in ('</head>', '</body>', '<script>', '</script>', '<style>', '</style>'):
         if src.count(anchor) != 1:
-            errors.append('index.html : « %s » doit apparaître exactement une fois (trouvé %d)' % (anchor, src.count(anchor)))
+            errors.append('classique.html : « %s » doit apparaître exactement une fois (trouvé %d)' % (anchor, src.count(anchor)))
     if not src.endswith(TAIL):
         crlf = src.count('\r\n')
         if crlf and src.replace('\r\n', '\n').endswith(TAIL):
-            errors.append('index.html : fins de ligne CRLF (Windows) sur %d lignes — cause probable de cet échec : la '
-                          'construction attend des fins de ligne LF (anime.html est une copie exacte d\'index.html).\n'
+            errors.append('classique.html : fins de ligne CRLF (Windows) sur %d lignes — cause probable de cet échec : la '
+                          'construction attend des fins de ligne LF (index.html est une copie exacte de classique.html).\n'
                           '  Le dépôt impose LF par .gitattributes : vérifier qu\'il est présent et que l\'éditeur '
-                          'n\'enregistre pas en CRLF, puis supprimer index.html et le restaurer '
-                          '(git checkout -- index.html), ou le convertir en LF.' % crlf)
+                          'n\'enregistre pas en CRLF, puis supprimer classique.html et le restaurer '
+                          '(git checkout -- classique.html), ou le convertir en LF.' % crlf)
         else:
-            errors.append('index.html : la fin attendue </script>\\n</body>\\n</html>\\n est absente'
+            errors.append('classique.html : la fin attendue </script>\\n</body>\\n</html>\\n est absente'
                           + (' (le fichier contient des retours chariot « \\r » : fins de ligne à vérifier)' if '\r' in src else ''))
+    if not DOCTYPE.match(src.replace('\r\n', '\n')):             # (des fins de ligne CRLF sont signalées plus haut)
+        errors.append('classique.html : la première ligne doit être <!DOCTYPE html> (le bandeau « fichier '
+                      'généré » de index.html se pose juste après elle)')
     if 'fx-' in src or re.search(r'\bFX\b', src):
-        report['warnings'].append('index.html contient déjà « fx- » ou « FX » : risque de collision')
+        report['warnings'].append('classique.html contient déjà « fx- » ou « FX » : risque de collision')
     if errors:
         raise BuildError('\n'.join(errors))
-    patched = patch_head(src, report, errors)
 
     css_names = list_fragments(src_dir, '.css', modules)
     js_names = list_fragments(src_dir, '.js', modules)
@@ -748,7 +659,7 @@ def build(modules=None, keep_comments=False, src_dir=SRC_DIR):
             js_parts.append("/* %s */\ntry { (function () {\n%s})(); } catch (e) { oops(e, 'fragment:%s'); }\n"
                             % (name, body, name))
         report['sizes'].append((name, len(raw.encode('utf-8')), len(js_parts[-1].encode('utf-8'))))
-    # Contrat : ce que la couche attend d'index.html (noyau = bloquant, modules = avertissement).
+    # Contrat : ce que la couche attend de classique.html (noyau = bloquant, modules = avertissement).
     check_contract(src, '\n'.join(kernel_code), kernel_wrapped, mirror_wrapped, module_wrapped, report, errors)
     if modules is None:
         for name in MIRROR_FRAGMENTS:
@@ -767,15 +678,17 @@ def build(modules=None, keep_comments=False, src_dir=SRC_DIR):
     if re.search(r'(?i)</script|<!--', js) or re.search(r'(?i)</style', css):
         raise BuildError('la couche assemblée contient </script, <!-- ou </style')
 
-    html = patched.replace('</head>', '<style id="fx-style">\n' + css + '</style>\n</head>', 1)
+    first = DOCTYPE.match(src).end()
+    html = src[:first] + BANNER + src[first:]
+    html = html.replace('</head>', '<style id="fx-style">\n' + css + '</style>\n</head>', 1)
     # Pas de saut de ligne entre les deux scripts : <body> ne gagne aucun nœud texte.
     html = html[:-len(TAIL)] + '</script><script id="fx-script">\n' + js + TAIL
 
     report['layer_css'] = len(css.encode('utf-8'))
     report['layer_js'] = len(js.encode('utf-8'))
     report['src_total'] = sum(s for _n, s, _i in report['sizes'])
-    report['index_bytes'] = len(src.encode('utf-8'))
-    report['anime_bytes'] = len(html.encode('utf-8'))
+    report['src_bytes'] = len(src.encode('utf-8'))
+    report['out_bytes'] = len(html.encode('utf-8'))
     if report['layer_css'] + report['layer_js'] > SIZE_WARN:
         report['warnings'].append('couche = %d octets : au-dessus du plafond de %d'
                                   % (report['layer_css'] + report['layer_js'], SIZE_WARN))
@@ -788,7 +701,7 @@ def node_checks(html, report):
     (détecte une collision de déclarations lexicales). Ignoré avec un avertissement sans node."""
     blocks = re.findall(r'<script\b[^>]*>(.*?)</script>', html, re.S)
     if len(blocks) != 2:
-        raise BuildError('anime.html doit contenir exactement 2 blocs <script> (trouvé %d)' % len(blocks))
+        raise BuildError('index.html doit contenir exactement 2 blocs <script> (trouvé %d)' % len(blocks))
     if not blocks[1].lstrip().startswith('/*') or '(function () {' not in blocks[1][:400]:
         raise BuildError('le bloc FX ne commence pas par l\'IIFE attendue')
     node = shutil.which('node')
@@ -813,13 +726,13 @@ def node_checks(html, report):
 def annotate(kind, message):
     """Annotation GitHub Actions (« ::warning:: » / « ::error:: ») : une ligne, sauts de ligne encodés."""
     text = message.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
-    print('::%s title=Édition animée (anime.html)::%s' % (kind, text))
+    print('::%s title=Page principale (index.html)::%s' % (kind, text))
 
 
 def main():
-    ap = argparse.ArgumentParser(description='Construit anime.html (index.html + couche d\'animation).')
+    ap = argparse.ArgumentParser(description='Construit index.html (classique.html + couche d\'animation).')
     ap.add_argument('--check', action='store_true', help='code 1 si le fichier de sortie diffère d\'une construction fraîche')
-    ap.add_argument('--out', default=OUT_HTML, help='chemin de sortie (défaut : anime.html à la racine)')
+    ap.add_argument('--out', default=OUT_HTML, help='chemin de sortie (défaut : index.html à la racine)')
     ap.add_argument('--modules', default=None, help='clés de modules à inclure, séparées par des virgules')
     ap.add_argument('--keep-comments', action='store_true', help='ne retire pas les commentaires des sources')
     ap.add_argument('--src', default=SRC_DIR, help='dossier des fragments (défaut : anime-src/)')
@@ -841,13 +754,13 @@ def main():
         print('AVERTISSEMENT : ' + w, file=sys.stderr)
         if ci:
             annotate('warning', 'build_anime.py : ' + w)
-    print('index.html   md5 %s  %d octets (lu seulement)' % (rep['md5_index'], rep['index_bytes']))
+    print('classique.html md5 %s  %d octets (lu seulement)' % (rep['md5_src'], rep['src_bytes']))
     for name, size, injected in rep['sizes']:      # source -> injecté (commentaires retirés, enveloppe du module comprise)
         print('  %-22s %6d octets -> %6d injectés' % (name, size, injected))
-    print('sources      %d octets | couche injectée : css %d + js %d = %d octets'
+    print('sources        %d octets | couche injectée : css %d + js %d = %d octets'
           % (rep['src_total'], rep['layer_css'], rep['layer_js'], rep['layer_css'] + rep['layer_js']))
-    print('anime.html   %d octets (+%d)' % (rep['anime_bytes'], rep['anime_bytes'] - rep['index_bytes']))
-    print('node --check %s | fonctions enveloppées : %s' % (rep.get('node'), ', '.join(rep['wrapped']) or '-'))
+    print('%-14s %d octets (+%d)' % (os.path.basename(args.out), rep['out_bytes'], rep['out_bytes'] - rep['src_bytes']))
+    print('node --check   %s | fonctions enveloppées : %s' % (rep.get('node'), ', '.join(rep['wrapped']) or '-'))
 
     data = html.encode('utf-8')
     if args.check:
@@ -860,15 +773,18 @@ def main():
         return 0 if same else 1
 
     out = os.path.abspath(args.out)
-    if os.path.abspath(SRC_HTML) == out:
-        print('ÉCHEC : la sortie ne peut pas être index.html', file=sys.stderr)
+    if os.path.realpath(SRC_HTML) == os.path.realpath(out) or (os.path.exists(out) and os.path.samefile(SRC_HTML, out)):
+        print('ÉCHEC : la sortie ne peut pas être classique.html (le fichier source, édité à la main) : rien n\'est écrit',
+              file=sys.stderr)
+        if ci:
+            annotate('error', 'build_anime.py : la sortie ne peut pas être classique.html, rien n\'est écrit.')
         return 2
     fd, tmp = tempfile.mkstemp(prefix='.anime_', suffix='.tmp', dir=os.path.dirname(out) or '.')
     with os.fdopen(fd, 'wb') as f:
         f.write(data)
     os.chmod(tmp, 0o644)       # mkstemp crée en 0600 : GitHub Pages exige des fichiers lisibles par tous
     os.replace(tmp, out)
-    print('écrit        %s' % out)
+    print('écrit          %s' % out)
     return 0
 
 

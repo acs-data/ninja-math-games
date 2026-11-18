@@ -2,9 +2,9 @@
    Chargé par tools/test_anime.js (voir HELPERS). Le scénario « reglages » du fichier principal couvre
    les boutons vivants ; ici, ce qui se passe quand la couche est coupée et ce que vaut un choix.
 
-   · reglages-coupee  : couche coupée = le jeu d'index.html. Même session scriptée (QCM, pause, tabulation
-                        dans les deux modales de pause, Automatismes) sur index.html, sur anime.html coupée
-                        par le disjoncteur (FX.kill) et sur anime.html NÉE coupée (Element.prototype.animate
+   · reglages-coupee  : couche coupée = le jeu de classique.html. Même session scriptée (QCM, pause, tabulation
+                        dans les deux modales de pause, Automatismes) sur classique.html, sur index.html coupée
+                        par le disjoncteur (FX.kill) et sur index.html NÉE coupée (Element.prototype.animate
                         retiré avant le chargement) : état, focus, annonces, DOM, mise en page, parcours de
                         Tab / Maj+Tab identiques ; boucles décoratives du jeu en marche ; aucun bouton de
                         la couche dans les modales de pause ; les crochets « always » survivent (écran
@@ -18,7 +18,7 @@
 'use strict';
 
 module.exports = function (h) {
-  const { check, open, settle, gameShown, snap, firstDiff, domChecks, logOf, INDEX, ANIME } = h;
+  const { check, open, settle, gameShown, snap, firstDiff, domChecks, logOf, CLASSIC, ANIME } = h;
   const KEY = 'amat_fx_v1';
 
   /* Navigateur sans Web Animations (Safari < 13.1) : la couche naît coupée. Le jeu n'appelle jamais animate(). */
@@ -96,7 +96,7 @@ module.exports = function (h) {
   async function scenarioDead(browser) {
     const killed = async () => { const p = await open(browser, ANIME); await p.evaluate(() => { FX.kill('essai'); }); return p; };
     const [classic, cut, born] = await Promise.all([
-      open(browser, INDEX, { init: [[noWaapi]] }).then(session),
+      open(browser, CLASSIC, { init: [[noWaapi]] }).then(session),
       killed().then(session),
       open(browser, ANIME, { init: [[noWaapi]] }).then(session)
     ]);
@@ -109,16 +109,16 @@ module.exports = function (h) {
       check('couche coupée (' + name + ') : coupée, niveau off, boutons de l\'accueil et du tiroir inactifs « indisponibles »',
         f.dead && f.level === 'off' && f.attr === 'off' && [f.home, f.drawer, f.lite].every((b) => b && b[0] === true && /indisponibles/.test(b[2])), f);
       check('couche coupée (' + name + ') : aucun bouton de la couche dans les deux modales de pause', f.pause === null && f.autoPause === null, [f.pause, f.autoPause]);
-      check('couche coupée (' + name + ') : Tab ×7 et Maj+Tab ×5 dans la pause du QCM, comme index.html (le focus ne sort pas de la modale)',
+      check('couche coupée (' + name + ') : Tab ×7 et Maj+Tab ×5 dans la pause du QCM, comme classique.html (le focus ne sort pas de la modale)',
         JSON.stringify([r.tabs.first, r.tabs.pauseTab, r.tabs.pauseShift]) === JSON.stringify([classic.tabs.first, classic.tabs.pauseTab, classic.tabs.pauseShift]), [r.tabs.pauseTab, r.tabs.pauseShift, classic.tabs.pauseTab, classic.tabs.pauseShift]);
-      check('couche coupée (' + name + ') : Tab ×7 et Maj+Tab ×5 dans la pause des Automatismes, comme index.html',
+      check('couche coupée (' + name + ') : Tab ×7 et Maj+Tab ×5 dans la pause des Automatismes, comme classique.html',
         JSON.stringify([r.tabs.autoFirst, r.tabs.autoTab, r.tabs.autoShift]) === JSON.stringify([classic.tabs.autoFirst, classic.tabs.autoTab, classic.tabs.autoShift]), [r.tabs.autoTab, r.tabs.autoShift, classic.tabs.autoTab, classic.tabs.autoShift]);
-      check('couche coupée (' + name + ') : état du jeu, focus, annonces et toasts identiques à index.html', !firstDiff(classic.shots, r.shots), firstDiff(classic.shots, r.shots));
+      check('couche coupée (' + name + ') : état du jeu, focus, annonces et toasts identiques à classique.html', !firstDiff(classic.shots, r.shots), firstDiff(classic.shots, r.shots));
       for (const key of Object.keys(classic.layout)) {
         const diff = Object.keys(Object.assign({}, classic.layout[key], r.layout[key])).filter((k) => classic.layout[key][k] !== r.layout[key][k]);
         check('couche coupée (' + name + ') : mise en page identique (' + key + ')', diff.length === 0, diff.slice(0, 4).map((k) => k + ' ' + classic.layout[key][k] + ' ≠ ' + r.layout[key][k]));
       }
-      check('couche coupée (' + name + ') : boucles décoratives du jeu en marche, comme dans index.html', r.loops === 'running,running' && classic.loops === r.loops, [classic.loops, r.loops]);
+      check('couche coupée (' + name + ') : boucles décoratives du jeu en marche, comme dans classique.html', r.loops === 'running,running' && classic.loops === r.loops, [classic.loops, r.loops]);
       check('couche coupée (' + name + ') : rien de joué, aucune erreur console / page', f.log === 0 && r.page.errors.length === 0, [f.log, r.page.errors]);
     }
     const b = await fx(born.page);
@@ -301,7 +301,7 @@ module.exports = function (h) {
   }
 
   return [
-    ['reglages-coupee', 'réglages : couche coupée (disjoncteur, navigateur incompatible) = le jeu d\'index.html', scenarioDead],
+    ['reglages-coupee', 'réglages : couche coupée (disjoncteur, navigateur incompatible) = le jeu de classique.html', scenarioDead],
     ['reglages-systeme', 'réglages : prefers-reduced-motion contre un choix du joueur (en direct et au chargement)', scenarioSystem],
     ['reglages-cle', 'réglages : clé amat_fx_v1 validée, bouton de l\'accueil lisible', scenarioKey]
   ];

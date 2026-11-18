@@ -6,6 +6,8 @@
 // au déploiement par le workflow GitHub Actions (pages.yml) avec le SHA du commit.
 // En dev local (sans déploiement), la valeur reste 'dev' — c'est volontaire.
 const CACHE_NAME = 'amat-__CACHE_VERSION__';
+// Ressources ESSENTIELLES : la page principale (index.html, l'édition animée du jeu, générée par
+// tools/build_anime.py), son manifest, les icônes et les images.
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -15,24 +17,25 @@ const CORE_ASSETS = [
   './og-image.png',
   './og-image.svg'
 ];
-// Édition animée (anime.html) : ressources OPTIONNELLES, jamais dans le addAll atomique ci-dessous.
-// Un joueur du jeu classique seul ne les télécharge pas : elles ne sont (re)mises en cache à
-// l'installation que pour un joueur qui utilise l'édition animée (voir usesAnimatedEdition).
-// Pour les autres, le gestionnaire fetch met anime.html en cache à sa première visite.
+// Jeu classique (classique.html) : ressource OPTIONNELLE, jamais dans le addAll atomique ci-dessous.
+// Un joueur de la page principale seule ne la télécharge pas : elle n'est (re)mise en cache à
+// l'installation que pour un joueur qui utilise le jeu classique (voir usesClassicEdition).
+// Pour les autres, le gestionnaire fetch met classique.html en cache à sa première visite.
+// (anime.html, ancienne adresse de l'édition animée, n'est plus qu'une page de redirection vers ./ :
+// elle n'est pas pré-cachée ; hors-ligne, sa navigation retombe sur index.html.)
 const OPTIONAL_ASSETS = [
-  './anime.html',
-  './manifest-anime.json'
+  './classique.html'
 ];
 // L'installation n'attend jamais ces ressources plus longtemps que ceci : un serveur lent sur
-// anime.html ne retarde pas la détection d'une mise à jour du jeu classique (le jeu conclut
+// classique.html ne retarde pas la détection d'une mise à jour de la page principale (le jeu conclut
 // « Vous êtes à jour » au bout de 5 s).
 const OPTIONAL_WAIT_MS = 3000;
 
-// Ce joueur utilise-t-il l'édition animée ? Oui si anime.html est déjà dans un cache (il l'a
-// ouverte : le gestionnaire fetch, ou une installation précédente, l'y a mise), ou si une
-// fenêtre l'affiche en ce moment (première visite du site directement par anime.html, avant
-// qu'un Service Worker ne contrôle la page).
-function usesAnimatedEdition() {
+// Ce joueur utilise-t-il le jeu classique ? Oui si classique.html est déjà dans un cache (il l'a
+// ouvert : le gestionnaire fetch, ou une installation précédente, l'y a mis), ou si une fenêtre
+// l'affiche en ce moment (première visite du site directement par classique.html, avant qu'un
+// Service Worker ne contrôle la page).
+function usesClassicEdition() {
   const page = new URL(OPTIONAL_ASSETS[0], self.location.href);
   return caches.match(page.href, { ignoreSearch: true }).then((hit) => {
     if (hit) return true;
@@ -44,12 +47,12 @@ function usesAnimatedEdition() {
 // (Re)met les ressources optionnelles dans le nouveau cache, une par une, en les redemandant au
 // réseau (cache: 'reload' : jamais la copie du cache HTTP, qui peut dater de la version
 // précédente). Rien ici ne peut faire échouer l'installation : tout échec est toléré (404,
-// serveur en panne, hors-ligne, navigateur qui refuse une option) et le jeu classique reste
+// serveur en panne, hors-ligne, navigateur qui refuse une option) et la page principale reste
 // disponible hors-ligne. Au-delà de OPTIONAL_WAIT_MS l'installation n'attend plus ; le
 // téléchargement se termine en arrière-plan s'il le peut.
 function refreshOptionalAssets(cache) {
   try {
-    const work = usesAnimatedEdition().then((yes) => {
+    const work = usesClassicEdition().then((yes) => {
       if (!yes) return null;
       return Promise.all(OPTIONAL_ASSETS.map((url) =>
         cache.add(new Request(url, { cache: 'reload' })).catch(() => {})
@@ -62,6 +65,16 @@ function refreshOptionalAssets(cache) {
   }
 }
 
+// Les fichiers essentiels sont redemandés au réseau (cache: 'reload'), jamais lus dans le cache HTTP :
+// GitHub Pages sert avec max-age=600, et sans cela un joueur revenu dans les 10 minutes rangerait
+// dans le NOUVEAU cache l'ancienne page principale, qu'il garderait jusqu'au déploiement suivant.
+// (Navigateur qui refuse l'option : l'adresse seule, comme avant.)
+function coreRequests() {
+  return CORE_ASSETS.map((url) => {
+    try { return new Request(url, { cache: 'reload' }); } catch (e) { return url; }
+  });
+}
+
 // Installation : pré-cache les fichiers essentiels.
 // NB : on n'appelle PAS self.skipWaiting() ici. Le nouveau SW reste en
 // attente jusqu'à ce que l'utilisateur clique sur "METTRE À JOUR" dans
@@ -70,7 +83,7 @@ function refreshOptionalAssets(cache) {
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) =>
-      cache.addAll(CORE_ASSETS).then(() => refreshOptionalAssets(cache))
+      cache.addAll(coreRequests()).then(() => refreshOptionalAssets(cache))
     )
   );
 });
@@ -114,11 +127,12 @@ self.addEventListener('fetch', (event) => {
         caches.open(CACHE_NAME).then((cache) => cache.put(req, responseClone));
         return response;
       }).catch(() => {
-        // Hors-ligne et pas en cache : fallback sur index.html pour les navigations
-        // (ou sur anime.html si c'est l'édition animée qui est demandée et qu'elle est en cache).
+        // Hors-ligne et pas en cache : fallback sur index.html (la page principale) pour les
+        // navigations — y compris anime.html, l'ancienne adresse de l'édition animée — ou sur
+        // classique.html si c'est le jeu classique qui est demandé et qu'il est en cache.
         if (req.mode === 'navigate') {
-          if (url.pathname.endsWith('/anime.html')) {
-            return caches.match('./anime.html').then((anime) => anime || caches.match('./index.html'));
+          if (url.pathname.endsWith('/classique.html')) {
+            return caches.match('./classique.html').then((classic) => classic || caches.match('./index.html'));
           }
           return caches.match('./index.html');
         }

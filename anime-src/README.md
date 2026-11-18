@@ -1,14 +1,18 @@
-# anime-src — couche d'animation de `anime.html`
+# anime-src — couche d'animation de la page principale (`index.html`)
 
-`anime.html` = `index.html` (jamais modifié) + cette couche, assemblée par `tools/build_anime.py`.
+`index.html` (la page principale du site, l'édition animée) = `classique.html` (le jeu classique, le fichier édité
+à la main, jamais modifié par le build) + cette couche, assemblée par `tools/build_anime.py`. `index.html` est
+**généré** : ne jamais l'éditer à la main. `anime.html` (ancienne adresse de l'édition animée) n'est plus qu'une
+petite page statique, écrite à la main, qui redirige vers `./` (§ 5.3).
 Ce fichier est le **contrat** entre le noyau et les modules. Toute évolution du noyau doit être reflétée ici.
 
 ## 1. Architecture en 20 lignes
 
-1. `python3 tools/build_anime.py` copie `index.html`, retouche le `<head>` (titre, description, OG, manifest —
-   balises reconnues par leur nom, § 5.1), injecte `anime-src/*.css` dans `<style id="fx-style">` avant `</head>`
-   et `anime-src/*.js` dans **une seule IIFE** (`<script id="fx-script">`) avant `</body>`. Ordre = ordre
-   alphabétique des noms (`NN-nom.ext`).
+1. `python3 tools/build_anime.py` copie `classique.html` tel quel, `<head>` compris (même titre, mêmes
+   descriptions, même manifest), pose un commentaire « fichier généré » juste après la ligne `<!DOCTYPE html>`,
+   injecte `anime-src/*.css` dans `<style id="fx-style">` avant `</head>` et `anime-src/*.js` dans **une seule
+   IIFE** (`<script id="fx-script">`) avant `</body>`, et écrit `index.html`. Ordre = ordre alphabétique des noms
+   (`NN-nom.ext`).
 2. Fragments `00`–`09` et `99` = **noyau** (portée partagée). Fragments `10`–`98` = **modules** : le build enferme
    chacun dans sa propre fonction et son propre `try` → aucune collision de noms, un module cassé n'arrête pas les autres.
 3. Une seule globale : `window.FX`. Le script s'exécute juste après celui du jeu (rendu initial déjà fait).
@@ -26,7 +30,7 @@ Ce fichier est le **contrat** entre le noyau et les modules. Toute évolution du
 10. Chaque effet a une **portée** (`screen` par défaut) ; `FX.cancel/bump` l'arrête net. Le noyau fait
     `bump('screen')` + `bump('q')` à chaque changement d'écran, et coupe tout à l'ouverture d'une modale.
 11. Disjoncteur : 3 erreurs sur un crochet → ce crochet est coupé ; 8 erreurs au total → la couche se coupe
-    (`data-fx="off"` + `data-fx-dead`), le jeu continue comme `index.html` (§ 3.6 « Couche coupée »). Un
+    (`data-fx="off"` + `data-fx-dead`), le jeu continue comme `classique.html` (§ 3.6 « Couche coupée »). Un
     navigateur sans canvas 2D, sans Web Animations ou sans `requestAnimationFrame` la fait naître coupée.
 12. Le hasard de la couche vient de `FX.rnd()` (jamais du générateur du jeu) : à graine égale, les deux pages
     tirent les mêmes questions (test différentiel).
@@ -54,8 +58,9 @@ injecté de chaque fragment.
 
 ## 2. Règles qu'un module doit respecter
 
-**Jeu intact.** Ne jamais modifier `index.html`. Aucun changement de score, de minuteur, de flux de questions, de
-focus, d'annonce lecteur d'écran ni de raccourci clavier. Ne corriger ni masquer aucun défaut hérité de `index.html`.
+**Jeu intact.** Ne jamais modifier `classique.html` depuis la couche (et ne jamais éditer `index.html` à la main).
+Aucun changement de score, de minuteur, de flux de questions, de focus, d'annonce lecteur d'écran ni de raccourci
+clavier. Ne corriger ni masquer aucun défaut hérité de `classique.html` : il se corrige dans `classique.html`.
 
 **Interdits vérifiés par le build (échec).** Les lints lisent le texte des fragments, ligne par ligne, commentaires
 retirés (une URL dans une chaîne est donc vue). Ils visent des NOMS : l'appel direct, `.call` / `.apply`, le passage en
@@ -123,7 +128,7 @@ rien du tout si l'en-tête est sorti lui aussi (écrans placés hors de `#app`).
 déjà à l'écran : le titre du palier n'y figure que si le titre écrit par le jeu est hors champ.
 
 **La couche ne fait jamais défiler la page** (lint). Le jeu, lui, ramène la carte de question à l'écran à chaque
-question et affiche tout écran de résultat depuis le haut (`bringIntoView`, `showScreen` dans `index.html`) : la
+question et affiche tout écran de résultat depuis le haut (`bringIntoView`, `showScreen` dans `classique.html`) : la
 couche en profite — l'arène revient avec la carte, le rang est à l'écran — mais ne suppose jamais que sa cible est
 visible : elle mesure au moment de l'effet (`FX.rect`, `FX.seen`) et prend sa forme d'en-tête sinon.
 
@@ -139,7 +144,7 @@ teinte de grande surface passe par `FX.fx.tint` (limiteur unique).
 
 **Légal.** Émojis Unicode et formes abstraites uniquement. Aucune image, aucun son, aucune ressource externe.
 Aucune représentation dessinée d'un personnage, d'un logo ou d'un objet emblématique d'une licence. Mots de
-licence : seulement ceux déjà présents dans `index.html` (via `FX.palette()` : `power`, `hero`, `uniName`…).
+licence : seulement ceux déjà présents dans `classique.html` (via `FX.palette()` : `power`, `hero`, `uniName`…).
 
 **Univers.** Couleurs et textes via `FX.palette()` (jamais `--orange`, jamais « Naruto » en dur) ; une clé d'univers
 inconnue donne un repli générique.
@@ -336,15 +341,15 @@ pas un défilement en cours (d'où des durées courtes).
   étroits, à tous les niveaux.
 - Persistance : clé `amat_fx_v1` = `{"v":1,"n":niveau,"d":dernier niveau actif,"r":1 si le système demandait moins
   d'animations au moment du choix, sinon 0}`, écrite seulement si `isSaveEnabled()` et choix explicite ; effacée quand
-  la sauvegarde est coupée dans `anime.html` (crochet `toggleSave`, `always` : vrai aussi couche coupée) et au
+  la sauvegarde est coupée dans `index.html` (crochet `toggleSave`, `always` : vrai aussi couche coupée) et au
   démarrage si la sauvegarde est inactive. Sans opt-in, le choix vit en mémoire. Une sauvegarde coupée depuis
-  `index.html` (qui ne connaît pas cette clé) n'est appliquée à la clé qu'au prochain chargement d'`anime.html`.
+  `classique.html` (qui ne connaît pas cette clé) n'est appliquée à la clé qu'au prochain chargement d'`index.html`.
 - La clé est validée à la lecture, tout entière dans un `try` : version `1`, `n` de type chaîne et de valeur connue,
   `d` connu ou ignoré. Une valeur invalide (mauvais type, autre version, texte illisible, clé écrite à la main) ne
   donne aucun choix, ne coupe jamais la couche, et la clé est effacée. Une clé sans `r` (première version) vaut `r = 0`.
 - Niveau off : calque masqué, aucun crochet d'effet, et les boucles décoratives du jeu (points de chakra, emoji
   flottant de l'accueil, spirale de chargement) sont mises en pause par CSS.
-- **Couche coupée** (disjoncteur, ou navigateur incompatible : la couche naît coupée) = le jeu d'`index.html` : plus
+- **Couche coupée** (disjoncteur, ou navigateur incompatible : la couche naît coupée) = le jeu de `classique.html` : plus
   aucun effet ni crochet d'effet ; les boucles décoratives du jeu tournent (elles ne sont en pause qu'au niveau off
   CHOISI) ; les deux boutons des modales de pause sont **retirés du DOM** (jamais montés si la couche naît coupée) —
   le piège à focus du jeu prend le dernier `<button>` de la modale, actif ou non, et un bouton inactif à cette place
@@ -397,7 +402,7 @@ FX.module('exemple', function (FX) {
 À savoir :
 - Le DOM du module (ex. une arène dans `#screen-game`) se crée dans `init` avec `FX.el` ; son affichage se règle
   en CSS avec `html[data-fx="off"] #fx-… { display: none; }` : au niveau off, la mise en page doit être celle
-  d'`index.html` (vérifié par le test « mise en page »).
+  de `classique.html` (vérifié par le test « mise en page »).
 - Un module ne dépend que de l'API ci-dessus, jamais des variables internes du noyau.
 - Pour remplacer la transition d'écran : `FX.module('arrivee', function (FX) { … })` dans un fichier de
   préfixe ≥ 10 (le module du noyau n'est alors pas démarré). Elle ne doit animer aucun nœud du jeu.
@@ -408,14 +413,14 @@ FX.module('exemple', function (FX) {
 ## 5. Construire et tester
 
 ```bash
-python3 tools/build_anime.py                 # construit anime.html (lints, contrat, node --check, poids par fragment)
-python3 tools/build_anime.py --check         # n'écrit rien : code 1 si anime.html n'est pas à jour, 2 si la construction est refusée
-python3 tools/build_anime.py --modules arena,qcm,result,battle --out /tmp/essai/anime.html   # construction privée : noyau + combat du QCM
-python3 tools/build_anime.py --src /tmp/essai/anime-src --out /tmp/essai/anime.html   # fragments lus ailleurs (mutants)
+python3 tools/build_anime.py                 # construit index.html depuis classique.html (lints, contrat, node --check, poids par fragment)
+python3 tools/build_anime.py --check         # n'écrit rien : code 1 si index.html n'est pas à jour, 2 si la construction est refusée
+python3 tools/build_anime.py --modules arena,qcm,result,battle --out /tmp/essai/essai.html   # construction privée : noyau + combat du QCM
+python3 tools/build_anime.py --src /tmp/essai/anime-src --out /tmp/essai/essai.html   # fragments lus ailleurs (mutants)
 python3 tools/build_anime.py --ci            # avertissements et refus aussi en annotations GitHub Actions
-node tools/test_anime.js                     # toute la suite (≈ 6 min 10, Playwright + Chromium, python3, bash)
+node tools/test_anime.js                     # toute la suite (≈ 6 min 30, Playwright + Chromium, python3, bash)
 node tools/test_anime.js --only diff,combat,ensemble-niveau                 # quelques scénarios (clés ci-dessous)
-node tools/test_anime.js --anime /tmp/essai/anime.html --only diff,miseenpage
+node tools/test_anime.js --anime /tmp/essai/essai.html --only diff,miseenpage
 node tools/test_anime.js --list              # clés des scénarios
 ```
 
@@ -425,18 +430,19 @@ QCM, c'est `20-arena.js`, `20-battle.css`, `21-qcm.js` et `25-result.js` : `--mo
 
 Codes de sortie de `build_anime.py` : `0` construit (ou « à jour » avec `--check`) ; `1` `--check` seulement : le
 fichier diffère d'une construction fraîche ; `2` construction **refusée**, rien n'est écrit (lint, syntaxe, contrat
-avec `index.html` rompu : § 5.1) — l'`anime.html` précédent reste en place. La sortie est déterministe ; les
-commentaires des sources sont retirés d'`anime.html` (`--keep-comments` pour les garder). `anime.html` est versionné :
-le reconstruire après toute modification d'`index.html` ou de `anime-src/`.
+avec `classique.html` rompu : § 5.1, `classique.html` qui ne commence pas par la ligne `<!DOCTYPE html>`, ou
+`--out` qui désigne `classique.html` lui-même) — l'`index.html` précédent reste en place. La sortie est
+déterministe ; les commentaires des sources sont retirés d'`index.html` (`--keep-comments` pour les garder).
+`index.html` est versionné : le reconstruire après toute modification de `classique.html` ou de `anime-src/`.
 
-Après toute modification d'`index.html` ou d'`anime-src/` : `python3 tools/build_anime.py && node tools/test_anime.js`.
+Après toute modification de `classique.html` ou d'`anime-src/` : `python3 tools/build_anime.py && node tools/test_anime.js`.
 
-### 5.1 Contrat avec `index.html` (vérifié à chaque construction)
+### 5.1 Contrat avec `classique.html` (vérifié à chaque construction)
 
-La couche s'accroche au jeu par des NOMS. Le build vérifie qu'ils existent encore dans `index.html`, et distingue
+La couche s'accroche au jeu par des NOMS. Le build vérifie qu'ils existent encore dans `classique.html`, et distingue
 ce sans quoi la page serait à moitié branchée (refus) de ce qui ne coûte qu'un effet (avertissement).
 
-| ce qui a disparu d'`index.html` | effet sur la page | build |
+| ce qui a disparu de `classique.html` | effet sur la page | build |
 |---|---|---|
 | une fonction enveloppée par le **noyau** — `showScreen`, `openModal`, `closeModal`, `toggleSave` (lues dans les `FX.wrap` des fragments `00`–`09`) — ou appelée par lui (`isSaveEnabled`) | écran courant jamais suivi (les épreuves perdent leur profil `sobre`), effets joués sur une modale, `amat_fx_v1` qui ne suit plus l'opt-in | **refus** |
 | une variable lue par le noyau : `state`, `currentUniverse`, `UNIVERSES`, `CHARS` | palette générique partout, modules aveugles | **refus** |
@@ -444,7 +450,7 @@ ce sans quoi la page serait à moitié branchée (refus) de ce qui ne coûte qu'
 | une fonction enveloppée par un fragment qui tient l'**arène du QCM** (`MIRROR_FRAGMENTS` : `20-arena.js`, `21-qcm.js`) | l'arène est un nœud persistant qui reflète le jeu ; privée d'un crochet elle ment (adversaire et « Lis l'explication » de la question précédente restés en place, combo en retard d'un cran, « Temps figé » jamais retiré) | **refus** |
 | une fonction enveloppée par un **autre module** (`25-result.js`, `30-shell.js`, `40-textmodes.js`, `50-interactive.js`) | ce crochet est inactif (`FX.stats().missing`) : un effet en moins, rien de faux à l'écran, le reste de la couche fonctionne | avertissement |
 | un point de montage du réglage (`#drawer-save-toggle`, `#theme-toggle-btn`, `#modal-pause`, `#modal-auto-pause`), une ancre (`header[role="banner"]`, `#main-logo`, `#hud-score`, `#hud-streak`, `#hud-level`) | un bouton de réglage manque à cet endroit ; les effets accrochés à cette ancre ne jouent pas | avertissement |
-| un écran d'`index.html` absent de `FX.PROFILES`, ou l'inverse | profil `home` par défaut (plein niveau) : à classer, surtout une épreuve | avertissement |
+| un écran de `classique.html` absent de `FX.PROFILES`, ou l'inverse | profil `home` par défaut (plein niveau) : à classer, surtout une épreuve | avertissement |
 
 - Une fonction « existe » si elle est déclarée `function nom(` au premier niveau du script (seule forme que
   `FX.wrap` sait envelopper : `window[nom]`) ; une variable, si elle est déclarée par `let` / `const` / `var`.
@@ -460,54 +466,73 @@ ce sans quoi la page serait à moitié branchée (refus) de ce qui ne coûte qu'
   suivante et s'éteint seul (≤ 1,8 s). Dans l'arène, chaque crochet manquant laisse un état FAUX à l'écran jusqu'à
   la question suivante, voire toute la partie. Un module qui s'accommoderait lui-même d'un `FX.wrap` renvoyant
   `false` (en se désactivant) pourrait quitter `MIRROR_FRAGMENTS`.
-- **Retouches du `<head>`** (`HEAD_PATCHES`). Chaque balise est reconnue par son nom (`<title>`, `<meta name=…>`,
-  `<meta property=…>`, `<link rel="manifest">`), jamais par son texte : retoucher le titre ou la description
-  d'`index.html` ne fige pas l'édition. Texte connu → formulation soignée de l'édition ; texte inconnu → forme
-  générique (« … — Édition animée », « Édition animée — … ») et avertissement invitant à mettre `HEAD_PATCHES` à
-  jour ; balise facultative absente ou en double → avertissement, `<head>` laissé tel quel. Seul le lien du
-  manifest est obligatoire (sans lui, la page animée déclarerait l'application classique) : absent → refus.
-- **Fins de ligne.** `anime.html` est une copie exacte d'`index.html` : le build refuse un `index.html` en CRLF (le
-  message le dit) et `--check` compare octet par octet. `.gitattributes` impose LF aux fichiers concernés, quel
-  que soit le réglage `core.autocrlf` de la machine.
+- **`<head>` recopié tel quel.** Le build ne réécrit plus le `<head>` : `index.html` porte le titre, les
+  descriptions (`description`, Open Graph, Twitter), `application-name`, `apple-mobile-web-app-title` et le lien
+  `<link rel="manifest" href="manifest.json">` de `classique.html`, à l'identique. L'édition animée EST
+  l'application ; elle n'a plus d'identité séparée. Une retouche du `<head>` de `classique.html` passe donc telle
+  quelle dans `index.html`, sans avertissement. Seuls ajouts : le bandeau « fichier généré » (commentaire HTML
+  placé juste après la ligne `<!DOCTYPE html>`, qui doit être la première ligne de `classique.html` (casse libre,
+  recopiée telle quelle) : sinon refus ;
+  un commentaire placé avant `<html>` ne crée aucun nœud dans le document du jeu et ne change pas le mode de
+  rendu) et `<style id="fx-style">` juste avant `</head>`.
+- **La sortie n'est jamais `classique.html`** : `--out` qui le désigne (par quelque chemin que ce soit) → refus.
+- **Fins de ligne.** `index.html` est une copie exacte de `classique.html` : le build refuse un `classique.html` en
+  CRLF (le message le dit) et `--check` compare octet par octet. `.gitattributes` impose LF aux fichiers concernés,
+  quel que soit le réglage `core.autocrlf` de la machine.
 
 ### 5.2 Déploiement (`.github/workflows/pages.yml`)
 
-L'étape « Rebuild animated edition » ne fait jamais échouer le déploiement du jeu principal. Elle s'exprime par des
-annotations du déroulé GitHub Actions :
+Le déploiement publie tout le dépôt : `index.html` (page principale), `classique.html`, `anime.html` (redirection),
+`sw.js`, `manifest.json`, icônes et images. L'étape « Rebuild main page (index.html) » reconstruit `index.html`
+depuis `classique.html` ; elle ne fait jamais échouer le déploiement. Elle s'exprime par des annotations du
+déroulé GitHub Actions :
 
-1. `--check` d'abord : si l'`anime.html` versionné ne correspond pas aux sources (versionné sans reconstruction),
+1. `--check` d'abord : si l'`index.html` versionné ne correspond pas aux sources (versionné sans reconstruction),
    un avertissement le dit — la version déployée est alors celle reconstruite par l'étape, que la suite n'a pas vue.
 2. Reconstruction. Chaque avertissement du build devient une annotation `::warning::` (`GITHUB_ACTIONS=true`, ou
-   `--ci`). Si la construction est refusée, rien n'est écrit : c'est l'`anime.html` **versionné** qui est déployé —
-   une édition animée qui peut être plus ancienne que le jeu classique (elle embarque l'`index.html` de sa dernière
-   construction), mais cohérente — et deux annotations `::error::` le disent (la cause, puis la conséquence).
+   `--ci`). Si la construction est refusée, rien n'est écrit : c'est l'`index.html` **versionné** qui est déployé —
+   une page principale qui peut être plus ancienne que le jeu classique (elle embarque le `classique.html` de sa
+   dernière construction), mais cohérente — et deux annotations `::error::` le disent (la cause, puis la
+   conséquence). `classique.html` est, lui, toujours déployé à jour.
 
-La production peut donc servir une édition animée en retard sur le jeu classique : uniquement après un refus, et
+La production peut donc servir une page principale en retard sur `classique.html` : uniquement après un refus, et
 jamais en silence. La suite de tests n'est pas lancée par le déploiement (Playwright n'y est pas installé).
 
-### 5.3 Service worker et manifests
+### 5.3 Service worker, manifest et ancienne adresse
 
-- `sw.js` (commun aux deux pages) pré-cache le jeu classique (`CORE_ASSETS`, inchangé). `anime.html` et
-  `manifest-anime.json` sont **optionnels** : un joueur qui n'a jamais ouvert l'édition animée ne les télécharge
-  ni à l'installation ni aux mises à jour. Ils sont (re)mis en cache à l'installation d'une version seulement si
-  `anime.html` est déjà dans un cache de ce joueur (il l'a ouverte : le gestionnaire `fetch` l'y a mise) ou si une
-  fenêtre l'affiche à ce moment (première visite du site par `anime.html`), par une requête `cache: 'reload'`
-  (jamais la copie du cache HTTP), tout échec étant toléré. L'installation ne les attend jamais plus de 3 s : un
-  serveur lent sur `anime.html` ne retarde pas la détection d'une mise à jour (le jeu conclut « à jour » après 5 s).
-- Hors-ligne, `anime.html` absente du cache retombe sur `index.html` (le jeu classique, à l'adresse de l'édition).
-- `manifest-anime.json` n'a pas de membre `id` : l'identité de l'application est alors sa `start_url`
-  (`…/ninja-math-games/anime.html`), distincte de celle du jeu classique (`…/ninja-math-games/`) et, comme elle, à
-  l'intérieur du chemin du projet. Les deux manifests ont la même portée (`./`) : même service worker, même origine.
+- `sw.js` (commun aux deux pages) pré-cache la page principale (`CORE_ASSETS` : `./`, `./index.html`,
+  `./manifest.json`, icônes et images ; `index.html` est l'édition animée), en redemandant chaque fichier au réseau
+  (`cache: 'reload'`) : sans cela, un joueur revenu dans les 10 minutes (`max-age=600` de GitHub Pages) garderait
+  l'ancienne page principale jusqu'au déploiement suivant. `classique.html` est **optionnel** : un
+  joueur qui n'a jamais ouvert le jeu classique ne le télécharge ni à l'installation ni aux mises à jour. Il est
+  (re)mis en cache à l'installation d'une version seulement si `classique.html` est déjà dans un cache de ce joueur
+  (il l'a ouvert : le gestionnaire `fetch` l'y a mis) ou si une fenêtre l'affiche à ce moment (première visite du
+  site par `classique.html`), par une requête `cache: 'reload'` (jamais la copie du cache HTTP), tout échec étant
+  toléré. L'installation ne l'attend jamais plus de 3 s (`OPTIONAL_WAIT_MS`) : un serveur lent sur `classique.html`
+  ne retarde pas la détection d'une mise à jour (le jeu conclut « à jour » après 5 s). Pas de `skipWaiting()` à
+  l'installation : la nouvelle version attend le toast « METTRE À JOUR », ou que plus aucun onglet n'affiche
+  l'ancienne (fermeture, ou rechargement du seul onglet ouvert).
+- Hors-ligne, une navigation vers `…/classique.html` retombe sur `classique.html` en cache, sinon sur `index.html` ;
+  toute autre navigation absente du cache (dont `…/anime.html`) retombe sur `index.html`.
+- **Une seule application** : `manifest.json` (`start_url` `./`, portée `./`, pas de membre `id` : l'identité est
+  `…/ninja-math-games/`), déclaré à l'identique par `index.html` et `classique.html`. `manifest-anime.json` n'existe
+  plus.
+- **Ancienne adresse `anime.html`** : petite page statique écrite à la main (pas générée, pas pré-cachée), gardée
+  pour les anciens liens, les favoris et les applications installées depuis l'ancienne édition animée (leur page de
+  départ, `./anime.html`, reste dans la portée `./`). Elle redirige vers `./` en gardant la requête et l'ancre
+  (`location.replace` ; sans JavaScript, la balise `meta refresh` mène à `./` sans elles), avec un lien de secours ;
+  `noindex`, aucun
+  manifest, aucune ressource, aucun service worker, aucun nom d'œuvre.
 - **Progression partagée par profil de navigateur** : les deux pages lisent le même `localStorage` (même origine)
   tant qu'elles sont ouvertes dans le même navigateur et le même profil. Rien n'est synchronisé entre deux
   navigateurs, deux profils ou deux appareils.
-- **Point ouvert, à trancher sur de vrais appareils** : une seule application installable (l'édition animée
-  garderait alors `manifest.json`, ou aucun manifest) ou deux applications qui partagent une portée (état actuel) ?
-  Non vérifié ici, faute d'appareil : avec le jeu classique déjà installé, Chrome sur Android propose-t-il encore
-  d'installer l'édition animée (et l'inverse) ; sur iPhone, une application installée depuis l'écran d'accueil
-  garde-t-elle un stockage séparé de Safari (auquel cas la progression ne suivrait pas entre l'application et le
-  navigateur) ; les deux icônes, identiques, se distinguent-elles assez. À tester sur un téléphone Android et un
-  iPhone avant de promouvoir l'installation de l'édition animée.
+- **À vérifier sur de vrais appareils** (non vérifiable ici) : une application installée depuis l'ancienne édition
+  animée (`manifest-anime.json`, désormais absent) continue-t-elle de s'ouvrir (le navigateur garde le dernier
+  manifest connu ; sa page de départ redirige) ; et, sur iPhone, une application installée depuis l'écran d'accueil
+  garde-t-elle un stockage séparé de Safari. Cette ancienne application garde son ancien nom (« Math Animé ») et le
+  navigateur peut proposer d'en installer une seconde (« Anime Math Academy », page de départ `./`) : deux icônes
+  pour le même jeu. Désinstaller l'ancienne ne devrait pas effacer la progression dans le navigateur (même origine) —
+  à confirmer aussi sur de vrais appareils.
 
 ### 5.4 Suite de tests
 
@@ -519,13 +544,14 @@ cas, pour une machine où l'absence de test est assumée). Dernière ligne atten
 - Les scénarios ouvrent les pages en `file://` (aucun service worker) ; seul `pwa` passe par http, sur son propre
   serveur local. Dans `page.evaluate`, les noms nus (`state`, `CHARS`, `FX`) fonctionnent ; `window.state` est
   `undefined`.
-- Scénarios de `tools/test_anime.js` : `diff` (même graine, même session QCM sur `index.html` et `anime.html` aux
+- Scénarios de `tools/test_anime.js` : `diff` (même graine, même session QCM sur `classique.html` et `index.html` aux
   niveaux off, complet et chaos : état, focus, suite des messages de `#toast` et de `#sr-live`, HUD, empreinte du DOM
   identiques), `reglages`, `reduit`, `miseenpage`, `noyau` (garde-fous du noyau et **contrat de l'enveloppe** : sur une
   globale jetable enveloppée par `FX.wrap`, même `this`, mêmes arguments, valeur renvoyée telle quelle, exception du
   jeu propagée — le même objet —, original appelé exactement une fois ; aux niveaux complet et off, sous chaos et
   couche coupée ; une seule passe de la boucle par image ; page chargée dans un onglet caché), `reseau` (toutes les requêtes des deux pages pendant une session courte : l'édition animée ne
-  demande rien qu'`index.html` ne demande, son manifest excepté ; aucune balise `img` / `audio` / `video` / `iframe` /
+  demande rien que `classique.html` ne demande, manifest compris (le même) ; mêmes attributs de ressource, sans
+  exception ; aucune balise `img` / `audio` / `video` / `iframe` /
   `script` / `link` / `source` / `object` / `embed` en plus, hors `#fx-style` et `#fx-script` ; aucune police
   déclarée en plus), puis ceux du combat : `arene`, `combat` (dont : les mots de l'arène ne se superposent jamais,
   observés image par image ; arène hors champ → formes d'en-tête, rien sur la question), `verdict`, `parties`.
@@ -533,17 +559,19 @@ cas, pour une machine où l'absence de test est assumée). Dernière ligne atten
   (`30-shell.js` pour `anime-src/30-shell.js`), chargé automatiquement par `test_anime.js` (ordre alphabétique).
   Il exporte `function (h) { return [[clé, titre, async (browser) => { … }], …]; }` ; `h` fournit
   `{ check, open, wait, settle, waapi, gameShown, snap, firstDiff, keepDom, domChecks, VOLATILE, logOf, during,
-  leftovers, isIdle, harness, watchers, ROOT, INDEX, ANIME, SEED }` (hasard du jeu à graine fixe, `setInterval` piloté
+  leftovers, isIdle, harness, watchers, ROOT, CLASSIC, ANIME, SEED }` (`CLASSIC` : adresse `file://` de
+  `classique.html`, la référence ; `ANIME` : celle de la page animée testée, `index.html` ou le fichier de `--anime` ;
+  hasard du jeu à graine fixe, `setInterval` piloté
   par `__tick(n)`, `setTimeout` réel mais suivi, tutoriel déjà vu ; `open(browser, url, { init: [[fonction, argument]] })`
   injecte des scripts propres au scénario avant ceux de la page). Les clés
   commencent par le nom du module et servent à `--only` : `reglages-coupee`, `reglages-systeme`, `reglages-cle`
-  (`03-settings.js` : couche coupée ou née coupée comparée à `index.html`, `prefers-reduced-motion` contre un choix,
+  (`03-settings.js` : couche coupée ou née coupée comparée à `classique.html`, `prefers-reduced-motion` contre un choix,
   clé validée, contraste du bouton de l'accueil) ; `shell-diff`, `shell-nav`, `shell-accueil` ;
   `txt-diff`, `txt-moments`, `txt-tel` ; `interactive-diff`, `interactive-moments`, `interactive-tel`.
   Les minuteries longues du jeu (« question suivante » : 1,5 à 5 s) y sont retenues et déclenchées à la main
   (`__later()`) ; un scénario chronométré fixe d'abord l'XP loin d'un seuil (`state.xp = (state.level - 1) * 500`),
   sinon un niveau gagné ajoute son propre temps (§ 6.8).
-  Chaque module prouve deux choses : (1) le jeu est inchangé — même session scriptée sur `index.html` et sur
+  Chaque module prouve deux choses : (1) le jeu est inchangé — même session scriptée sur `classique.html` et sur
   l'édition animée aux niveaux off, complet et chaos, photographies identiques (`snap` + l'état propre au mode) et
   même empreinte du DOM (`domChecks`, voir plus bas) ;
   (2) les animations ont lieu — `FX.debug.log` (via `logOf` / `during`) montre les effets attendus au niveau
@@ -559,14 +587,14 @@ cas, pour une machine où l'absence de test est assumée). Dernière ligne atten
   fin du script de la couche et, après tout le parcours, chaque globale doit être encore LA MÊME fonction : un
   crochet contourné par une réaffectation du jeu échoue ici). Un nouveau module y ajoute ses écrans.
 - **Défilement** (`tools/anime-tests/92-defilement.js`, aucun fragment ne porte ce numéro) : ce que le jeu fait
-  défiler lui-même, dans les deux pages. `defilement` : sur `index.html` SEUL, après chaque `loadQuestion` la carte de
+  défiler lui-même, dans les deux pages. `defilement` : sur `classique.html` SEUL, après chaque `loadQuestion` la carte de
   question est entièrement visible dès qu'elle tient dans la fenêtre, son haut n'est jamais sous l'en-tête, le focus
   n'est pas touché, et tout écran de résultat arrive avec `scrollY = 0` ; puis différentiel. `defilement-partie` : une
   partie de 30 questions en VRAIS appuis (toucher ou souris, l'élève ne fait défiler que ce qu'il faut) — arène à
   l'écran à l'instant de la réponse pour au moins 18 réponses sur 30 à 360×640 et 22 sur 30 à 390×664 (mesuré : 24 et
   27 ; 1 sur 30 avant la correction du jeu), cérémonie complète du résultat aux trois tailles.
-  **Les deux pages défilent, pas forcément au même endroit** : au niveau off, `anime.html` doit défiler exactement
-  comme `index.html` (même position après chaque question) ; aux niveaux léger et complet, sur téléphone, la hauteur
+  **Les deux pages défilent, pas forcément au même endroit** : au niveau off, `index.html` doit défiler exactement
+  comme `classique.html` (même position après chaque question) ; aux niveaux léger et complet, sur téléphone, la hauteur
   au-dessus de la carte n'est pas la même (arène, bandeau compacté) : un différentiel n'y compare jamais des positions
   de défilement brutes, mais « carte de question entièrement visible » sur les deux pages.
 - **Observer la couche image par image** (`watchers`, injecté par `opts.init`) : `__watchWords(ms)` (un mot de la
@@ -577,17 +605,20 @@ cas, pour une machine où l'absence de test est assumée). Dernière ligne atten
   ainsi, dans la page et sur une seule horloge ; le journal (`FX.debug.log`) dit seulement ce qu'elle a lancé.
 - **Chaîne de construction et PWA** (`tools/anime-tests/95-build.js` et `96-pwa.js`, aucun fragment ne porte ces
   numéros) : ce qui entoure la couche. `build` travaille dans une copie jetable du dépôt (dossier temporaire),
-  retouche `index.html` comme le ferait un mainteneur et relance `build_anime.py` : `<head>` tolérant, contrat du
-  § 5.1 (chaque nom bloquant → code 2 et `anime.html` précédent intact ; un crochet de module absent →
-  avertissement, et la page ainsi construite est jouée pour prouver qu'elle reste saine), annotations `--ci`, fins de
-  ligne, et l'étape du déploiement elle-même — ses lignes `run:` sont extraites de `pages.yml` et rejouées avec
-  `bash -e` (dépôt à jour, `anime.html` périmé, construction refusée, crochet de module absent). Il lui faut
-  `python3` (variable `PYTHON` pour un autre nom) et `bash`. `pwa` sert le dépôt en http sous `/ninja-math-games/`
-  (un serveur local par parcours, port libre, `anime.html` = le fichier de `--anime`) et fait tourner le VRAI
-  `sw.js` : joueur du jeu classique seul (aucune requête pour `anime.html`, hors-ligne, toast de mise à jour),
-  joueur déjà venu sur l'édition animée (copie fraîche après un changement de version, ouverture hors-ligne),
-  arrivée directe par `anime.html`, serveur qui met 8 s à la servir, pannes (404, connexion coupée), identité des
-  deux manifests.
+  retouche `classique.html` comme le ferait un mainteneur et relance `build_anime.py` : sortie = `classique.html`
+  octet pour octet à la couche et au bandeau près (`<head>` compris, retouché ou non), bandeau « fichier généré »,
+  sortie jamais écrite sur `classique.html`, contrat du § 5.1 (chaque nom bloquant → code 2 et `index.html`
+  précédent intact ; un crochet de module absent → avertissement, et la page ainsi construite est jouée pour prouver
+  qu'elle reste saine), annotations `--ci`, fins de ligne, et l'étape du déploiement elle-même — ses lignes `run:`
+  sont extraites de `pages.yml` et rejouées avec `bash -e` (dépôt à jour, `index.html` périmé, construction refusée,
+  crochet de module absent). Il lui faut `python3` (variable `PYTHON` pour un autre nom) et `bash`. `pwa` sert le
+  dépôt en http sous `/ninja-math-games/` (un serveur local par parcours, port libre, `index.html` = le fichier de
+  `--anime`) et fait tourner le VRAI `sw.js` : joueur de la page principale seule (aucune requête pour
+  `classique.html` ni `anime.html`, hors-ligne, toast de mise à jour), joueur déjà venu sur le jeu classique (copie
+  fraîche après un changement de version, ouverture hors-ligne), arrivée directe par `classique.html`, serveur qui
+  met 8 s à la servir, pannes (404, connexion coupée), ancienne adresse `anime.html` (redirection vers `./` qui garde
+  requête et ancre, en ligne, hors-ligne, depuis le cache ou non, sans JavaScript ; contenu de la page), manifest
+  unique.
 - **Photographier sans course** (différentiels). Une photographie ne se prend jamais après un délai fixe : `snap`
   attend le calme de la page (`__settle(d)` du harnais : plus aucun `setTimeout` de délai ≤ d — 150 ms par défaut —
   en attente, focus stable, puis trois images de suite sans rien de neuf ; échec explicite après 8 s). Les
@@ -600,9 +631,10 @@ cas, pour une machine où l'absence de test est assumée). Dernière ligne atten
   scénarios). `#sr-live` et `#toast` sont comparés comme une SUITE de messages (observateur de mutations, champs
   `srLog` / `toastLog` de la photographie), en plus du texte de l'instant.
 - **Empreinte du DOM** (différentiels). Chaque photographie embarque une empreinte de tout le document du jeu
-  (`__domPrint` : `<html>`, `<head>`, `<body>` — balises, attributs triés, textes, valeur des champs) une fois
-  retirés les nœuds de la couche (id en `fx-`, ou pas d'id et toutes les classes en `fx-`), les attributs `data-fx*`
-  et les lignes du `<head>` que le build retouche. `domChecks` compare chaque page animée à `index.html` étape par
+  (`__domPrint` : `<html>`, `<head>`, `<body>` — balises, attributs triés, textes, valeur des champs ; dans le
+  `<head>`, toutes les balises avec tous leurs attributs et le texte du `<title>`) une fois retirés les nœuds de la
+  couche (id en `fx-`, ou pas d'id et toutes les classes en `fx-`) et les attributs `data-fx*` ; les commentaires,
+  dont le bandeau « fichier généré », ne comptent pas. `domChecks` compare chaque page animée à `classique.html` étape par
   étape et affiche le chemin du premier nœud qui diffère. Une classe ou un style en ligne posé sur un nœud du jeu,
   un nœud ou un texte ajouté dans un écran : tout cela est une différence. Seules les classes de `#toast` et de
   `#combo-display` sont écartées (`VOLATILE`) dans les sessions qui ne retiennent pas les minuteries longues.
@@ -626,7 +658,7 @@ cas, pour une machine où l'absence de test est assumée). Dernière ligne atten
   deux suites tournent côte à côte sur 4 cœurs, mais peuvent échouer à tort quand le processeur est saturé par
   autre chose. Avant de conclure sur un échec de ce genre, relancer le scénario seul (`--only clé`).
 - Une construction privée (`--anime`) n'a besoin de rien à côté d'elle : les pages s'ouvrent en `file://`, et le
-  scénario `pwa` la sert avec le `sw.js`, les manifests et les icônes du dépôt.
+  scénario `pwa` la sert avec le `sw.js`, `classique.html`, `anime.html`, le manifest et les icônes du dépôt.
 
 ## 6. Modules existants
 
@@ -769,7 +801,7 @@ chrono du puzzle sonne après un retour à l'accueil). Rien ne joue pendant un g
 | `atelier-fin[texte]` | dernier `nextDrawMission` / `nextPuzzle` (retour à l'accueil) | bandeau sur l'en-tête de l'accueil (`FX.fx.head`) | — |
 | `stats[n]` | `showStatsScreen` (à l'arrivée seulement) | les n barres poussent une fois (`clip-path`) | — |
 
-**Une mention « +n XP » dit les XP que le jeu vient de donner**, jamais un montant recopié d'`index.html` : chaque
+**Une mention « +n XP » dit les XP que le jeu vient de donner**, jamais un montant recopié de `classique.html` : chaque
 crochet de verdict lit `state.xp` avant et après l'appel du jeu et envoie l'écart (Puzzle, Constructeur, Arbre,
 question de l'Arbre, Graphique). Si le jeu change ses montants, la mention suit.
 

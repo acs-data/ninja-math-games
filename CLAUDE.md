@@ -6,17 +6,17 @@
 
 ## 0. TL;DR pour démarrer rapidement
 
-- **Stack** : un seul fichier HTML5 + CSS3 + JavaScript vanilla, aucune dépendance npm, aucun build.
-- **Localisation du code** : `index.html`, **≈ 11 750 lignes, ≈ 560 Ko**.
+- **Stack** : HTML5 + CSS3 + JavaScript vanilla, aucune dépendance npm. Le jeu s'écrit dans un seul fichier, `classique.html` ; la page principale `index.html` en est **générée** par un script Python (bibliothèque standard seulement).
+- **Localisation du code** : `classique.html` (le jeu classique, **le fichier à modifier**), **≈ 11 750 lignes, ≈ 560 Ko**. `index.html` (≈ 660 Ko), la page principale du site, est l'édition animée : **GÉNÉRÉE**, jamais éditée à la main.
 - **PWA installable** + service worker (`sw.js`) avec cache versionné automatiquement par le SHA du commit.
-- **Aucun npm/yarn/pnpm**. Aucune compilation. **Recharge le fichier dans un navigateur** pour tester.
-- **Tests** : il n'y en a pas. Valide manuellement les flux après chaque changement.
-- **Avant tout commit** : `node --check` sur le bloc `<script>` extrait (voir section "Validation").
+- **Aucun npm/yarn/pnpm**. Pour tester : **recharge `classique.html` dans un navigateur** ; pour la page principale, reconstruis (`python3 tools/build_anime.py`) puis recharge `index.html`.
+- **Tests** : pas de tests unitaires du jeu ; la suite `node tools/test_anime.js` compare la page principale au jeu classique (§ 13). Valide manuellement les flux après chaque changement.
+- **Avant tout commit** : `node --check` sur le bloc `<script>` extrait de `classique.html` (voir section "Validation").
 - **Pédagogie** : alignement strict sur les programmes officiels français de **6e (BO 17/04/2025)**, **5e/4e/3e (BO 05/03/2026)** et **DNB 2027**. Couverture ~90 % du programme collège.
 - **A11y** : le jeu est conforme WCAG 2.1 AA sur les critères majeurs. **Ne pas régresser**.
 - **Légal** : aucun visuel des œuvres utilisé, uniquement des noms. Disclaimer + email `legal@acs-dataformation.fr` dans le footer/modal.
 - **Analytique** : GoatCounter (code `ninja-math`), sans cookies, RGPD-safe.
-- **Édition animée** : `anime.html` est **généré** (`index.html` + `anime-src/`) — ne jamais l'éditer à la main, et le reconstruire après toute modification d'`index.html` : `python3 tools/build_anime.py && node tools/test_anime.js` (voir § 13).
+- **Page principale = édition animée** : `index.html` est **généré** (`classique.html` + `anime-src/`) — ne jamais l'éditer à la main, et le reconstruire après toute modification de `classique.html` : `python3 tools/build_anime.py && node tools/test_anime.js` (voir § 13). `anime.html` n'est plus qu'une page de redirection vers la page principale.
 
 -----
 
@@ -26,19 +26,21 @@
 
 ```
 /
-├── index.html                       Fichier principal (à modifier)
-├── anime.html                       Édition animée — GÉNÉRÉ, ne pas éditer (§ 13) ; manifest-anime.json = son manifest PWA
+├── classique.html                   Jeu classique — fichier source (à modifier)
+├── index.html                       Page principale = édition animée — GÉNÉRÉ, ne pas éditer (§ 13)
+├── anime.html                       Ancienne adresse de l'édition animée : page de redirection vers ./ (écrite à la main)
 ├── anime-src/ · tools/              Couche d'animation : sources + README (contrat), build_anime.py, test_anime.js
-├── manifest.json                    Manifest PWA
+├── manifest.json                    Manifest PWA (le seul : commun aux deux pages)
 ├── sw.js                            Service Worker (cache-first, versionné par CI)
 ├── icon-192.png / icon-512.png      Icônes PWA
 ├── og-image.png / og-image.svg      Image OpenGraph 1200×630 (source SVG)
-├── .github/workflows/pages.yml      Déploiement GitHub Pages auto (injecte SHA dans sw.js)
+├── .github/workflows/pages.yml      Déploiement GitHub Pages auto (injecte SHA dans sw.js, reconstruit index.html)
+├── .gitattributes                   Fins de ligne LF pour les fichiers dont dépend la construction
 ├── README.md                        Documentation publique
 └── CLAUDE.md                        Ce fichier
 ```
 
-### 1.2 Architecture interne du fichier HTML
+### 1.2 Architecture interne de `classique.html`
 
 Le fichier monolithique se décompose en 4 zones (les numéros de ligne sont des estimations, à confirmer avec `grep -n`) :
 
@@ -49,16 +51,18 @@ Le fichier monolithique se décompose en 4 zones (les numéros de ligne sont des
 | HTML body | 2248–3617 | 13 écrans + 7 modals + footer |
 | `<script>` | 3618–11750 | Logique de jeu : data, état, modes, rendu, événements, PWA, analytics |
 
+`index.html` reprend ces 4 zones telles quelles et y ajoute un commentaire « fichier généré » après le doctype, `<style id="fx-style">` avant `</head>` et `<script id="fx-script">` avant `</body>` (§ 13).
+
 ### 1.3 Pourquoi un seul fichier ?
 
-**C'est un choix de conception, pas un accident**. Le fichier doit pouvoir être :
+**C'est un choix de conception, pas un accident**. Chaque page du jeu (`classique.html`, et `index.html` qui en est générée) est un fichier unique qui doit pouvoir être :
 
 - Téléchargé en un clic
 - Ouvert hors-ligne par double-clic
 - Envoyé par email à un parent ou enseignant
 - Hébergé sur n'importe quel CDN statique sans build
 
-**Si tu envisages de découper le fichier**, demande confirmation explicite à l'utilisateur. C'est un changement architectural majeur. Limite douce : **500 Ko**. Le fichier fait ≈ 560 Ko : le seuil est **dépassé** (il l'était déjà avant l'audit des questions de novembre 2026). Tout ajout volumineux se discute avec l'utilisateur.
+**Si tu envisages de découper le fichier**, demande confirmation explicite à l'utilisateur. C'est un changement architectural majeur. Limite douce : **500 Ko**. `classique.html` fait ≈ 560 Ko : le seuil est **dépassé** (il l'était déjà avant l'audit des questions de novembre 2026) ; `index.html`, la page que chargent les joueurs, fait ≈ 660 Ko (≈ 101 Ko de couche d'animation). Tout ajout volumineux se discute avec l'utilisateur.
 
 -----
 
@@ -420,13 +424,14 @@ Le jeu est conforme WCAG 2.1 AA sur les critères majeurs. **Ne pas régresser**
    - Modif d'univers = `UNIVERSES` + `UNIVERSE_THEMES_MAP` + `UNIVERSE_EMOJI_MAP`
    - Modif de mode = `start*`/`end*` + screen HTML + CSS
    - Modif transversale (cleanup legacy, refactor) : prévenir l'utilisateur
+3. **Modifier `classique.html`, jamais `index.html`** (généré, écrasé à la construction suivante). Après toute modification de `classique.html` : `python3 tools/build_anime.py && node tools/test_anime.js`, puis versionner `classique.html` **et** `index.html` (§ 13).
 
 ### 7.2 Édition par patches Python
 
 Pour les gros fichiers HTML mono-fichier, utiliser des scripts Python avec `str.replace()` est plus fiable que `Edit` direct pour les modifs multi-lignes :
 
 ```python
-with open('index.html', 'r', encoding='utf-8') as f:
+with open('classique.html', 'r', encoding='utf-8') as f:
     content = f.read()
 
 old = """...bloc exact à remplacer..."""
@@ -435,16 +440,18 @@ new = """...nouveau bloc..."""
 assert old in content, f"NOT FOUND"
 content = content.replace(old, new, 1)
 
-with open('index.html', 'w', encoding='utf-8') as f:
+with open('classique.html', 'w', encoding='utf-8') as f:
     f.write(content)
 ```
 
 ### 7.3 Validation systématique après modification
 
+Ces recettes portent sur `classique.html`. Pour `index.html` (deux blocs `<script>`) : `python3 tools/build_anime.py --check` (§ 13).
+
 ```bash
 # 1. Extraire le bloc <script> et vérifier la syntaxe JS
 python3 -c "
-with open('index.html', 'r', encoding='utf-8') as f: c = f.read()
+with open('classique.html', 'r', encoding='utf-8') as f: c = f.read()
 s = c[c.find('<script>')+8:c.rfind('</script>')]
 with open('/tmp/g.js', 'w') as f: f.write(s)
 "
@@ -454,7 +461,7 @@ node --check /tmp/g.js
 ```python
 # 2. Vérifier les IDs (DOM)
 import re
-with open('index.html', 'r', encoding='utf-8') as f: c = f.read()
+with open('classique.html', 'r', encoding='utf-8') as f: c = f.read()
 html_ids = set(re.findall(r'\bid=["\']([^"\']+)["\']', c))
 js_ids = set(re.findall(r"""getElementById\(['"]([^'"]+)['"]\)""", c))
 missing = js_ids - html_ids - {'sort-zone', 'sr-live'}
@@ -479,7 +486,7 @@ for tag in ['div', 'button', 'script', 'style', 'main']:
 
 ### 7.5 Tests manuels obligatoires après modifications structurelles
 
-- [ ] Ouvrir le fichier dans Chrome / Firefox / Safari
+- [ ] Ouvrir `index.html` (page principale) et `classique.html` dans Chrome / Firefox / Safari
 - [ ] Tester le sélecteur d'univers (6 univers, animations OK)
 - [ ] Tester chaque mode au moins une question
 - [ ] Tester la pause + reprise (QCM et auto)
@@ -493,7 +500,8 @@ for tag in ['div', 'button', 'script', 'style', 'main']:
 
 - Workflow `pages.yml` se déclenche automatiquement sur push to `main`
 - Avant l'upload, le step "Inject cache version" remplace `__CACHE_VERSION__` dans `sw.js` par `${GITHUB_SHA:0:8}`
-- Site déployé à https://acs-data.github.io/ninja-math-games/
+- Puis le step "Rebuild main page (index.html)" reconstruit `index.html` depuis `classique.html` ; il ne fait jamais échouer le déploiement (§ 13.1)
+- Site déployé à https://acs-data.github.io/ninja-math-games/ (page principale = édition animée) ; jeu classique à `…/classique.html` ; l'ancienne adresse `…/anime.html` redirige vers la page principale
 - En cas d'urgence : merge sur main → workflow tourne en ~30 s → live
 
 -----
@@ -559,9 +567,11 @@ Si une nouvelle version ne s'affiche pas chez l'utilisateur après déploiement 
 1. Vérifier que `__CACHE_VERSION__` a bien été remplacé par le SHA dans `sw.js` (regarder le workflow run logs)
 2. L'utilisateur voit-il le toast "🔄 Nouvelle version disponible" ? Sinon, son SW n'a pas détecté la mise à jour (devra attendre 1h ou rafraîchir)
 
+À l'installation, le service worker redemande les fichiers essentiels au réseau (`cache: 'reload'`) : le cache HTTP de GitHub Pages (`max-age=600`) ne peut pas lui faire ranger l'ancienne page dans le nouveau cache. Ne pas retirer cette option.
+
 ### 8.13 Défilement géré par le jeu (question et résultats)
 
-Deux comportements d'`index.html`, ajoutés pour les petits écrans, à préserver :
+Deux comportements du jeu (écrits dans `classique.html`, donc présents aussi dans `index.html`), ajoutés pour les petits écrans, à préserver :
 
 - **`bringIntoView(el)`**, appelé à la fin de `loadQuestion()` sur `#question-wrap` : si la carte question (énoncé + réponses) n'est pas entièrement visible entre l'en-tête collant et le bas de la fenêtre, la page défile aussitôt (sans animation, sans toucher au focus) pour caler le bas de la carte en bas de la fenêtre, sans jamais cacher son haut sous l'en-tête. Ne fait rien si la carte est déjà visible. Avant, la page restait défilée là où se trouvait « QUESTION SUIVANTE » et l'énoncé suivant commençait caché sous l'en-tête.
 - **`showScreen()`** : tout écran dont l'identifiant finit par `result` s'affiche depuis le haut (`window.scrollTo(0, 0)`).
@@ -628,6 +638,7 @@ L'édition animée en dépend (arène du QCM visible au moment de la réponse, c
 ## 10. Ce qu'il ne faut PAS faire
 
 ❌ **Ne pas casser le mono-fichier** sans demander explicitement.
+❌ **Ne jamais éditer `index.html` à la main** : il est généré depuis `classique.html` (§ 13) et serait écrasé à la construction suivante.
 ❌ **Ne pas régresser sur l'accessibilité** : pas de `<div onclick>` sans `role="button"`, pas d'animation sans respect de `prefers-reduced-motion`.
 ❌ **Ne pas ajouter de dépendances externes** (npm, CDN tiers obligatoire) sans nécessité absolue. Tout doit fonctionner offline.
 ❌ **Ne pas hardcoder Naruto** dans le code après les changements multi-univers. Toujours passer par `UNIVERSES[currentUniverse]` ou les alias `CHARS`/`RANKS`.
@@ -684,7 +695,7 @@ L'édition animée en dépend (arène du QCM visible au moment de la réponse, c
 
 Quelques décisions importantes (à ne pas remettre en question sans discussion) :
 
-1. **Mono-fichier** : portabilité maximale, zéro friction d'installation. Limite douce 500 KB.
+1. **Mono-fichier** : portabilité maximale, zéro friction d'installation. Limite douce 500 KB. Le jeu s'écrit dans `classique.html` ; `index.html` (l'édition animée, page principale depuis novembre 2026) en est généré et reste un fichier unique.
 2. **`localStorage` opt-in strict** : pas de persistance par défaut, évite les questions RGPD pour des mineurs.
 3. **Pas de backend, pas d'API externe** : le jeu fonctionne 100 % offline une fois téléchargé (sauf chargement initial des polices Google et envoi anonyme à GoatCounter).
 4. **Pas d'audio** : volontaire, pour le calme de l'étude et la concentration.
@@ -693,31 +704,34 @@ Quelques décisions importantes (à ne pas remettre en question sans discussion)
 7. **Répétition espacée légère** : ré-injection des questions ratées toutes les 3 questions + phase révision en fin de session, sauf en mode Boss et Phase 4.
 8. **Pas de monétisation** : choix légal et éthique (public mineur). Si la question revient, voir l'analyse juridique : la monétisation augmente significativement le risque IP.
 9. **Pas de visuel des œuvres** : choix légal stratégique. Ne jamais ajouter de sprites, logos, fan-art, etc.
-10. **GoatCounter pour analytics** : sans cookies, EU-hosted, RGPD-safe. Code `ninja-math`. Respect de `navigator.doNotTrack`.
+10. **GoatCounter pour analytics** : sans cookies, EU-hosted, RGPD-safe. Code `ninja-math`. Respect de `navigator.doNotTrack`. Depuis la bascule de novembre 2026, la page principale compte l'édition animée et `classique.html` le jeu classique (`anime.html`, simple redirection, n'est pas comptée) : ne pas comparer les chiffres d'avant et d'après sans en tenir compte.
 11. **Cache versionné automatiquement** : `__CACHE_VERSION__` remplacé par le SHA du commit au déploiement. Notification utilisateur "METTRE À JOUR" via toast persistant.
 
 -----
 
-## 13. Édition animée (`anime.html`)
+## 13. Édition animée = page principale (`index.html`)
 
-`anime.html` = `index.html` (copié tel quel, **jamais modifié**) + une couche d'animation injectée (`<style id="fx-style">` et `<script id="fx-script">`, ≈ 101 Ko, une seule globale `FX`) : transitions d'écran, combat du QCM, moment de bonne réponse dans chaque mode, écrans de résultat animés. Le jeu classique reste `index.html` ; les deux pages sont déployées côte à côte (`https://acs-data.github.io/ninja-math-games/anime.html`).
+`index.html` = `classique.html` (copié tel quel, `<head>` compris, **jamais modifié**) + un commentaire « fichier généré » juste après le doctype + une couche d'animation injectée (`<style id="fx-style">` et `<script id="fx-script">`, ≈ 101 Ko, une seule globale `FX`) : transitions d'écran, combat du QCM, moment de bonne réponse dans chaque mode, écrans de résultat animés. Depuis novembre 2026, l'édition animée est la page principale du site (`https://acs-data.github.io/ninja-math-games/`) ; le jeu classique reste déployé à côté (`…/classique.html`) ; l'ancienne adresse `…/anime.html` redirige vers la page principale.
 
 ### 13.1 À savoir avant toute modification
 
-- **`anime.html` est GÉNÉRÉ** : ne jamais l'éditer à la main. Modifier `anime-src/`, puis `python3 tools/build_anime.py`.
-- **Toute modification d'`index.html` impose de reconstruire et de retester** : `python3 tools/build_anime.py && node tools/test_anime.js`. La couche enveloppe 50 fonctions globales du jeu par leur nom (`answer`, `showScreen`, `endGame`, `validateDraw`…). Le build **refuse** de construire (code 2, rien n'est écrit) si disparaît un nom dont dépend le noyau de la couche (`showScreen`, `openModal`, `closeModal`, `toggleSave`, `isSaveEnabled`, `state`, `currentUniverse`, `UNIVERSES`, `CHARS`, `#app`, la classe `modal-overlay`, l'écran d'une épreuve) ou l'arène du QCM (`loadQuestion`, `answer`, `timeOut`, `useJutsu`, `updateTimerUI`, `addXP`, `applyTheme`) ; pour les autres fonctions enveloppées il **avertit** (un effet en moins). Les tests disent si un comportement a changé. `anime.html` est versionné ; le déploiement (`pages.yml`) le reconstruit aussi, sans jamais bloquer le jeu principal : si la construction est refusée, c'est l'`anime.html` versionné qui est déployé — une édition animée alors en retard sur le jeu classique, signalée par une annotation d'erreur du déroulé GitHub Actions.
-- **La recette de validation du § 7.3 ne s'applique pas à `anime.html`** (deux blocs `<script>`) : utiliser `python3 tools/build_anime.py --check` (lints de la couche, contrat avec `index.html`, `node --check` sur chaque bloc ; code 1 si le fichier n'est pas à jour, code 2 si la construction est refusée).
-- **Tests** : `node tools/test_anime.js` (Playwright + Chromium, plus `python3` et `bash` pour le scénario `build` ; ≈ 6 min, à lancer seule sur la machine, aucune dépendance ajoutée au dépôt ; `--only clé1,clé2` pour quelques scénarios, `--list` pour les clés). Le script ne rend 0 que si des vérifications ont tourné et sont toutes vertes (Playwright introuvable : 3 ; option ou clé inconnue : 2 ; aucune vérification : 1). Principe : la même session scriptée sur `index.html` et `anime.html` doit donner le même état de jeu, le même focus, les mêmes toasts et annonces, et le même DOM une fois retirés les nœuds de la couche. Les lints du build sont un fil d'alarme, pas un bac à sable.
+- **`index.html` est GÉNÉRÉ** : ne jamais l'éditer à la main. Modifier `classique.html` (le jeu) ou `anime-src/` (la couche), puis `python3 tools/build_anime.py`. Le build refuse d'écrire sur `classique.html` (code 2).
+- **Toute modification de `classique.html` impose de reconstruire et de retester** : `python3 tools/build_anime.py && node tools/test_anime.js`, puis versionner `classique.html` **et** `index.html`. La couche enveloppe 50 fonctions globales du jeu par leur nom (`answer`, `showScreen`, `endGame`, `validateDraw`…). Le build **refuse** de construire (code 2, rien n'est écrit) si disparaît de `classique.html` un nom dont dépend le noyau de la couche (`showScreen`, `openModal`, `closeModal`, `toggleSave`, `isSaveEnabled`, `state`, `currentUniverse`, `UNIVERSES`, `CHARS`, `#app`, la classe `modal-overlay`, l'écran d'une épreuve) ou l'arène du QCM (`loadQuestion`, `answer`, `timeOut`, `useJutsu`, `updateTimerUI`, `addXP`, `applyTheme`), ou si `classique.html` ne commence plus par la ligne `<!DOCTYPE html>` ; pour les autres fonctions enveloppées il **avertit** (un effet en moins). Les tests disent si un comportement a changé. `index.html` est versionné ; le déploiement (`pages.yml`) le reconstruit aussi, sans jamais échouer : si la construction est refusée, c'est l'`index.html` versionné qui est déployé — une page principale alors en retard sur `classique.html`, signalée par une annotation d'erreur du déroulé GitHub Actions.
+- **La recette de validation du § 7.3 ne s'applique pas à `index.html`** (deux blocs `<script>`) : utiliser `python3 tools/build_anime.py --check` (lints de la couche, contrat avec `classique.html`, `node --check` sur chaque bloc ; code 1 si le fichier n'est pas à jour, code 2 si la construction est refusée).
+- **Tests** : `node tools/test_anime.js` (Playwright + Chromium, plus `python3` et `bash` pour le scénario `build` ; ≈ 6 min 30, à lancer seule sur la machine, aucune dépendance ajoutée au dépôt ; `--only clé1,clé2` pour quelques scénarios, `--list` pour les clés). Le script ne rend 0 que si des vérifications ont tourné et sont toutes vertes (Playwright introuvable : 3 ; option ou clé inconnue : 2 ; aucune vérification : 1). Principe : la même session scriptée sur `classique.html` et `index.html` doit donner le même état de jeu, le même focus, les mêmes toasts et annonces, et le même DOM une fois retirés les nœuds de la couche (`<head>` compris, balise pour balise). Les lints du build sont un fil d'alarme, pas un bac à sable.
+- **`<head>` et manifest communs** : `index.html` reprend le `<head>` de `classique.html` sans aucune retouche (titre, descriptions, `manifest.json`). Une seule application installable ; `manifest-anime.json` n'existe plus.
+- **`anime.html`** (ancienne adresse de l'édition animée) : petite page statique écrite à la main, pas générée, qui redirige vers `./` en gardant la requête et l'ancre ; `noindex`, aucun manifest, aucune ressource, aucun service worker. Ouverte depuis le disque (`file://`), elle mène au dossier et non au jeu : ouvrir `index.html` ou `classique.html`.
 - **`localStorage` partagé** entre les deux pages (même origine, dans un même navigateur et un même profil) : même progression, mêmes stats, même opt-in. La couche n'ajoute qu'une clé, `amat_fx_v1` (niveau d'animation), écrite seulement si `isSaveEnabled()`.
-- **Réglage joueur** : « Animations : ON / OFF » (accueil, tiroir, modales de pause) et « Effets légers » ; OFF par défaut si `prefers-reduced-motion`. Le réglage système l'emporte aussi sur un choix fait avant qu'il soit activé ; un choix fait pendant qu'il est actif est respecté (rallumage au niveau léger). Au niveau OFF, aucun effet de la couche ne joue et le jeu se déroule comme dans `index.html` ; deux différences demeurent : les boutons de réglage restent en place (accueil, tiroir, modales de pause), et les boucles décoratives du jeu (points de chakra, emoji flottant de l'accueil, spirale de chargement) sont mises en pause.
-- **Couche coupée** (disjoncteur après des erreurs répétées, ou navigateur sans Web Animations / canvas 2D) : la page redevient celle d'`index.html` — plus aucun effet, boutons de réglage retirés des modales de pause, boucles décoratives du jeu rendues à elles-mêmes.
-- **Défilement** : l'édition animée s'appuie sur deux comportements d'`index.html` (§ 8.13) — la carte question ramenée dans la fenêtre à chaque question (l'arène vient avec) et les écrans de résultat affichés depuis le haut (cérémonie complète). La couche, elle, ne fait jamais défiler la page.
-- **Service worker** (`sw.js`, commun aux deux pages) : `anime.html` et `manifest-anime.json` sont optionnels — jamais téléchargés pour un joueur du jeu classique seul, remis en cache à chaque version pour un joueur qui a déjà ouvert l'édition animée, sans retarder l'installation de plus de 3 s. `.gitattributes` impose des fins de ligne LF aux fichiers dont dépend la construction.
+- **Réglage joueur** : « Animations : ON / OFF » (accueil, tiroir, modales de pause) et « Effets légers » ; OFF par défaut si `prefers-reduced-motion`. Le réglage système l'emporte aussi sur un choix fait avant qu'il soit activé ; un choix fait pendant qu'il est actif est respecté (rallumage au niveau léger). Au niveau OFF, aucun effet de la couche ne joue et le jeu se déroule comme dans `classique.html` ; deux différences demeurent : les boutons de réglage restent en place (accueil, tiroir, modales de pause), et les boucles décoratives du jeu (points de chakra, emoji flottant de l'accueil, spirale de chargement) sont mises en pause.
+- **Couche coupée** (disjoncteur après des erreurs répétées, ou navigateur sans Web Animations / canvas 2D) : la page redevient celle de `classique.html` — plus aucun effet, boutons de réglage retirés des modales de pause, boucles décoratives du jeu rendues à elles-mêmes.
+- **Défilement** : l'édition animée s'appuie sur deux comportements du jeu (§ 8.13) — la carte question ramenée dans la fenêtre à chaque question (l'arène vient avec) et les écrans de résultat affichés depuis le haut (cérémonie complète). La couche, elle, ne fait jamais défiler la page.
+- **Service worker** (`sw.js`, commun aux deux pages) : `index.html` fait partie des fichiers essentiels, redemandés au réseau à chaque installation (`cache: 'reload'`, § 8.12). `classique.html` est optionnel — jamais téléchargé pour un joueur qui ne l'a jamais ouvert, remis en cache à chaque version pour un joueur qui l'a déjà ouvert, sans retarder l'installation de plus de 3 s. `anime.html` n'est pas pré-cachée (le gestionnaire `fetch` la garde après une visite en ligne, jusqu'à la version suivante). Hors-ligne, une navigation vers `classique.html` absente du cache, ou vers `anime.html`, retombe sur `index.html`. `.gitattributes` impose des fins de ligne LF aux fichiers dont dépend la construction.
+- **Non vérifié sur de vrais appareils** : le comportement d'une application installée depuis l'ancienne édition animée (son manifest a disparu ; sa page de départ redirige ; une seconde icône peut être proposée), et le stockage d'une application installée sur iPhone. Détail : `anime-src/README.md` § 5.3.
 - **Contrat complet** (architecture, API `FX`, modules existants, ajout d'un module, tests) : `anime-src/README.md` — à lire avant de toucher à la couche.
 
 ### 13.2 Règles de la couche (résumé)
 
-1. **Jeu intact** : aucun changement de score, de minuteur, de flux de questions, de focus, d'annonce lecteur d'écran ni de raccourci clavier. Un défaut d'`index.html` se corrige dans `index.html`, jamais par la couche (ni corrigé ni masqué).
+1. **Jeu intact** : aucun changement de score, de minuteur, de flux de questions, de focus, d'annonce lecteur d'écran ni de raccourci clavier. Un défaut du jeu se corrige dans `classique.html`, jamais par la couche (ni corrigé ni masqué).
 2. **Lecture d'abord** : effets finis (≤ ~700 ms après une réponse, ≤ ~2,5 s pour un résultat), aucune boucle sur un écran de question, rien ne couvre durablement une question, une réponse, une explication ou un champ ; un effet de résultat ne se pose jamais sur un texte du résultat (bandeau sur l'en-tête collant, ou rien).
 3. **Une erreur est une étape d'apprentissage** : ni flash rouge, ni secousse, ni moquerie — un repère calme vers l'explication.
 4. **Épreuves sobres** : Automatismes (6 pools) et DNB Blanc plafonnés au niveau léger, zéro particule ; seule leur page de résultat fête.

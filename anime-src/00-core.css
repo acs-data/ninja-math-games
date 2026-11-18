@@ -64,7 +64,7 @@ html[data-fx="off"] #fx-root { display: none; }
 
 /* Niveau off CHOISI : « OFF » arrête vraiment tout mouvement, y compris les boucles décoratives du jeu
    (points de chakra, emoji flottant de l'accueil, spirale de chargement). Couche coupée (data-fx-dead :
-   disjoncteur ou navigateur incompatible) : la page est celle d'index.html, ces boucles tournent. */
+   disjoncteur ou navigateur incompatible) : la page est celle de classique.html, ces boucles tournent. */
 html[data-fx="off"]:not([data-fx-dead]) .chakra-dot,
 html[data-fx="off"]:not([data-fx-dead]) .hero-ninja,
 html[data-fx="off"]:not([data-fx-dead]) #screen-loading > div { animation-play-state: paused !important; }

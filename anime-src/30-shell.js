@@ -20,7 +20,7 @@
    applyTheme — chacun compare l'état AVANT/APRÈS (un clic sur l'élément déjà choisi ne joue rien).
    Chaque sélection change le jeton de la portée « q » : des clics rapides ne laissent que le dernier
    effet, et le noyau coupe tout au changement d'écran. Aucun nœud persistant, aucun style ni
-   classe sur le jeu : au niveau off, l'accueil est celui d'index.html. */
+   classe sur le jeu : au niveau off, l'accueil est celui de classique.html. */
 FX.module('accueil', function (FX) {
   var D = document, W = window, PI = Math.PI;
   var t0 = now(), tok0 = FX.token('screen'), owed = true, tap = null, thAt = 0, liveTo = 0;

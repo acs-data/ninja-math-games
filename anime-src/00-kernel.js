@@ -52,7 +52,7 @@ var CHAOS = { message: 'chaos', chaos: true };   // erreur de test levée par ch
 function now() { return W.performance && performance.now ? performance.now() : Date.now(); }
 
 /* Disjoncteur : 3 erreurs sur un même crochet le coupent, 8 erreurs au total coupent la couche.
-   Couche coupée = le jeu d'index.html : plus aucun effet, plus aucun crochet d'effet, boucles décoratives du
+   Couche coupée = le jeu de classique.html : plus aucun effet, plus aucun crochet d'effet, boucles décoratives du
    jeu rendues à elles-mêmes, boutons des modales de pause retirés (syncUI). Seuls les crochets « always »
    (suivi de l'écran, nettoyage de la clé de réglage) continuent de tourner. */
 function oops(e, where, pair) {
@@ -127,7 +127,7 @@ FX.game = {
 };
 
 /* ── Générateur pseudo-aléatoire propre à la couche (xorshift32). La couche n'appelle jamais
-   le générateur du jeu : avec une graine identique, anime.html et index.html tirent les mêmes questions. */
+   le générateur du jeu : avec une graine identique, index.html et classique.html tirent les mêmes questions. */
 var seed = ((Date.now() ^ 0x9E3779B9) >>> 0) || 1;
 FX.rnd = function () {
   seed ^= seed << 13; seed >>>= 0;
