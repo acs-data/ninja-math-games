@@ -92,7 +92,7 @@ Le sélecteur de chapitre est sur l'accueil (onglets 6e/5e/4e/3e). Helper : `get
 
 | Mode | Écran | Fonction d'entrée | Banque | Particularités |
 |---|---|---|---|---|
-| Tracé géométrique | `screen-draw` | `startDrawMode()` | `DRAW_MISSIONS` (7) | Canvas mouse+touch, validation auto |
+| Tracé géométrique | `screen-draw` | `startDrawMode()` | `DRAW_MISSIONS` (6) | Canvas mouse+touch, validation auto |
 | Puzzle emboîtement | `screen-puzzle` | `startPuzzleMode()` | `PUZZLES` (6) | Drag & drop type `match` ou `sort` |
 | Vrai/Faux Speed | `screen-tf` | `startTrueFalse()` | `TRUEFALSE_STATEMENTS` (50) | 7 s/affirmation, raccourcis V/F clavier |
 | Histoire interactive | `screen-story` | `startStoryMode()` | `STORY_MISSIONS` (12 aventures × 4 étapes) | Récit narratif multi-étapes |
@@ -219,7 +219,7 @@ Dictionnaires de **remplacement de texte/emoji** pour adapter les questions Naru
 
 Voir le code source pour le format détaillé. Types de guide tracé : `vertical`, `horizontal`, `diagonal45`, `hyp`, `angle_free`.
 
-- **7 missions de tracé.** La tolérance se lit sur la mission (`m.tolerance`), pas sur son guide. Pour les missions d'angle, c'est le **dernier** angle tracé qui est jugé.
+- **6 missions de tracé** (la mission « Bissectrice », infaisable telle qu'elle était écrite, a été retirée en novembre 2026). La tolérance se lit sur la mission (`m.tolerance`), pas sur son guide. Pour les missions d'angle, c'est le **dernier** angle tracé qui est jugé.
 - **Puzzles `match`** : après un dépôt faux, la case reprend son étiquette (`slot.dataset.label`), jamais le nom de la bonne pièce.
 - **Puzzles `sort`** : `correctOrder` doit contenir exactement les chaînes de `items` (même signe moins Unicode `−`).
 
