@@ -36,6 +36,29 @@ jobs:
           echo "Cache version set to: amat-${SHA_SHORT}"
           grep "CACHE_NAME" sw.js
 
+      - name: Rebuild animated edition (anime.html)
+        # Reconstruit anime.html depuis l'index.html déployé. Cette étape ne fait JAMAIS échouer le
+        # déploiement du jeu principal ; elle dit ce qu'elle a trouvé par des annotations :
+        #   1. « --check » : l'anime.html versionné correspond-il à index.html et à anime-src/ ?
+        #      Sinon il a été versionné sans être reconstruit : avertissement (la version déployée
+        #      est alors celle reconstruite ici, que la suite de tests n'a pas vue).
+        #   2. Reconstruction. Les avertissements du build deviennent des annotations
+        #      (GITHUB_ACTIONS=true). Si la construction est refusée (lint, syntaxe, ou un nom dont
+        #      le noyau de la couche ou l'arène du QCM dépend a disparu d'index.html), rien n'est
+        #      écrit : c'est l'anime.html VERSIONNÉ qui est déployé — une édition animée qui peut
+        #      donc être plus ancienne que le jeu classique, mais cohérente — et une annotation
+        #      d'erreur le dit.
+        run: |
+          etat=0
+          python3 tools/build_anime.py --check > /dev/null 2>&1 || etat=$?
+          if [ "$etat" = "1" ]; then
+            echo "::warning title=Édition animée (anime.html)::L'anime.html versionné n'était pas à jour (index.html ou anime-src/ modifié sans reconstruction) : il est reconstruit pour ce déploiement, sans avoir été testé. À faire en local : python3 tools/build_anime.py && node tools/test_anime.js, puis versionner anime.html."
+          fi
+          if ! python3 tools/build_anime.py; then
+            echo "::error title=Édition animée (anime.html)::Construction refusée : l'anime.html versionné est conservé et déployé tel quel. L'édition animée peut être plus ancienne que le jeu classique déployé (elle embarque l'index.html de sa dernière construction). Cause : voir l'annotation de build_anime.py et le journal de cette étape."
+          fi
+          chmod 644 anime.html || true
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

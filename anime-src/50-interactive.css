@@ -1,0 +1,8 @@
+/* ═══ 50-interactive.css — module « ateliers » ═══
+   Mention « tamponnée » d'un atelier réussi (note du tracé, XP gagnés) : un texte flottant du noyau
+   (.fx-float) encadré comme un coup de tampon. Décoratif (aria-hidden) : l'issue est déjà écrite par
+   le jeu dans l'explication. */
+.fx-at-stamp {
+  padding: 0 8px; border: 2px solid currentColor; border-radius: 7px;
+  background: var(--fx-bg, #0D0D1A);
+}
