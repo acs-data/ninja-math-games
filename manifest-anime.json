@@ -2,7 +2,6 @@
   "name": "Anime Math Academy — Édition animée",
   "short_name": "Math Animé",
   "description": "Édition animée (combats, effets visuels) du jeu éducatif de maths collège 6e → 3e dans 6 univers anime — Naruto, One Piece, Dragon Ball, My Hero Academia, Demon Slayer, Pokémon. Programmes officiels 2025/2026.",
-  "id": "ninja-math-games-anime",
   "start_url": "./anime.html",
   "scope": "./",
   "display": "standalone",

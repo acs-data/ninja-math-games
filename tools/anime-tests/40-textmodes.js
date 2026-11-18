@@ -3,8 +3,10 @@
 
    · txt-diff    : pour CHAQUE mode, la même session scriptée (clavier, clics, appels directs, pause,
                    temps écoulé, abandon pendant la correction + minuteries fantômes) sur index.html et
-                   sur anime.html aux niveaux off, complet et « chaos » : état du jeu, focus, #toast,
-                   #sr-live, HUD, textes des écrans, boutons, champs… identiques à chaque étape.
+                   sur anime.html aux niveaux off, complet et « chaos » : état du jeu, focus, suite des
+                   messages de #toast et de #sr-live, HUD, textes des écrans, boutons, champs et empreinte
+                   du DOM du jeu identiques à chaque étape. Chaque photographie attend le calme de la page
+                   (annonce : 50 ms ; focus d'une modale : 50 ms ; focus du champ : 100 ms), sans délai fixe.
    · txt-moments : le journal FX montre les effets attendus (complet), leurs formes courtes (léger,
                    profil sobre des épreuves), rien au niveau off ; rien ne reste vivant ensuite ;
                    rien n'est joué sur l'accueil par les minuteries fantômes du jeu.
@@ -16,7 +18,7 @@
 'use strict';
 
 module.exports = function (h) {
-  const { check, wait, logOf, during, leftovers, isIdle, harness, INDEX, ANIME, SEED } = h;
+  const { check, wait, keepDom, domChecks, logOf, during, leftovers, isIdle, harness, INDEX, ANIME, SEED } = h;
   const has = (log, name) => log.some((l) => l.indexOf(name) === 0);
   const count = (log, name) => log.filter((l) => l.indexOf(name) === 0).length;
   const MINE = /^(tf-|histoire-|auto-|dnb-|bilan-)/;          // noms de chorégraphie du module
@@ -67,10 +69,13 @@ module.exports = function (h) {
     return page;
   }
 
-  /* Photographie de tout ce que ces quatre modes exposent. Le texte de l'accueil est écarté
-     (le bouton de réglage de la couche y vit) ; les autres écrans doivent être identiques. */
-  function snap(page, label) {
-    return page.evaluate((label) => {
+  /* Photographie de tout ce que ces quatre modes exposent, prise au calme (voir __shot dans le harnais).
+     Le texte de l'accueil est écarté (le bouton de réglage de la couche y vit) ; les autres écrans doivent
+     être identiques. Les minuteries longues étant retenues (__later), aucune classe n'est écartée de
+     l'empreinte du DOM. */
+  async function snap(page, label) {
+    return keepDom(page, await page.evaluate(async (label) => {
+      const base = await window.__shot(null, []);
       const el = (id) => document.getElementById(id);
       const txt = (id) => (el(id) ? el(id).textContent : null);
       const ae = document.activeElement;
@@ -89,7 +94,7 @@ module.exports = function (h) {
         state: [state.score, state.xp, state.level],
         stats: JSON.stringify([playerStats.gamesByMode, playerStats.totalGames, playerStats.totalCorrect, playerStats.totalAnswered]),
         focus: ae ? (ae.id || (ae.tagName + '.' + ae.className)) : null,
-        toast: txt('toast') + '|' + el('toast').className, sr: txt('sr-live'),
+        toast: txt('toast') + '|' + el('toast').className, sr: txt('sr-live'), srLog: base.live.sr, toastLog: base.live.toast, dom: base.dom,
         hud: [txt('hud-score'), txt('hud-streak'), txt('hud-level')],
         screens: vis.map((e) => e.id),
         text: vis.filter((e) => e.id !== 'screen-home').map((e) => e.textContent.replace(/\s+/g, ' ')),
@@ -103,7 +108,7 @@ module.exports = function (h) {
         bodyOverflow: document.body.style.overflow,
         storage: Object.keys(localStorage).sort()
       };
-    }, label);
+    }, label));
   }
   function firstDiff(a, b) {
     for (let i = 0; i < Math.max(a.length, b.length); i++) {
@@ -197,7 +202,7 @@ module.exports = function (h) {
   async function sessionAuto(page, shot) {
     const valider = '#screen-auto .question-wrap .btn-main';
     await ev(page, () => showAutoMenu()); await shot('menu');
-    await ev(page, () => startAutoMode('auto_6e')); await wait(page, 130); await shot('q1');
+    await ev(page, () => startAutoMode('auto_6e')); await shot('q1');
     await ev(page, () => __tick(23));
     await page.keyboard.type(await autoAns(page)); await page.keyboard.press('Enter'); await shot('q1 juste (clavier)');
     await page.keyboard.press('Enter'); await shot('entrée ignorée (déjà répondu)');
@@ -218,7 +223,7 @@ module.exports = function (h) {
       await ev(page, () => __later());
     }
     await autoFinish(page); await shot('résultat');
-    await page.click('#screen-auto-result .btn-main'); await wait(page, 130); await shot('rejouer');
+    await page.click('#screen-auto-result .btn-main'); await shot('rejouer');
     /* Pause PENDANT la correction (défauts hérités du jeu : la question suivante se charge derrière
        la modale et prend le focus, puis deux intervalles tournent) : la couche ne doit rien y changer. */
     await page.keyboard.type(await autoAns(page)); await page.keyboard.press('Enter'); await shot('juste');
@@ -240,7 +245,7 @@ module.exports = function (h) {
     const good = () => ev(page, () => dnbState.currentStep.correct);
     const btn = (i) => '#dnb-ex-answers .answer-btn:nth-child(' + (i + 1) + ')';
     await ev(page, () => { showAutoMenu(); startDnbBlanc(); }); await shot('intro');
-    await page.click('#screen-dnb-intro .btn-main'); await wait(page, 130); await shot('phase 1 q1');
+    await page.click('#screen-dnb-intro .btn-main'); await shot('phase 1 q1');
     await ev(page, () => __tick(15));
     await page.keyboard.type(await autoAns(page)); await page.keyboard.press('Enter'); await shot('q1 juste (clavier)');
     await ev(page, () => __later()); await shot('q2');
@@ -272,7 +277,7 @@ module.exports = function (h) {
     await page.click('#screen-dnb-result .btn-main'); await shot('nouveau DNB : intro');
     /* dnbState.active périmé (défaut hérité) : phase 1 quittée par le bouton des automatismes, puis une
        épreuve auto_6e ordinaire se termine… sur la transition du DNB. La couche suit l'écran affiché. */
-    await ev(page, () => { startDnbPhase1(); exitAutoMode(); startAutoMode('auto_6e'); }); await wait(page, 130); await shot('auto_6e après un DNB quitté');
+    await ev(page, () => { startDnbPhase1(); exitAutoMode(); startAutoMode('auto_6e'); }); await shot('auto_6e après un DNB quitté');
     await autoFinish(page); await shot('fin : transition du DNB (défaut hérité)');
     await ev(page, () => showHome()); await shot('accueil');
   }
@@ -284,14 +289,12 @@ module.exports = function (h) {
       if (prepare) await ev(page, prepare);
       const shots = [], played = new Set();
       const shot = async (label) => {
-        await wait(page, 90);
         shots.push(await snap(page, label));
         if (url === ANIME) (await ev(page, () => FX.debug.log.map((e) => e.fx))).forEach((n) => played.add(n));
       };
       await session(page, shot);
       const stats = url === ANIME ? await ev(page, () => FX.stats()) : null;
-      await page.context().close();
-      return { shots, played: Array.from(played), stats, errors: page.errors };
+      return { page, shots, played: Array.from(played), stats, errors: page.errors };
     };
     const [classic, off, full, chaos] = await Promise.all([
       run(INDEX),
@@ -309,6 +312,8 @@ module.exports = function (h) {
     check(name + ' : niveau complet, couche saine', full.stats.errCount === 0 && !full.stats.dead && full.stats.missing.length + full.stats.denied.length === 0 &&
       full.stats.modules.textes === 'ok', [full.stats.errors, full.stats.missing, full.stats.denied, full.stats.modules]);
     check(name + ' : chaos, les crochets ont levé et rien n\'a été joué', chaos.stats.chaos > 0 && chaos.played.length === 0 && !chaos.stats.dead, [chaos.stats.chaos, chaos.played]);
+    check(name + ' : la session classique annonce (suite des messages de #sr-live non vide)', classic.shots.some((s) => s.srLog.length > 0), classic.shots.map((s) => s.srLog.length));
+    await domChecks(name, [['classique', classic], ['off', off], ['complet', full], ['chaos', chaos]]);
     return classic.shots;
   }
   async function scenarioDiff(browser) {

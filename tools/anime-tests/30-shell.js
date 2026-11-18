@@ -1,7 +1,9 @@
 /* Scénarios de la coquille (anime-src/09-arrivee.js, 30-shell.js et correctifs du noyau) :
      shell-diff     même session scriptée (univers, personnage, onglets, thème, cartes de mode, tiroir,
                     logo, QCM avec chargement, bouton Précédent) sur index.html et sur l'édition animée
-                    aux niveaux off, complet et chaos : état du jeu, focus, #toast, #sr-live identiques ;
+                    aux niveaux off, complet et chaos : état du jeu, focus, suite des messages de #toast
+                    et de #sr-live, empreinte du DOM du jeu identiques ; chaque photographie attend le
+                    calme de la page (aucun délai fixe), les états intermédiaires sont retenus (__hold) ;
      shell-nav      transitions entre les 23 écrans (lame, fondu, profil sobre, off), navigation rapide,
                     modale en pleine transition, chargement du QCM, Précédent, ordre d'empilement ;
      shell-accueil  ouverture, univers, personnage, classe, envol, thème : journal attendu aux niveaux
@@ -10,7 +12,7 @@
 'use strict';
 
 module.exports = function (h) {
-  const { check, open, wait, waapi, gameShown, snap, firstDiff, logOf, during, leftovers, isIdle, INDEX, ANIME } = h;
+  const { check, open, wait, waapi, gameShown, snap, firstDiff, domChecks, logOf, during, leftovers, isIdle, INDEX, ANIME } = h;
   const has = (log, name) => log.some((l) => l.indexOf(name) === 0);
   const count = (log, name) => log.filter((l) => l.indexOf(name) === 0).length;
   const blades = (page) => page.evaluate(() => document.querySelectorAll('.fx-blade').length);
@@ -47,16 +49,22 @@ module.exports = function (h) {
       inline: ['screen-home', 'universe-grid', 'char-grid', 'mission-chips', 'main-content', 'app'].map((id) => document.getElementById(id).getAttribute('style') || '').join('|') + '|' + (document.body.getAttribute('style') || '')
     };
   });
+  /* Précédent du navigateur : rend la main quand le popstate a été servi (écouteurs du jeu compris). */
+  const back = (page) => page.evaluate(() => new Promise((res) => { window.addEventListener('popstate', () => res(), { once: true }); history.back(); }));
   async function session(page) {
     const shots = [];
-    const shot = async (label, ms) => { await wait(page, ms || 110); shots.push(Object.assign(await snap(page, label), { shell: await shell(page) })); };
+    /* ms = délai des minuteries du jeu à laisser échoir avant la photographie (150 par défaut : annonces,
+       focus des modales ; 700 pour la grille de personnages re-générée en 200 + 400 ms). */
+    const shot = async (label, ms) => { shots.push(Object.assign(await snap(page, label, { settle: ms }), { shell: await shell(page) })); };
     const card = (fn) => '.level-card[onclick="' + fn + '"]';
     await shot('accueil');
     await page.click('.universe-card[data-universe="onepiece"]'); await shot('univers one piece (clic)', 700);
     await page.click('#char-grid .char-card:nth-child(3)'); await shot('personnage 3 (clic)');
     await page.click('#char-grid .char-card:nth-child(3)'); await shot('même personnage');
-    await page.evaluate(() => { document.querySelector('.universe-card[data-universe="pokemon"]').click(); document.querySelector('.universe-card[data-universe="dragonball"]').click(); });
-    await shot('deux univers dans le même tick', 60);                       // grille encore en cours de remplacement
+    /* État intermédiaire : les minuteries de 200 ms du jeu (grille re-générée) sont retenues le temps de la photo. */
+    await page.evaluate(() => { __hold(180); document.querySelector('.universe-card[data-universe="pokemon"]').click(); document.querySelector('.universe-card[data-universe="dragonball"]').click(); });
+    await shot('deux univers dans le même tick');                           // grille encore en cours de remplacement
+    await page.evaluate(() => __release());
     await shot('grille de personnages re-générée', 700);
     await page.click('.universe-card[data-universe="dragonball"]'); await shot('même univers');
     await page.focus('#char-grid .char-card:nth-child(2)'); await page.keyboard.press('Enter'); await shot('personnage 2 (clavier)');
@@ -76,7 +84,9 @@ module.exports = function (h) {
     await page.click(card('startPuzzleMode()')); await shot('puzzle');
     await page.click('#main-logo'); await shot('logo : modale retour accueil');
     await page.click('#modal-back-home .btn-sec--danger'); await shot('retour confirmé');
-    await page.click('.mission-quick-btn.qb-mix'); await shot('chargement du QCM', 150);
+    await page.evaluate(() => __hold(1000));                                // l'écran de chargement dure 1200 ms : retenu le temps de la photo
+    await page.click('.mission-quick-btn.qb-mix'); await shot('chargement du QCM');
+    await page.evaluate(() => __release());
     await gameShown(page); await shot('QCM affiché');
     await page.keyboard.press('Escape'); await shot('pause');
     await page.evaluate(() => quitFromPause()); await shot('quitter depuis la pause');
@@ -85,9 +95,9 @@ module.exports = function (h) {
     await page.evaluate(() => showHome()); await shot('retour accueil');
     await page.evaluate(() => { location.hash = '#main-content'; });       // crée l'entrée d'historique (comme le lien d'évitement)
     await page.click(card('startStoryMode()')); await shot('histoire');
-    await page.evaluate(() => history.back()); await shot('Précédent : accueil', 250);
+    await back(page); await shot('Précédent : accueil');
     await page.evaluate(() => { location.hash = '#x'; openModal('modal-legal'); }); await shot('modale ouverte');
-    await page.evaluate(() => history.back()); await shot('Précédent : modale fermée sans closeModal', 250);
+    await back(page); await shot('Précédent : modale fermée sans closeModal');
     await page.click(card('startProbaTree()')); await shot('arbre de probabilités');
     await page.evaluate(() => showHome()); await shot('fin');
     return shots;
@@ -100,8 +110,7 @@ module.exports = function (h) {
       const shots = await session(page);
       const fx = url === ANIME ? await page.evaluate(() => ({ log: FX.debug.log.map((e) => e.fx + (e.info ? '[' + e.info + ']' : '')), stats: FX.stats() })) : null;
       const end = await layout(page);
-      await page.context().close();
-      return { shots, fx, errors: page.errors, lay, end };
+      return { page, shots, fx, errors: page.errors, lay, end };
     };
     const [classic, off, full, chaos, telClassic, telFull] = await Promise.all([
       run(INDEX),
@@ -146,6 +155,8 @@ module.exports = function (h) {
     check('coquille, niveau complet : aucune erreur interne, rien de manquant, modules démarrés',
       full.fx.stats.errCount === 0 && full.fx.stats.missing.length + full.fx.stats.denied.length === 0 && full.fx.stats.modules.arrivee === 'ok' && full.fx.stats.modules.accueil === 'ok' &&
       Object.values(full.fx.stats.modules).every((v) => v === 'ok'), [full.fx.stats.errors, full.fx.stats.missing, full.fx.stats.denied, full.fx.stats.modules]);
+    await domChecks('coquille', [['classique', classic], ['off', off], ['complet', full], ['chaos', chaos]]);
+    await domChecks('coquille, téléphone', [['classique', telClassic], ['complet', telFull]]);
   }
 
   /* ── 2. Transitions d'écran ── */

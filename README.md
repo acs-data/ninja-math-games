@@ -101,7 +101,7 @@ Le même jeu avec une couche d'animation par-dessus : `https://acs-data.github.i
 - **Transitions** entre les écrans, accueil et changement d'univers animés
 - **Erreur** : aucun effet punitif, un repère discret vers l'explication ; les **épreuves** (Automatismes, DNB Blanc) restent volontairement sobres
 - Réglage **✨ Animations : ON / OFF** (accueil, menu, pause) et option « Effets légers » ; coupé par défaut si l'appareil demande moins d'animations (`prefers-reduced-motion`)
-- Questions, scores, chronos, raccourcis clavier et lecteur d'écran identiques au jeu classique ; **même progression** (même sauvegarde locale)
+- Questions, scores, chronos, raccourcis clavier et lecteur d'écran identiques au jeu classique ; **même progression** que le jeu classique dans un même navigateur (même sauvegarde locale, propre à chaque navigateur et à chaque profil : rien n'est synchronisé d'un appareil à l'autre)
 - Mêmes contraintes légales : **émojis Unicode et formes abstraites uniquement**, aucun visuel, logo ni son des œuvres
 
 `anime.html` est généré à partir d'`index.html` et de `anime-src/` (`python3 tools/build_anime.py`) : il ne se modifie pas à la main.
@@ -202,6 +202,7 @@ index.html  (≈ 475 KB, ≈ 10 200 lignes — mono-fichier volontaire)
 ├── og-image.png            Image OpenGraph 1200×630
 ├── og-image.svg            Source vectorielle de l'image OG
 ├── .github/workflows/pages.yml  Déploiement automatique sur GitHub Pages
+├── .gitattributes          Fins de ligne LF pour index.html, anime.html, anime-src/, tools/, sw.js et les manifests
 ├── README.md               Ce fichier
 └── CLAUDE.md               Guide pour IA assistantes
 ```

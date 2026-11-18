@@ -4,34 +4,56 @@
      node tools/test_anime.js                      teste ./anime.html
      node tools/test_anime.js --anime CHEMIN       teste une construction privée (build_anime.py --out)
      node tools/test_anime.js --only diff,reglages ne lance que certains scénarios
+     node tools/test_anime.js --list               affiche les clés des scénarios
+     node tools/test_anime.js --allow-missing-playwright   sans Playwright : code 0 au lieu de 3
+
+   Codes de sortie : 0 = tout est vert ; 1 = au moins un échec, ou aucune vérification exécutée ;
+   2 = appel invalide (option ou clé de --only inconnue, fichier --anime introuvable) ;
+   3 = Playwright introuvable (rien n'a été testé : ce n'est jamais un succès, sauf dérogation explicite).
 
    Principe : même Math.random à graine fixe et même session QCM scriptée (clavier, clics, pause,
    temps écoulé) sur index.html et sur anime.html (niveaux off, complet, puis « chaos » où chaque
-   crochet de la couche lève une exception). L'état du jeu, le focus, les textes de #toast,
-   #sr-live et du HUD doivent être IDENTIQUES à chaque étape.
+   crochet de la couche lève une exception). L'état du jeu, le focus, la suite des messages de
+   #toast et de #sr-live, le HUD et l'empreinte du DOM du jeu doivent être IDENTIQUES à chaque étape.
    Les setInterval du jeu sont pilotés à la main (window.__tick) : le bonus de temps du score ne
-   dépend donc pas de la vitesse de la machine.
+   dépend donc pas de la vitesse de la machine. Les setTimeout restent réels mais sont SUIVIS : une
+   photographie attend le calme (window.__settle) au lieu d'un délai fixe.
 
-   Dépendance : Playwright + Chromium (aucune dépendance ajoutée au dépôt). S'il est absent, le
-   script explique comment le lancer et sort avec le code 0. Pour ajouter un scénario : écrire une
-   fonction async (browser) et l'inscrire dans SCENARIOS, ou déposer un fichier dans tools/anime-tests/. */
+   Dépendance : Playwright + Chromium (aucune dépendance ajoutée au dépôt) ; le scénario « build » lance aussi
+   python3 (tools/build_anime.py) et bash (étape du déploiement rejouée). Pour ajouter un scénario :
+   écrire une fonction async (browser) et l'inscrire dans SCENARIOS, ou déposer un fichier dans
+   tools/anime-tests/. */
 'use strict';
+const fs = require('fs');
 const path = require('path');
 const { pathToFileURL } = require('url');
 
+const argv = process.argv.slice(2);
+const OPTIONS = { '--anime': 1, '--only': 1, '--list': 0, '--allow-missing-playwright': 0 };   // 1 = attend une valeur
+const usage = (msg) => { console.log('Appel invalide : ' + msg + '\nOptions : --anime CHEMIN, --only clé1,clé2, --list, --allow-missing-playwright'); process.exit(2); };
+for (let i = 0; i < argv.length; i++) {
+  if (!OPTIONS.hasOwnProperty(argv[i])) usage('option inconnue « ' + argv[i] + ' »');
+  if (OPTIONS[argv[i]] && (argv[++i] === undefined || /^--/.test(argv[i]))) usage(argv[i - 1] + ' attend une valeur');
+}
+const arg = (name) => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : null; };
+const flag = (name) => argv.indexOf(name) >= 0;
+
 let chromium;
 try { ({ chromium } = require('playwright')); } catch (e) {
-  console.log('Playwright est introuvable : test non exécuté.');
-  console.log('Pour le lancer : npm i -D playwright && npx playwright install chromium (hors dépôt), puis node tools/test_anime.js');
-  process.exit(0);
+  if (!flag('--list')) {
+    console.log('Playwright est introuvable : AUCUN test exécuté.');
+    console.log('Pour le lancer : npm i -D playwright && npx playwright install chromium (hors dépôt), puis node tools/test_anime.js');
+    if (!flag('--allow-missing-playwright')) process.exit(3);
+    console.log('(--allow-missing-playwright : absence admise, code 0)');
+    process.exit(0);
+  }
 }
 
-const argv = process.argv.slice(2);
-const arg = (name) => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : null; };
 const ROOT = path.resolve(__dirname, '..');
 const INDEX = pathToFileURL(path.join(ROOT, 'index.html')).href;
-const ANIME = pathToFileURL(path.resolve(arg('--anime') || path.join(ROOT, 'anime.html'))).href;
-const ONLY = arg('--only') ? arg('--only').split(',') : null;
+const ANIME_PATH = path.resolve(arg('--anime') || path.join(ROOT, 'anime.html'));
+const ANIME = pathToFileURL(ANIME_PATH).href;
+const ONLY = arg('--only') ? arg('--only').split(',').map((k) => k.trim()).filter(Boolean) : null;
 const SEED = 20261117;
 
 const failures = [];
@@ -43,7 +65,17 @@ function check(name, ok, detail) {
   console.log('  ✗ ' + name);
 }
 
-/* Injecté avant tout script de page : hasard à graine, setInterval manuel, tutoriel déjà vu. */
+/* Injecté avant tout script de page : hasard à graine, setInterval manuel, tutoriel déjà vu, et de quoi
+   photographier sans dépendre de la vitesse de la machine :
+     __settle(d)        promesse tenue quand plus aucun setTimeout de délai <= d ms (150 par défaut) n'est en
+                        attente, que le focus est stable (un nœud masqué ou désactivé qui a le focus le perd
+                        un peu plus tard, par une tâche interne du navigateur : on attend qu'il soit retombé
+                        sur <body>), et que deux images ont été peintes depuis ; false après 8 s sans calme ;
+     __hold(d)          retient les setTimeout de délai >= d ms posés ensuite (état intermédiaire
+                        photographié sans course) ; __release() les relance, dans l'ordre, avec leur délai ;
+     __live()           messages écrits dans #sr-live et #toast depuis le dernier appel (observateur de
+                        mutations : la SUITE des messages, pas le texte de l'instant) ;
+     __domPrint(v)      empreinte du DOM du jeu (voir plus bas) ; __domLog garde le détail de chaque empreinte. */
 function harness(seed) {
   let s = seed >>> 0;
   Math.random = function () {
@@ -55,10 +87,212 @@ function harness(seed) {
   const cbs = new Map();
   let next = 1000000;
   window.setInterval = function (fn) { cbs.set(++next, fn); return next; };
-  const realClear = window.clearInterval;
-  window.clearInterval = function (id) { if (!cbs.delete(id)) realClear(id); };
   window.__tick = function (n) { for (let k = 0; k < n; k++) Array.from(cbs.values()).forEach((f) => f()); };
   try { sessionStorage.setItem('tutorial_seen', '1'); } catch (e) {}
+
+  /* ── setTimeout réel mais suivi ── */
+  const realSet = window.setTimeout, realClear = window.clearTimeout, raf = window.requestAnimationFrame.bind(window);
+  const pending = new Map();            // id -> délai demandé
+  const held = new Map();               // faux id -> { fn, ms, args, real }
+  let holdMin = null, fake = -1000000000;
+  const schedule = function (fn, ms, args, done) {
+    const id = realSet.call(window, function () { pending.delete(id); if (done) done(); return fn.apply(window, args); }, ms);
+    pending.set(id, +ms || 0);
+    return id;
+  };
+  window.setTimeout = function (fn, ms) {
+    if (typeof fn !== 'function') return realSet.apply(window, arguments);
+    const args = Array.prototype.slice.call(arguments, 2);
+    if (holdMin !== null && +ms >= holdMin) { held.set(--fake, { fn: fn, ms: ms, args: args, real: 0 }); return fake; }
+    return schedule(fn, ms, args);
+  };
+  window.clearTimeout = function (id) {
+    const h = held.get(id);
+    if (h) { held.delete(id); id = h.real; if (!id) return; }
+    pending.delete(id);
+    realClear.call(window, id);
+  };
+  window.clearInterval = function (id) { if (!cbs.delete(id)) window.clearTimeout(id); };   // même réserve d'identifiants
+  window.__hold = function (min) { holdMin = min; };
+  window.__release = function () {
+    holdMin = null;
+    held.forEach(function (h, id) { if (!h.real) h.real = schedule(h.fn, h.ms, h.args, function () { held.delete(id); }); });
+  };
+  /* Le nœud qui a le focus peut-il le garder ? Sinon (désactivé, inerte, masqué, écran caché) Chromium le rend à
+     <body> de façon différée : tant que ce n'est pas fait, la page n'est pas au calme. */
+  const focusStable = function () {
+    const ae = document.activeElement;
+    if (!ae || ae === document.body || ae === document.documentElement) return true;
+    if (ae.matches(':disabled') || ae.closest('[inert]')) return false;
+    return ae.checkVisibility ? ae.checkVisibility({ checkVisibilityCSS: true }) : ae.getClientRects().length > 0;
+  };
+  window.__pending = function () {
+    return Array.from(pending.values()).concat(Array.from(held.values()).map((h) => 'retenu ' + h.ms), focusStable() ? [] : ['focus sur un nœud masqué ou désactivé']);
+  };
+  window.__settle = function (maxDelay) {
+    const max = maxDelay === undefined || maxDelay === null ? 150 : maxDelay, t0 = performance.now();
+    const busy = function () { if (!focusStable()) return true; for (const d of pending.values()) if (d <= max) return true; return false; };
+    return new Promise(function (res) {
+      let calm = 0;
+      (function poll() {
+        calm = busy() ? 0 : calm + 1;
+        if (calm >= 3) return res(true);                    // calme constaté sur trois images de suite
+        if (performance.now() - t0 > 8000) return res(false);
+        raf(poll);
+      })();
+    });
+  };
+
+  /* ── Journal des régions live (#sr-live est créée à la première annonce) ── */
+  const live = { sr: [], toast: [] };
+  new MutationObserver(function (recs) {
+    for (const r of recs) {
+      const key = r.target.id === 'sr-live' ? 'sr' : r.target.id === 'toast' ? 'toast' : null;
+      if (key && r.type === 'childList') r.addedNodes.forEach(function (n) { if (n.textContent) live[key].push(n.textContent); });
+      else if (r.type === 'characterData' && r.target.parentNode) {
+        const k = r.target.parentNode.id === 'sr-live' ? 'sr' : r.target.parentNode.id === 'toast' ? 'toast' : null;
+        if (k) live[k].push(r.target.data);
+      }
+    }
+  }).observe(document, { childList: true, characterData: true, subtree: true });
+  window.__live = function () { return { sr: live.sr.splice(0), toast: live.toast.splice(0) }; };
+
+  /* ── Empreinte du DOM du jeu ──
+     Tout <html> (attributs), <head> (balises) et <body> (balises, attributs triés, textes, valeur des champs),
+     une fois retirés : les nœuds de la couche (id en « fx- », ou pas d'id et toutes les classes en « fx- » :
+     calque, arène, boutons de réglage, <style> et <script> injectés), les attributs data-fx*, le contenu des
+     <script> / <style>, et les lignes du <head> que le build retouche (titre, descriptions, manifest : seule
+     la balise compte). Un nœud du JEU qui recevrait une classe « fx- » reste dans l'empreinte, classe comprise.
+     « volatile » = ids dont l'attribut class dépend d'une minuterie longue non retenue (#toast, #combo-display).
+     Renvoie { h, n } ; le détail (un jeton par balise ouvrante, texte ou balise fermante) reste dans __domLog. */
+  window.__domLog = [];
+  window.__domPrint = function (volatile) {
+    const out = [], skip = {};
+    (volatile || []).forEach(function (id) { skip[id] = 1; });
+    const own = function (el) {
+      if (el.id) return el.id.indexOf('fx-') === 0;
+      const cls = typeof el.className === 'string' ? el.className.trim() : '';
+      return !!cls && cls.split(/\s+/).every(function (k) { return k.indexOf('fx-') === 0; });
+    };
+    const open = function (el, bare) {
+      const a = [];
+      for (let i = 0; i < el.attributes.length; i++) {
+        const at = el.attributes[i];
+        if (at.name.indexOf('data-fx') === 0 || (at.name === 'class' && skip[el.id])) continue;
+        if (bare && !/^(name|property|rel|charset|http-equiv)$/.test(at.name)) continue;
+        a.push(at.name + '="' + at.value + '"');
+      }
+      a.sort();
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) a.push('.value="' + el.value + '"');
+      return '<' + el.tagName.toLowerCase() + (a.length ? ' ' + a.join(' ') : '') + '>';
+    };
+    const walk = function (node) {
+      let text = '';
+      for (let ch = node.firstChild; ch; ch = ch.nextSibling) {
+        if (ch.nodeType === 3) { text += ch.data; continue; }
+        if (ch.nodeType !== 1 || own(ch)) continue;
+        if (text) { out.push('"' + text + '"'); text = ''; }
+        const tag = ch.tagName;
+        out.push(open(ch));
+        if (tag !== 'SCRIPT' && tag !== 'STYLE') walk(ch);
+        out.push('</' + tag.toLowerCase() + '>');
+      }
+      if (text) out.push('"' + text + '"');
+    };
+    out.push(open(document.documentElement));
+    out.push('<head>');
+    for (let el = document.head.firstElementChild; el; el = el.nextElementSibling) {
+      if (own(el)) continue;
+      out.push(open(el, /^(TITLE|META)$/.test(el.tagName) || (el.tagName === 'LINK' && el.rel === 'manifest')));
+      out.push('</' + el.tagName.toLowerCase() + '>');
+    }
+    out.push('</head>');
+    out.push(open(document.body));
+    walk(document.body);
+    let h1 = 0x811C9DC5, h2 = 0x1505;
+    for (let i = 0; i < out.length; i++) {
+      const tok = out[i];
+      for (let k = 0; k < tok.length; k++) { const ch = tok.charCodeAt(k); h1 = Math.imul(h1 ^ ch, 0x01000193); h2 = (Math.imul(h2, 33) + ch) | 0; }
+      h1 = Math.imul(h1 ^ 10, 0x01000193); h2 = (Math.imul(h2, 33) + 10) | 0;
+    }
+    window.__domLog.push(out);
+    return { h: (h1 >>> 0).toString(16) + '.' + (h2 >>> 0).toString(16), n: out.length, i: window.__domLog.length - 1 };
+  };
+  /* Calme, puis ce que toute photographie embarque : messages des régions live et empreinte du DOM. */
+  window.__shot = async function (maxDelay, volatile) {
+    if (!(await window.__settle(maxDelay))) throw new Error('pas de calme après 8 s (minuteries en attente : ' + window.__pending().join(', ') + ')');
+    return { live: window.__live(), dom: window.__domPrint(volatile) };
+  };
+}
+
+/* Audit permanent des nœuds de la couche, injecté dans TOUTES les pages de TOUS les scénarios (voir
+   instrument) : chaque élément dont l'id ou une classe commence par « fx- » est contrôlé à son insertion,
+   à chaque changement de class / id / aria-hidden, puis une dernière fois à la fermeture de la page.
+     · nœud de la couche (id en « fx- », ou pas d'id et toutes les classes en « fx- ») : aria-hidden="true" sur
+       lui-même ou sur un ancêtre, et insensible au pointeur (pointer-events: none) ; seuls les cinq boutons
+       de réglage du noyau y échappent ;
+     · jamais dans un écran du jeu (#screen-*), sauf #fx-arena (et ce qu'elle contient) et #fx-set-home ;
+     · un nœud du JEU ne porte jamais de classe « fx- » (ni classe ni style de la couche sur le jeu) ;
+     · #fx-style et #fx-script sont les deux nœuds posés par le build, pas des nœuds d'effet. */
+function audit() {
+  const SETTINGS = { 'fx-set-home': 1, 'fx-set-drawer': 1, 'fx-lite-drawer': 1, 'fx-set-pause': 1, 'fx-set-auto-pause': 1 };
+  const A = { seen: 0, bad: [], keys: {} };
+  const marked = (el) => (el.id && el.id.indexOf('fx-') === 0) || (typeof el.className === 'string' && /(^|\s)fx-/.test(el.className));
+  const layer = (el) => (el.id ? el.id.indexOf('fx-') === 0 : el.className.trim().split(/\s+/).every((k) => k.indexOf('fx-') === 0));
+  const name = (el) => el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') + (typeof el.className === 'string' && el.className.trim() ? '.' + el.className.trim().split(/\s+/).join('.') : '');
+  const bad = (why, el, where) => {
+    const key = why + '|' + name(el) + '|' + where;
+    if (A.keys[key] || A.bad.length >= 12) return;
+    A.keys[key] = 1;
+    A.bad.push(why + ' : ' + name(el) + ' dans ' + where + ' « ' + (el.textContent || '').slice(0, 30) + ' »');
+  };
+  const check = (el) => {
+    if (el.id === 'fx-style' || el.id === 'fx-script' || !el.isConnected) return;
+    A.seen++;
+    if (!layer(el)) { bad('classe de la couche posée sur un nœud du jeu', el, el.parentNode && el.parentNode.nodeType === 1 ? name(el.parentNode) : '?'); return; }
+    let hidden = false, setting = false, arena = false, screen = '';
+    for (let p = el; p && p.nodeType === 1; p = p.parentNode) {
+      if (p.getAttribute('aria-hidden') === 'true') hidden = true;
+      if (SETTINGS[p.id]) setting = true;
+      if (p.id === 'fx-arena') arena = true;
+      if (!screen && /^screen-/.test(p.id || '')) screen = p.id;
+    }
+    const where = el.parentNode && el.parentNode.nodeType === 1 ? name(el.parentNode) : '?';
+    if (setting) return;
+    if (!hidden) bad('nœud de la couche sans aria-hidden', el, where);
+    if (getComputedStyle(el).pointerEvents !== 'none') bad('nœud de la couche sensible au pointeur', el, where);
+    if (screen && !arena) bad('nœud de la couche dans un écran du jeu (#' + screen + ')', el, where);
+  };
+  const sweep = (rootEl) => {
+    if (rootEl.nodeType !== 1) return;
+    if (marked(rootEl)) check(rootEl);
+    const l = rootEl.querySelectorAll('[id^="fx-"], [class*="fx-"]');
+    for (let i = 0; i < l.length; i++) if (marked(l[i])) check(l[i]);
+  };
+  new MutationObserver((recs) => {
+    for (const r of recs) {
+      if (r.type === 'attributes') { if (marked(r.target)) check(r.target); } else r.addedNodes.forEach(sweep);
+    }
+  }).observe(document, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'id', 'aria-hidden'] });
+  window.__fxAudit = function () { sweep(document.documentElement); return { seen: A.seen, bad: A.bad.slice(), fx: typeof FX !== 'undefined' }; };
+}
+/* Pose l'audit sur chaque contexte créé, et le relève à sa fermeture (browser.audits, vidé par scénario). */
+function instrument(browser) {
+  const newContext = browser.newContext.bind(browser);
+  browser.audits = [];
+  browser.newContext = async function (opts) {
+    const ctx = await newContext(opts);
+    await ctx.addInitScript(audit);
+    const close = ctx.close.bind(ctx);
+    ctx.close = async function () {
+      for (const pg of ctx.pages()) {
+        try { const a = await pg.evaluate(() => (window.__fxAudit ? window.__fxAudit() : null)); if (a && a.fx) browser.audits.push(a); } catch (e) { /* page déjà fermée */ }
+      }
+      return close();
+    };
+    return ctx;
+  };
+  return browser;
 }
 
 async function open(browser, url, opts) {
@@ -77,14 +311,34 @@ async function open(browser, url, opts) {
   return page;
 }
 const wait = (page, ms) => page.waitForTimeout(ms);
+/* Attend le calme de la page (voir __settle) : à préférer à un délai fixe avant de lire le focus, une région
+   live ou un état posé par une minuterie courte du jeu (annonce : 50 ms ; focus d'une modale : 50 ms…). */
+async function settle(page, maxDelay) {
+  if (!(await page.evaluate((d) => window.__settle(d), maxDelay === undefined ? null : maxDelay))) {
+    throw new Error('pas de calme après 8 s (minuteries en attente : ' + (await page.evaluate(() => window.__pending().join(', '))) + ')');
+  }
+}
+/* Classes pilotées par une minuterie longue du jeu que les sessions sans __later() ne retiennent pas :
+   elles sont écartées de l'empreinte du DOM (le texte de ces nœuds, lui, reste comparé). */
+const VOLATILE = ['toast', 'combo-display'];
+/* Range l'empreinte du DOM d'une photographie dans page.doms et renvoie la photographie sans elle. */
+function keepDom(page, shot) {
+  (page.doms || (page.doms = [])).push({ label: shot.label, h: shot.dom.h, n: shot.dom.n, i: shot.dom.i });
+  delete shot.dom;
+  return shot;
+}
 /* Animations WAAPI en cours (celles de la couche) : on écarte les animations/transitions CSS du jeu. */
 const waapi = (page) => page.evaluate(() => document.getAnimations()
   .filter((a) => !(a instanceof CSSAnimation) && !(a instanceof CSSTransition)).map((a) => a.effect.getTiming().duration));
 const gameShown = (page) => page.waitForFunction(() => document.getElementById('screen-game').style.display === 'block');
 
-/* Photographie de tout ce que le jeu expose : état, focus, régions live, écran, modales. */
-function snap(page, label) {
-  return page.evaluate((label) => {
+/* Photographie de tout ce que le jeu expose : état, focus, régions live, écran, modales — prise au calme
+   (opts.settle : délai des minuteries à laisser échoir, 150 ms par défaut), avec la suite des messages
+   écrits dans #sr-live et #toast depuis la photographie précédente et l'empreinte du DOM du jeu. */
+async function snap(page, label, opts) {
+  opts = opts || {};
+  return keepDom(page, await page.evaluate(async ([label, maxDelay, volatile]) => {
+    const base = await window.__shot(maxDelay, volatile);
     const q = state.questions[state.qIndex] || {};
     const ae = document.activeElement;
     const txt = (id) => { const el = document.getElementById(id); return el ? el.textContent : null; };
@@ -97,7 +351,8 @@ function snap(page, label) {
         state.mode, state.char, currentUniverse],
       question: [q.text, q.correct, !!q._retry],
       focus: ae ? (ae.id || (ae.tagName + '.' + ae.className)) : null,
-      toast: txt('toast'), sr: txt('sr-live'), hud: [txt('hud-score'), txt('hud-streak'), txt('hud-level')],
+      toast: txt('toast'), sr: txt('sr-live'), srLog: base.live.sr, toastLog: base.live.toast, dom: base.dom,
+      hud: [txt('hud-score'), txt('hud-streak'), txt('hud-level')],
       screens: Array.from(document.querySelectorAll('[id^="screen-"]')).filter((e) => getComputedStyle(e).display !== 'none').map((e) => e.id),
       modals: Array.from(document.querySelectorAll('.modal-overlay.show')).map((m) => m.id),
       answers: Array.from(document.querySelectorAll('#answers-grid .answer-btn')).map((b) => b.className + (b.disabled ? ':off' : '') + '|' + b.getAttribute('aria-label')),
@@ -106,13 +361,13 @@ function snap(page, label) {
       bodyOverflow: document.body.style.overflow,
       storage: Object.keys(localStorage).sort()
     };
-  }, label);
+  }, [label, opts.settle === undefined ? null : opts.settle, opts.volatile || VOLATILE]));
 }
 
 /* Session QCM scriptée, identique pour toutes les pages. */
 async function session(page) {
   const shots = [];
-  const shot = async (label) => { await wait(page, 90); shots.push(await snap(page, label)); };
+  const shot = async (label) => { shots.push(await snap(page, label)); };
   const good = () => page.evaluate(() => state.questions[state.qIndex].correct);
   await shot('accueil');
   await page.evaluate(() => startGame('6e_facile'));
@@ -156,17 +411,51 @@ function firstDiff(a, b) {
   }
   return null;
 }
+/* Première différence entre les empreintes du DOM de deux pages ENCORE OUVERTES (mêmes étapes) : null, ou
+   { etape, chemin, classique, anime } où « chemin » mène au premier nœud qui diffère. */
+async function domDiff(pa, pb) {
+  const a = pa.doms || [], b = pb.doms || [];
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    if (a[i] && b[i] && a[i].h === b[i].h && a[i].label === b[i].label) continue;
+    if (!a[i] || !b[i] || a[i].label !== b[i].label) return { etape: (a[i] || b[i]).label, chemin: '(étapes différentes)', classique: a[i] && a[i].label, anime: b[i] && b[i].label };
+    const [ta, tb] = await Promise.all([pa.evaluate((k) => window.__domLog[k], a[i].i), pb.evaluate((k) => window.__domLog[k], b[i].i)]);
+    let k = 0;
+    while (k < ta.length && k < tb.length && ta[k] === tb[k]) k++;
+    const stack = [];
+    for (let j = 0; j < k; j++) {
+      const t = ta[j];
+      if (t.charAt(0) !== '<') continue;
+      if (t.charAt(1) === '/') { stack.pop(); continue; }
+      const id = / id="([^"]*)"/.exec(t), cls = / class="([^" ]+)/.exec(t);
+      stack.push(/^<([\w-]+)/.exec(t)[1] + (id ? '#' + id[1] : cls ? '.' + cls[1] : ''));
+    }
+    const cut = (s) => (s === undefined ? '(fin du document)' : s.length > 240 ? s.slice(0, 240) + '…' : s);
+    return { etape: a[i].label, chemin: stack.join(' > '), classique: cut(ta[k]), anime: cut(tb[k]) };
+  }
+  return null;
+}
+/* Vérifie l'empreinte du DOM de chaque page animée contre la page classique, puis ferme tout.
+   runs = [[nom, run], …], le premier étant le classique ; run.page doit être encore ouverte. */
+async function domChecks(prefix, runs) {
+  const classic = runs[0][1];
+  const doms = classic.page.doms || [];
+  check(prefix + ' : empreinte du DOM prise à chaque étape (document entier : plus de 1000 jetons)', doms.length > 0 && doms.every((d) => d.n > 1000), doms.map((d) => d.n).slice(0, 6));
+  for (const [name, r] of runs.slice(1)) {
+    const d = await domDiff(classic.page, r.page);
+    check(prefix + ' : DOM du jeu identique à index.html, hors nœuds fx- et attributs data-fx* (' + name + ')', !d, d);
+  }
+  await Promise.all(runs.map(([, r]) => r.page.context().close()));
+}
 
 /* ── Scénario 1 : différentiel classique / off / complet / chaos ── */
 async function scenarioDiff(browser) {
   const run = async (url, prepare) => {
     const page = await open(browser, url);
     if (prepare) await page.evaluate(prepare);
-    const globals = await page.evaluate(() => Object.keys(window).filter((k) => k !== '__tick').sort());
+    const globals = await page.evaluate(() => Object.keys(window).sort());      // les aides du harnais (__tick, __settle…) sont dans les deux pages
     const shots = await session(page);
     const fx = url === ANIME ? await page.evaluate(() => ({ log: FX.debug.log.length, stats: FX.stats() })) : null;
-    await page.context().close();
-    return { shots, fx, errors: page.errors, globals };
+    return { page, shots, fx, errors: page.errors, globals };
   };
   const [classic, off, full, chaos] = await Promise.all([
     run(INDEX),
@@ -191,6 +480,9 @@ async function scenarioDiff(browser) {
   check('chaos : rien n\'a été joué', chaos.fx.log === 0, chaos.fx.log);
   const extra = full.globals.filter((k) => classic.globals.indexOf(k) < 0);
   check('une seule nouvelle globale : FX', extra.length === 1 && extra[0] === 'FX', extra);
+  check('régions live : la session classique annonce et affiche des toasts (suites non vides)',
+    classic.shots.some((s) => s.srLog.length > 0) && classic.shots.some((s) => s.toastLog.length > 0), classic.shots.map((s) => [s.label, s.srLog.length, s.toastLog.length]));
+  await domChecks('QCM', [['classique', classic], ['off', off], ['complet', full], ['chaos', chaos]]);
 }
 
 /* ── Scénario 2 : réglages (boutons, aria-pressed, 44 px, tiroir, pause, stockage) ── */
@@ -219,7 +511,7 @@ async function scenarioSettings(browser) {
   check('accueil : ON revient à complet', s.level === 'complet' && s.pressed[0].indexOf('Animations : ON') > 0, s);
   check('ON : éclat de confirmation journalisé', await page.evaluate(() => FX.debug.log.some((e) => e.fx === 'burst')));
 
-  await page.click('#topbar-menu-btn'); await wait(page, 90);
+  await page.click('#topbar-menu-btn'); await settle(page);          // focus posé par le jeu 50 ms après l'ouverture
   check('tiroir : boutons >= 44 px', (await height('fx-set-drawer')) >= 44 && (await height('fx-lite-drawer')) >= 44);
   const order = [];
   for (let i = 0; i < 9; i++) { await page.keyboard.press('Tab'); order.push(await page.evaluate(() => document.activeElement.id || document.activeElement.textContent.trim().slice(0, 12))); }
@@ -238,12 +530,19 @@ async function scenarioSettings(browser) {
   check('changement de niveau : clé mise à jour', !!s.key && JSON.parse(s.key).n === 'complet', s.key);
   await page.click('#drawer-save-toggle'); s = await st();
   check('sauvegarde désactivée : clé effacée', s.key === null && s.drawer, s);
-  await page.keyboard.press('Escape'); await wait(page, 30); s = await st();
-  check('Échap ferme le tiroir, focus rendu au bouton menu', !s.drawer && s.focus === 'topbar-menu-btn', s);
+  /* Lu DANS le tick de la touche (écouteur posé après ceux du jeu) : sur l'accueil d'une page fraîche, le même
+     Échap ouvre ensuite la pause du QCM (défaut hérité d'index.html : #screen-game n'a pas encore de style en
+     ligne), dont le focus part 50 ms plus tard. Une lecture à délai fixe tombait avant ou après selon la machine. */
+  await page.evaluate(() => window.addEventListener('keydown', () => {
+    window.__esc = { drawer: document.getElementById('drawer-menu').classList.contains('show'), focus: document.activeElement && document.activeElement.id };
+  }, { once: true }));
+  await page.keyboard.press('Escape'); await settle(page);
+  const esc = await page.evaluate(() => window.__esc);
+  check('Échap ferme le tiroir, focus rendu au bouton menu', !!esc && !esc.drawer && esc.focus === 'topbar-menu-btn', esc);
 
   // Modale de pause : Entrée / Espace sur le bouton FX ne reprend ni n'avance la partie.
   await page.evaluate(() => startGame('6e_facile')); await gameShown(page);
-  await page.keyboard.press('Escape'); await wait(page, 90);
+  await page.keyboard.press('Escape'); await settle(page);
   const before = await page.evaluate(() => [state.qIndex, state.answered, String(state.timer), document.activeElement.textContent.trim()]);
   check('pause : le focus initial reste sur REPRENDRE', /REPRENDRE/.test(before[3]), before);
   check('pause : bouton >= 44 px', (await height('fx-set-pause')) >= 44);
@@ -255,10 +554,10 @@ async function scenarioSettings(browser) {
   await page.keyboard.press(' '); s = await st();
   after = await page.evaluate(() => [state.qIndex, state.answered, String(state.timer), document.getElementById('modal-pause').classList.contains('show')]);
   check('pause : Espace bascule le niveau sans reprendre', s.level === 'complet' && after[3] && after[0] === before[0] && after[2] === before[2], [s.level, before, after]);
-  await page.keyboard.press('Escape'); await wait(page, 30);              // Échap : le jeu ferme puis rouvre la pause (comportement d'origine)
+  await page.keyboard.press('Escape'); await settle(page);                // Échap : le jeu ferme puis rouvre la pause (comportement d'origine)
   await page.evaluate(() => { quitFromPause(); startAutoMode('auto_6e'); });
-  await wait(page, 50);
-  await page.focus('#auto-input'); await page.keyboard.press('Escape'); await wait(page, 90);
+  await settle(page);                                                     // focus du champ : 100 ms après le départ
+  await page.focus('#auto-input'); await page.keyboard.press('Escape'); await settle(page);
   const autoBefore = await page.evaluate(() => [autoState.qIdx, autoState.answered, document.getElementById('modal-auto-pause').classList.contains('show')]);
   await page.keyboard.press('Shift+Tab'); await page.keyboard.press('Enter'); s = await st();
   const autoAfter = await page.evaluate(() => [autoState.qIdx, autoState.answered, document.getElementById('modal-auto-pause').classList.contains('show')]);
@@ -285,12 +584,16 @@ async function scenarioReduced(browser) {
   await page.evaluate(() => showScreen('stats')); await wait(page, 60);
   check('mouvement réduit : rien ne joue tant que c\'est off', (await page.evaluate(() => FX.debug.log.length)) === 0 && (await waapi(page)).length === 0);
   await page.evaluate(() => showScreen('home'));
-  await page.click('#fx-set-home'); await wait(page, 60);
+  await page.click('#fx-set-home');                          // l'éclat de confirmation part dans le tick du clic : lu sans attendre
   const r = await page.evaluate(() => ({ level: FX.level(), burst: FX.debug.log.filter((e) => e.fx === 'burst')[0], particles: FX.stats().particles }));
   check('mouvement réduit : rallumer donne « léger »', r.level === 'leger', r);
   check('mouvement réduit : mouvement visible (particules, 8 au plus)', !!r.burst && r.burst.n > 0 && r.burst.n <= 8 && r.particles > 0, r);
-  await page.evaluate(() => showScreen('stats')); await wait(page, 60);
-  const a = await waapi(page);
+  /* Lue dans la page à l'image même où la transition démarre (la file de la couche est vidée par un rAF demandé
+     avant celui-ci) : une attente fixe côté Node pouvait tomber après la fin des 140 ms sur une machine chargée. */
+  const a = await page.evaluate(() => new Promise((res) => {
+    showScreen('stats');
+    requestAnimationFrame(() => res(document.getAnimations().filter((x) => !(x instanceof CSSAnimation) && !(x instanceof CSSTransition)).map((x) => x.effect.getTiming().duration)));
+  }));
   check('mouvement réduit : l\'animation WAAPI garde sa durée (140 ms)', a.length === 1 && a[0] === 140, a);
   check('aucune erreur console / page (mouvement réduit)', page.errors.length === 0, page.errors);
   await page.context().close();
@@ -300,6 +603,12 @@ async function scenarioReduced(browser) {
 async function scenarioLayout(browser) {
   const rects = (page) => page.evaluate(() => {
     const out = {};
+    /* Les animations CSS du jeu en cours (pulsation de la bonne réponse, entrée d'un panneau) déforment les
+       rectangles mesurés : elles sont menées à leur terme (les boucles ramenées à leur début) avant la mesure,
+       qui ne dépend donc plus de l'instant où elle tombe. */
+    document.getAnimations().forEach((a) => {
+      try { if (a.effect && a.effect.getComputedTiming().endTime === Infinity) { a.pause(); a.currentTime = 0; } else a.finish(); } catch (e) { /* animation déjà retirée */ }
+    });
     const add = (key, el) => { if (!el) return; const r = el.getBoundingClientRect(); if (r.width || r.height) out[key] = [r.left, r.top, r.width, r.height].map((v) => Math.round(v * 10) / 10).join(','); };
     add('header', document.querySelector('header'));
     document.querySelectorAll('[id^="screen-"]').forEach((scr) => {
@@ -393,6 +702,38 @@ async function scenarioKernel(browser) {
     out.cap = FX.stats().particles;
     await new Promise((res) => setTimeout(res, 700));
     out.idle = [FX.stats().particles, FX.stats().loop, document.getElementById('fx-root').className];
+    // 7 bis. Contrat de l'enveloppe (FX.wrap), sur une globale jetable : même this, mêmes arguments, valeur
+    // renvoyée telle quelle, exception du jeu propagée (le même objet), original appelé exactement une fois.
+    const probe = { calls: 0, self: null, args: null, err: new Error('exception du jeu'), token: { retour: 1 }, before: [], after: [] };
+    window.__sonde = function (a) {
+      probe.calls++; probe.self = this; probe.args = Array.prototype.slice.call(arguments);
+      if (a === 'lève') throw probe.err;
+      return probe.token;
+    };
+    const bare = window.__sonde;
+    out.wrapped = [FX.wrap('__sonde', function () { probe.before.push([this, arguments.length, arguments[0]]); return 'ctx'; },
+      function (ctx, args, ret) { probe.after.push([this, ctx, args.length, args[0], ret]); }), window.__sonde !== bare, FX.debug.orig('__sonde') === bare];
+    const trial = () => {
+      const self = { moi: 1 }, arg = { a: 1 }, res = {};
+      probe.calls = 0; probe.before = []; probe.after = [];
+      const ret = window.__sonde.call(self, arg, 2, 'trois');
+      res.retour = ret === probe.token;
+      res.thisArgs = probe.self === self && probe.args.length === 3 && probe.args[0] === arg && probe.args[1] === 2 && probe.args[2] === 'trois';
+      res.uneFois = probe.calls === 1;
+      const hookOk = probe.before.length === 1 && probe.before[0][0] === self && probe.before[0][1] === 3 && probe.before[0][2] === arg &&
+        probe.after.length === 1 && probe.after[0][0] === self && probe.after[0][1] === 'ctx' && probe.after[0][2] === 3 && probe.after[0][3] === arg && probe.after[0][4] === probe.token;
+      let caught = null;
+      probe.calls = 0;
+      try { window.__sonde.call(self, 'lève'); } catch (e) { caught = e; }
+      res.exception = caught === probe.err;
+      res.uneFoisQuandLeve = probe.calls === 1;
+      res.crochets = probe.before.length + '/' + probe.after.length + (hookOk ? ' ok' : '');
+      return res;
+    };
+    out.contract = { complet: trial() };
+    FX.setLevel('off'); out.contract.off = trial();
+    FX.setLevel('complet'); FX.debug.chaos = true; out.contract.chaos = trial(); out.contract.chaosLeves = FX.stats().chaos;
+    FX.debug.chaos = false;
     // 8. Disjoncteur : un crochet fautif est coupé après 3 erreurs, la couche après 8 ; le jeu continue.
     let calls = 0;
     FX.wrap('updateJutsuUI', () => { calls++; throw new Error('test'); });
@@ -404,6 +745,7 @@ async function scenarioKernel(browser) {
     out.dead = [FX.stats().dead, FX.level(), document.documentElement.getAttribute('data-fx'), document.getElementById('fx-set-home').disabled];
     startGame('6e_facile');
     out.gameAlive = state.mode;
+    out.contract.coupee = trial();
     return out;
   });
   check('évènement abandonné quand sa portée change', r.scopeDrop === 1, r.scopeDrop);
@@ -417,8 +759,81 @@ async function scenarioKernel(browser) {
   check('boucle arrêtée et canvas masqué au repos', r.idle[0] === 0 && r.idle[1] === false && r.idle[2] === '', r.idle);
   check('disjoncteur : crochet coupé après 3 erreurs', r.hookOff[0] === 3 && r.hookOff[1] === 3 && r.hookOff[2] === false, r.hookOff);
   check('disjoncteur : couche coupée après 8 erreurs, jeu intact', r.dead[0] === true && r.dead[1] === 'off' && r.dead[2] === 'off' && r.dead[3] === true && r.gameAlive === '6e_facile', [r.dead, r.gameAlive]);
+  /* Contrat de l'enveloppe : la couche n'est jamais entre le jeu et lui-même. */
+  check('enveloppe : la globale jetable est bien enveloppée (FX.debug.orig rend l\'original)', r.wrapped.every(Boolean), r.wrapped);
+  for (const [lv, hooks] of [['complet', '2/1 ok'], ['off', '0/0'], ['chaos', '0/0'], ['coupee', '0/0']]) {
+    const k = r.contract[lv], tag = lv === 'coupee' ? 'couche coupée' : 'niveau ' + lv;
+    check('enveloppe (' + tag + ') : valeur de retour rendue telle quelle', k.retour === true, k);
+    check('enveloppe (' + tag + ') : même this et mêmes arguments pour l\'original', k.thisArgs === true, k);
+    check('enveloppe (' + tag + ') : l\'exception du jeu se propage (le même objet)', k.exception === true, k);
+    check('enveloppe (' + tag + ') : original appelé exactement une fois, qu\'il rende ou qu\'il lève', k.uneFois === true && k.uneFoisQuandLeve === true, k);
+    check('enveloppe (' + tag + ') : crochets ' + (hooks === '2/1 ok' ? 'servis avec le même this, les arguments et le retour ; « après » sauté quand le jeu lève' : 'muets'), k.crochets === hooks, k);
+  }
+  check('enveloppe (chaos) : les crochets ont bien levé', r.contract.chaosLeves >= 2, r.contract.chaosLeves);
   check('aucune erreur console / page (noyau)', page.errors.length === 0, page.errors);
   await page.context().close();
+}
+
+/* ── Scénario 5 bis : réseau et média — la couche ne demande rien et n'ajoute aucune balise de ressource ── */
+async function scenarioNetwork(browser) {
+  const TAGS = ['img', 'picture', 'audio', 'video', 'source', 'track', 'iframe', 'frame', 'object', 'embed', 'script', 'link', 'style'];
+  const run = async (url) => {
+    const ctx = await browser.newContext({ viewport: { width: 412, height: 800 } });
+    const reqs = [];
+    ctx.on('request', (q) => reqs.push(q.url()));
+    await ctx.route(/^(https?|wss?):/, (route) => route.abort());          // rien ne sort de la machine ; la tentative reste comptée
+    const page = await ctx.newPage();
+    page.errors = [];
+    page.on('pageerror', (e) => page.errors.push('pageerror: ' + e.message));
+    page.on('websocket', (ws) => reqs.push(ws.url()));
+    await page.addInitScript(harness, SEED);
+    await page.goto(url);
+    await wait(page, 900);                                                 // ouverture de l'accueil
+    /* Session courte à travers les modules : univers, QCM (juste, faux, partie finie), résultat, Vrai/Faux,
+       Histoire, Constructeur, Automatismes, Stats, thème. Les attentes laissent jouer les effets. */
+    await page.evaluate(() => selectUniverse('onepiece')); await wait(page, 300);
+    await page.evaluate(() => startGame('6e_facile')); await gameShown(page); await wait(page, 200);
+    await page.evaluate(() => answer(state.questions[state.qIndex].correct)); await wait(page, 250);
+    await page.evaluate(() => { nextQuestion(); answer((state.questions[state.qIndex].correct + 1) % 4); }); await wait(page, 250);
+    await playThrough(page, 1); await wait(page, 700);
+    await page.evaluate(() => { showHome(); startTrueFalse(); }); await wait(page, 200);
+    await page.evaluate(() => answerTf(tfState.questions[tfState.qIdx].isTrue)); await wait(page, 250);
+    await page.evaluate(() => { clearInterval(tfState.timer); showHome(); startStoryMode(); nextStoryStep(); answerStoryStep(storyState.currentStep.correct); }); await wait(page, 250);
+    await page.evaluate(() => { showHome(); startPythMode(); }); await wait(page, 200);
+    await page.evaluate(() => validatePythChallenge()); await wait(page, 200);
+    await page.evaluate(() => { showHome(); startAutoMode('auto_6e'); }); await wait(page, 200);
+    await page.evaluate(() => { document.getElementById('auto-input').value = String(autoState.questions[autoState.qIdx].a); submitAutoAnswer(); }); await wait(page, 250);
+    await page.evaluate(() => { exitAutoMode(); showStatsScreen(); }); await wait(page, 200);
+    await page.evaluate(() => { showHome(); toggleTheme(); }); await wait(page, 400);
+    const dom = await page.evaluate((TAGS) => {
+      const tags = {};
+      TAGS.forEach((t) => { tags[t] = document.getElementsByTagName(t).length; });
+      const res = [];
+      document.querySelectorAll('[src], link[href], [srcset], [poster], object[data]').forEach((e) => res.push(e.tagName.toLowerCase() + ' ' + (e.getAttribute('src') || e.getAttribute('href') || e.getAttribute('srcset') || e.getAttribute('poster') || e.getAttribute('data'))));
+      return { tags, res: res.sort(), sheets: document.styleSheets.length, fonts: document.fonts.size, played: typeof FX !== 'undefined' ? FX.debug.log.length : -1,
+        fxNodes: Array.from(document.querySelectorAll('[id^="fx-"]')).filter((e) => /^(SCRIPT|STYLE)$/.test(e.tagName)).map((e) => e.tagName.toLowerCase() + '#' + e.id) };
+    }, TAGS);
+    await ctx.close();
+    return { reqs: Array.from(new Set(reqs)).sort(), dom, errors: page.errors };
+  };
+  const [classic, anime] = await Promise.all([run(INDEX), run(ANIME)]);
+  const short = (u) => (u.length > 140 ? u.slice(0, 140) + '…' : u);
+  /* Admis en plus : la page elle-même et son propre manifest (à la place de index.html et manifest.json). */
+  const own = (u) => u === ANIME || /\/manifest-anime\.json(\?.*)?$/.test(u);
+  const extra = anime.reqs.filter((u) => classic.reqs.indexOf(u) < 0 && !own(u));
+  check('réseau : la session classique émet bien des requêtes observables (polices, compteur)', classic.reqs.length > 1 && classic.reqs.some((u) => /^https?:/.test(u)), classic.reqs.map(short));
+  check('réseau : l\'édition animée ne demande rien que index.html ne demande (son manifest excepté)', extra.length === 0, extra.map(short));
+  check('réseau : la couche a joué pendant la session (journal non vide)', anime.dom.played > 20, anime.dom.played);
+  const want = Object.assign({}, classic.dom.tags, { script: classic.dom.tags.script + 1, style: classic.dom.tags.style + 1 });
+  check('média : aucune balise img / audio / video / iframe / script / link / source / object / embed ajoutée (hors #fx-script et #fx-style du build)',
+    JSON.stringify(anime.dom.tags) === JSON.stringify(want) && anime.dom.fxNodes.join() === 'style#fx-style,script#fx-script', [classic.dom.tags, anime.dom.tags, anime.dom.fxNodes]);
+  /* Seule différence admise : le manifest de la page (retouche du <head> par le build). */
+  const noManifest = (l) => l.filter((x) => !/^link manifest(-anime)?\.json$/.test(x));
+  check('média : mêmes attributs de ressource (src, href, srcset, poster) dans les deux pages, manifest excepté',
+    JSON.stringify(noManifest(classic.dom.res)) === JSON.stringify(noManifest(anime.dom.res)), [noManifest(anime.dom.res).filter((x) => classic.dom.res.indexOf(x) < 0)]);
+  check('média : une seule feuille de style en plus (#fx-style), aucune police déclarée en plus',
+    anime.dom.sheets === classic.dom.sheets + 1 && anime.dom.fonts === classic.dom.fonts, [classic.dom.sheets, anime.dom.sheets, classic.dom.fonts, anime.dom.fonts]);
+  check('aucune erreur de page (réseau)', classic.errors.length + anime.errors.length === 0, [classic.errors, anime.errors]);
 }
 
 /* ══════════ Scénarios du combat (modules 20–29 : arène, moments du QCM, verdict) ══════════ */
@@ -864,7 +1279,8 @@ const SCENARIOS = [
   ['reglages', 'réglages et persistance', scenarioSettings],
   ['reduit', 'prefers-reduced-motion', scenarioReduced],
   ['miseenpage', 'mise en page au niveau off', scenarioLayout],
-  ['noyau', 'garde-fous du noyau', scenarioKernel],
+  ['noyau', 'garde-fous du noyau et contrat de l\'enveloppe', scenarioKernel],
+  ['reseau', 'réseau et média : aucune requête ni balise de ressource ajoutée', scenarioNetwork],
   ['arene', 'arène du QCM (mise en page, modes, univers)', scenarioArena],
   ['combat', 'moments du QCM (journal, coupure nette)', scenarioCombat],
   ['verdict', 'cérémonie du résultat', scenarioVerdict],
@@ -874,9 +1290,8 @@ const SCENARIOS = [
 /* Scénarios des modules : un fichier par module dans tools/anime-tests/ (ordre alphabétique).
    Chaque fichier exporte function (h) { return [[clé, titre, async (browser) => {…}], …]; }
    où h regroupe les aides de ce fichier (voir HELPERS). */
-const HELPERS = { check, open, wait, waapi, gameShown, snap, firstDiff, logOf, during, leftovers, isIdle, harness,
+const HELPERS = { check, open, wait, settle, waapi, gameShown, snap, firstDiff, keepDom, domChecks, VOLATILE, logOf, during, leftovers, isIdle, harness,
   ROOT, INDEX, ANIME, SEED };
-const fs = require('fs');
 const EXTRA_DIR = path.join(__dirname, 'anime-tests');
 if (fs.existsSync(EXTRA_DIR)) {
   fs.readdirSync(EXTRA_DIR).filter((f) => /\.js$/.test(f)).sort().forEach((f) => {
@@ -884,17 +1299,33 @@ if (fs.existsSync(EXTRA_DIR)) {
   });
 }
 
+const KEYS = SCENARIOS.map((s) => s[0]);
+if (flag('--list')) { console.log(KEYS.join('\n')); process.exit(0); }
+if (ONLY) {
+  const unknown = ONLY.filter((k) => KEYS.indexOf(k) < 0);
+  if (unknown.length || !ONLY.length) usage('clé de scénario inconnue pour --only : ' + (unknown.join(', ') || '(liste vide)') + '\nClés : ' + KEYS.join(', '));
+}
+if (!fs.existsSync(ANIME_PATH)) usage('fichier introuvable : ' + ANIME_PATH);
+
 (async () => {
   const t0 = Date.now();
-  const browser = await chromium.launch();
+  const browser = instrument(await chromium.launch());
+  let ran = 0;
   for (const [key, title, fn] of SCENARIOS) {
     if (ONLY && ONLY.indexOf(key) < 0) continue;
     const t = Date.now(), n = failures.length;
+    ran++;
     try { await fn(browser); } catch (e) { check(title + ' (exception du test)', false, String(e && e.stack || e).slice(0, 600)); }
+    /* Audit des nœuds de la couche, relevé à la fermeture de chaque page animée du scénario. */
+    const audits = browser.audits.splice(0), bad = [];
+    audits.forEach((a) => a.bad.forEach((b) => { if (bad.indexOf(b) < 0) bad.push(b); }));
+    check(title + ' — audit de la couche : nœuds aria-hidden et hors pointeur, aucun dans un écran du jeu hors #fx-arena, aucune classe fx- sur le jeu',
+      audits.length > 0 && audits.some((a) => a.seen > 0) && bad.length === 0, audits.length ? bad.slice(0, 6) : 'aucune page animée relevée');
     console.log((failures.length === n ? '✓ ' : '✗ ') + title + '  (' + ((Date.now() - t) / 1000).toFixed(1) + ' s)');
   }
   await browser.close();
   console.log('\n' + checks + ' vérifications, ' + failures.length + ' échec(s), ' + ((Date.now() - t0) / 1000).toFixed(1) + ' s');
   failures.forEach((f) => console.log(' - ' + f));
+  if (!ran || !checks) { console.log('AUCUNE vérification exécutée : ce n\'est pas un succès.'); process.exit(1); }
   process.exit(failures.length ? 1 : 0);
 })();

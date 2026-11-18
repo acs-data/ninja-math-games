@@ -6,7 +6,9 @@
                            glisser-déposer à la souris, tracés sur le canvas, clavier, fenêtre
                            redimensionnée en cours de mode, chrono fantôme du puzzle) sur index.html et
                            sur l'édition animée aux niveaux off, complet et « chaos » : état de chaque
-                           mode, focus, #toast, #sr-live, HUD, texte ET balisage des écrans identiques.
+                           mode, focus, suite des messages de #toast et de #sr-live, HUD, texte ET
+                           balisage des écrans, empreinte du DOM du jeu identiques. Chaque photographie
+                           attend le calme de la page ; un redimensionnement attend l'évènement resize.
    · interactive-moments : le journal FX montre les effets attendus (complet), leur forme courte (léger),
                            rien au niveau off ; fronts d'état (un appel n'est pas une action du joueur),
                            rien pendant un glisser, rien au redimensionnement, rien sur l'accueil quand le
@@ -20,7 +22,7 @@
 'use strict';
 
 module.exports = function (h) {
-  const { check, wait, logOf, during, leftovers, isIdle, harness, INDEX, ANIME, SEED } = h;
+  const { check, wait, settle: quiesce, keepDom, domChecks, logOf, during, leftovers, isIdle, harness, INDEX, ANIME, SEED } = h;
   const has = (log, name) => log.some((l) => l.indexOf(name) === 0);
   const count = (log, name) => log.filter((l) => l.indexOf(name) === 0).length;
   const MINE = /^(trace-|puzzle-|defi-|atelier-|proba-|arbre-|graph-|bilan-|stats)/;      // chorégraphies du module
@@ -93,6 +95,14 @@ module.exports = function (h) {
   /* La couche au repos (l'accueil joue son ouverture après le chargement quand le module existe). */
   const quiet = (page) => ev(page, () => { FX.cancel('*'); FX.debug.log.length = 0; });
 
+  /* Redimensionne la fenêtre et rend la main quand la page a servi l'évènement resize (les écouteurs du jeu,
+     inscrits avant celui-ci, ont alors posé leurs minuteries de 100 ms : le calme suivant les attend). */
+  async function resize(page, width, height) {
+    const served = ev(page, () => new Promise((res) => window.addEventListener('resize', () => res(), { once: true })));
+    await page.setViewportSize({ width, height });
+    await served;
+  }
+
   /* ── Gestes réels ── */
   /* Vrai clic au centre d'un élément, amené au milieu de la fenêtre (loin de l'en-tête collant et du
      toast). page.click() n'est pas utilisé : quand un toast recouvre la cible, Playwright réessaie en
@@ -138,8 +148,12 @@ module.exports = function (h) {
   /* ── Photographie de tout ce que ces modes exposent. L'accueil est écarté du texte, du balisage et
         du défilement (le bouton de réglage de la couche y vit) ; les autres écrans doivent être
         identiques au caractère près (aucune classe, aucun style, aucun enfant ajouté par la couche). ── */
-  function snap(page, label) {
-    return page.evaluate((label) => {
+  /* Prise au calme (voir __shot dans le harnais) ; maxDelay = délai des minuteries du jeu à laisser échoir
+     (150 ms par défaut ; 400 pour la validation d'un puzzle, 950 pour la case libérée). Les minuteries
+     longues étant retenues (__later), aucune classe n'est écartée de l'empreinte du DOM. */
+  async function snap(page, label, maxDelay) {
+    return keepDom(page, await page.evaluate(async ([label, maxDelay]) => {
+      const base = await window.__shot(maxDelay, []);
       const el = (id) => document.getElementById(id);
       const txt = (id) => (el(id) ? el(id).textContent : null);
       const ae = document.activeElement;
@@ -165,7 +179,7 @@ module.exports = function (h) {
         state: [state.score, state.xp, state.level],
         stats: JSON.stringify([playerStats.gamesByMode, playerStats.totalGames, playerStats.totalCorrect, playerStats.totalAnswered]),
         focus: ae ? (ae.id || (ae.tagName + '.' + ae.className)) : null,
-        toast: txt('toast') + '|' + el('toast').className, sr: txt('sr-live'),
+        toast: txt('toast') + '|' + el('toast').className, sr: txt('sr-live'), srLog: base.live.sr, toastLog: base.live.toast, dom: base.dom,
         hud: [txt('hud-score'), txt('hud-streak'), txt('hud-level')],
         screens: vis.map((e) => e.id),
         text: away.map((e) => e.textContent.replace(/\s+/g, ' ')),
@@ -177,7 +191,7 @@ module.exports = function (h) {
         bodyOverflow: document.body.style.overflow,
         storage: Object.keys(localStorage).sort()
       };
-    }, label);
+    }, [label, maxDelay === undefined ? null : maxDelay]));
   }
   function firstDiff(a, b) {
     for (let i = 0; i < Math.max(a.length, b.length); i++) {
@@ -194,8 +208,8 @@ module.exports = function (h) {
   /* Tracé : 7 missions. La mission 1 ne peut pas réussir dans le jeu (g.tolerance indéfini : un axe
      parfaitement centré obtient 60) — défaut hérité : on teste donc son front d'échec. */
   async function drawSession(page, shot) {
-    await ev(page, () => { window.scrollTo(0, 0); startDrawMode(); }); await wait(page, 130);
-    await shot('tracé : mission 1');
+    await ev(page, () => { window.scrollTo(0, 0); startDrawMode(); });
+    await shot('tracé : mission 1');                          // canvas préparé 50 ms après
     await ev(page, () => validateDraw()); await shot('tracé : valider sans tracé (toast, rien de validé)');
     await stroke(page, frac(0.5, 0.1, 0.5, 0.9));
     await click(page, '#screen-draw .btn-main'); await shot('tracé : mission 1, axe centré → 60');
@@ -217,8 +231,8 @@ module.exports = function (h) {
     await click(page, '#draw-tool-angle');
     await angle(page, [[0.7, 0.5], [0.3, 0.5], [0.6, 0.25]]);
     await ev(page, () => validateDraw()); await shot('tracé : mission 6, angle aigu → 100');
-    await page.setViewportSize({ width: 600, height: 800 }); await wait(page, 260); await shot('tracé : fenêtre redimensionnée (canvas relancé, tracés effacés)');
-    await page.setViewportSize({ width: 412, height: 800 }); await wait(page, 260);
+    await resize(page, 600, 800); await shot('tracé : fenêtre redimensionnée (canvas relancé, tracés effacés)');
+    await resize(page, 412, 800); await quiesce(page);
     await ev(page, () => nextDrawMission());
     await angle(page, [[0.8, 0.6], [0.5, 0.6], [0.3, 0.3]]);
     await ev(page, () => validateDraw()); await shot('tracé : mission 7, angle obtus → 20');
@@ -229,22 +243,23 @@ module.exports = function (h) {
   async function puzzleSession(page, shot) {
     await ev(page, () => { window.scrollTo(0, 0); startPuzzleMode(); __tick(5); }); await shot('puzzle 1');
     let pairs = await ev(page, () => __pairs());
+    await ev(page, () => __hold(800));                         // la case se libère 900 ms après : retenue le temps de la photo
     await drag(page, pairs[0][0], pairs[1][1]); await shot('puzzle 1 : mauvaise case (toast)');
-    await wait(page, 1000); await shot('puzzle 1 : case libérée');
+    await ev(page, () => __release()); await shot('puzzle 1 : case libérée', 950);
     for (const [p, s] of pairs) await drag(page, p, s);
-    await wait(page, 420); await shot('puzzle 1 résolu (vrais glisser-déposer)');
+    await shot('puzzle 1 résolu (vrais glisser-déposer)', 400);          // validation 300 ms après la dernière pièce
     await ev(page, () => { nextPuzzle(); __tick(12); });
     await ev(page, () => {                                     // puzzle 2 : appels directs, case déjà prise comprise
       __pairs().forEach((q) => { const p = document.querySelector(q[0]), s = document.querySelector(q[1]); dropOnSlot(p, s); dropOnSlot(p, s); });
     });
-    await wait(page, 420); await shot('puzzle 2 résolu (appels directs)');
-    await ev(page, () => nextPuzzle()); await wait(page, 180);                // puzzle 3 : tri ; bouton créé 100 ms après
+    await shot('puzzle 2 résolu (appels directs)', 400);
+    await ev(page, () => nextPuzzle()); await quiesce(page);                   // puzzle 3 : tri ; bouton créé 100 ms après
     await click(page, '#puzzle-game-area > .btn-main'); await shot('puzzle 3 : valider trop tôt (toast, rien de validé)');
     for (const id of await ev(page, () => __order())) await drag(page, id, '#sort-zone');
     await shot('puzzle 3 : éléments dans le plateau');
     await click(page, '#puzzle-game-area > .btn-main'); await shot('puzzle 3 : tri réussi');
     await ev(page, () => { nextPuzzle(); __tick(610); }); await shot('puzzle 4 : temps écoulé');
-    await ev(page, () => nextPuzzle()); await wait(page, 180);                // puzzle 5 : tri à l'envers
+    await ev(page, () => nextPuzzle()); await quiesce(page);                   // puzzle 5 : tri à l'envers
     for (const id of (await ev(page, () => __order())).reverse()) await drag(page, id, '#sort-zone');
     await click(page, '#puzzle-game-area > .btn-main'); await shot('puzzle 5 : tri à revoir');
     await ev(page, () => { nextPuzzle(); __tick(30); });                      // puzzle 6
@@ -258,7 +273,7 @@ module.exports = function (h) {
   /* Constructeur : poignées glissées à la souris, trois ateliers, essais manqués martelés, réussites,
      fenêtre redimensionnée (le jeu tire alors un nouveau défi). */
   async function pythSession(page, shot) {
-    await ev(page, () => { window.scrollTo(0, 0); startPythMode(); }); await wait(page, 150); await shot('atelier : pythagore');
+    await ev(page, () => { window.scrollTo(0, 0); startPythMode(); }); await shot('atelier : pythagore');     // canvas préparé 60 ms après
     await click(page, '#pyth-validate-btn'); await shot('atelier : essai manqué');
     await ev(page, () => { validatePythChallenge(); validatePythChallenge(); }); await shot('atelier : bouton martelé');
     await center(page, '#pyth-canvas');
@@ -277,8 +292,8 @@ module.exports = function (h) {
     await click(page, '#pyth-new-btn'); await shot('atelier : nouveau défi');
     await click(page, '#screen-pythagore .chapter-tab[data-atelier="trigo"]');
     await ev(page, () => { __angle(12); validatePythChallenge(); }); await shot('atelier : trigo, essai manqué');
-    await page.setViewportSize({ width: 700, height: 800 }); await wait(page, 300); await shot('atelier : fenêtre redimensionnée (nouveau défi tiré par le jeu)');
-    await page.setViewportSize({ width: 412, height: 800 }); await wait(page, 300);
+    await resize(page, 700, 800); await shot('atelier : fenêtre redimensionnée (nouveau défi tiré par le jeu)');
+    await resize(page, 412, 800); await quiesce(page);
     await ev(page, () => { __angle(pythState.challenge.target.angle); validatePythChallenge(); }); await shot('atelier : défi trigo réussi');
     await ev(page, () => showHome()); await shot('atelier : retour accueil');
   }
@@ -314,7 +329,7 @@ module.exports = function (h) {
   /* Graphique : 10 défis — QCM au clic, points au clavier (flèches + Entrée) ou à la souris sur le
      canvas, modale « Quitter » ouverte puis refermée, fenêtre redimensionnée (nouveau défi tiré). */
   async function graphSession(page, shot) {
-    await ev(page, () => { window.scrollTo(0, 0); startGraphReader(); }); await wait(page, 150); await shot('graphique : défi 1');
+    await ev(page, () => { window.scrollTo(0, 0); startGraphReader(); }); await shot('graphique : défi 1');   // canvas préparé 60 ms après
     for (let k = 0; k < 10; k++) {
       const c = await ev(page, () => { const g = graphState.current, p = g.target && mathToPx(g.target.x, g.target.y); return { mode: g.mode, type: g.type, t: g.target, good: g.correctIdx, p, H: graphState.H }; });
       const juste = k % 3 !== 1;
@@ -334,13 +349,13 @@ module.exports = function (h) {
       }
       await shot('graphique : défi ' + (k + 1) + ' répondu (' + c.mode + ')');
       if (k === 3) {
-        await click(page, '#screen-graph-reader .btn-control'); await wait(page, 80); await shot('graphique : modale Quitter');
+        await click(page, '#screen-graph-reader .btn-control'); await shot('graphique : modale Quitter');
         await page.keyboard.press('Escape'); await shot('graphique : modale refermée');
       }
       if (k < 9) await click(page, '#graph-next-btn'); else await ev(page, () => nextGraphChallenge());
       if (k === 5) {                                           // le jeu tire alors un nouveau défi 7 (deux fois)
-        await page.setViewportSize({ width: 700, height: 800 }); await wait(page, 300); await shot('graphique : fenêtre redimensionnée (nouveau défi tiré par le jeu)');
-        await page.setViewportSize({ width: 412, height: 800 }); await wait(page, 300);
+        await resize(page, 700, 800); await shot('graphique : fenêtre redimensionnée (nouveau défi tiré par le jeu)');
+        await resize(page, 412, 800); await quiesce(page);
       }
     }
     await shot('graphique : résultat');
@@ -362,18 +377,17 @@ module.exports = function (h) {
       if (prepare) await page.evaluate(prepare);
       for (const [name, session] of SESSIONS) {
         const shots = out.shots[name] = [];
-        const shot = async (label) => {
-          await wait(page, 90);
-          shots.push(await snap(page, label));
+        const shot = async (label, maxDelay) => {
+          shots.push(await snap(page, label, maxDelay));
           if (fx) out.log = out.log.concat(await ev(page, () => { const l = FX.debug.log.map((e) => e.fx + (e.info ? '[' + e.info + ']' : '')); FX.debug.log.length = 0; return l; }));
         };
         try { await session(page, shot); } catch (e) { out.broke[name] = String(e && e.stack || e).slice(0, 500); }
         await page.setViewportSize({ width: 412, height: 800 });
-        await ev(page, () => { __later(); showHome(); window.scrollTo(0, 0); });
-        await wait(page, 250);
+        await ev(page, () => { __release(); __later(); showHome(); window.scrollTo(0, 0); });
+        await quiesce(page, 950);
       }
       if (fx) out.fx = await ev(page, () => FX.stats());
-      await page.context().close();
+      out.page = page;
       return out;
     };
     const [classic, off, full, chaos] = await Promise.all([
@@ -427,6 +441,9 @@ module.exports = function (h) {
       full.fx.errCount === 0 && full.fx.missing.length + full.fx.denied.length === 0 && full.fx.modules.ateliers === 'ok' && !full.fx.dead, [full.fx.errors, full.fx.missing, full.fx.denied, full.fx.modules]);
     check('aucun chemin chaud enveloppé (render*, draw*, handle*Move, getCanvasPos, isPythDragging)',
       !full.fx.wrapped.some((w) => /^(render(?!UniverseGrid|CharGrid|MissionChips|Stats$)|draw|handle|getCanvasPos|isPythDragging|setup|init)/.test(w)), full.fx.wrapped);
+    check('ateliers : la session classique annonce (suite des messages de #sr-live non vide)',
+      SESSIONS.every(([name]) => name === 'stats' || classic.shots[name].some((s) => s.srLog.length > 0)), SESSIONS.map(([name]) => [name, classic.shots[name].map((s) => s.srLog.length).join('')]));
+    await domChecks('ateliers', [['classique', classic], ['off', off], ['complet', full], ['chaos', chaos]]);
   }
 
   /* ════════════ Scénario 2 : les moments (journal FX, fronts d'état, coupures) ════════════ */

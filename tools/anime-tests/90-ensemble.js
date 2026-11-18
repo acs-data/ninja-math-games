@@ -13,7 +13,8 @@
                          (portée « cue » du noyau).
    · ensemble-parcours : inventaire des crochets (7 modules, 50 fonctions, rien de manquant ni refusé),
                          navigation rapide à travers tous les modes aux niveaux complet puis « chaos » :
-                         aucune erreur, rien ne traîne, le jeu finit sur l'accueil.
+                         aucune erreur, rien ne traîne, le jeu finit sur l'accueil, et chacune des 50
+                         globales est ENCORE l'enveloppe posée au démarrage (aucun crochet contourné).
 
    Les minuteries longues du jeu (« question suivante » : 2,5 à 5 s ; toast : 2,2 s) sont retenues et
    déclenchées par __later() ; celles de la couche sont toutes plus courtes, sauf la fin de la
@@ -39,6 +40,20 @@ module.exports = function (h) {
     window.clearTimeout = function (id) { if (!held.delete(id)) realClear(id); };
     window.__later = function () { const l = Array.from(held.values()); held.clear(); l.forEach((f) => f()); return l.length; };
   }
+  /* Photographie les enveloppes au démarrage : window.FX est posée par la couche au début de son script ;
+     une micro-tâche plus tard ce script a fini (tous les FX.wrap sont faits), avant toute autre tâche de la page. */
+  function trapBoot() {
+    Object.defineProperty(window, 'FX', {
+      configurable: true, enumerable: true,
+      set: function (fx) {
+        Object.defineProperty(window, 'FX', { value: fx, writable: true, configurable: true, enumerable: true });
+        Promise.resolve().then(function () {
+          const w = fx.stats().wrapped;
+          window.__boot = { names: w.slice(), fns: w.map(function (n) { return window[n]; }), origs: w.map(function (n) { return fx.debug.orig(n); }) };
+        });
+      }
+    });
+  }
   async function open(browser, opts) {
     const ctx = await browser.newContext({ viewport: opts.viewport, reducedMotion: 'no-preference', colorScheme: opts.colorScheme });
     const page = await ctx.newPage();
@@ -49,6 +64,7 @@ module.exports = function (h) {
     });
     await page.addInitScript(harness, SEED);
     await page.addInitScript(holdLongTimers);
+    if (opts.boot) await page.addInitScript(trapBoot);
     await page.goto(ANIME);
     await page.waitForTimeout(150);
     return page;
@@ -267,14 +283,28 @@ module.exports = function (h) {
   });
   const atRest = (r) => r.particles + r.shapes + r.anims + r.nodes + r.timers + r.queue + r.stage + r.waapi === 0 && !r.loop && !r.live && r.errors.length === 0;
 
+  /* Les globales enveloppées sont-elles encore celles du démarrage ? Liste des noms qui ne le sont plus. */
+  const hooksLost = (page) => ev(page, () => {
+    const b = window.__boot, out = [];
+    if (!b) return ['(démarrage non photographié)'];
+    b.names.forEach((n, i) => {
+      if (typeof b.fns[i] !== 'function' || b.fns[i] === b.origs[i]) out.push(n + ' : jamais enveloppée');
+      else if (window[n] !== b.fns[i]) out.push(n + ' : remplacée depuis le démarrage');
+      else if (FX.debug.orig(n) !== b.origs[i]) out.push(n + ' : original changé');
+    });
+    return out;
+  });
+
   async function scenarioParcours(browser) {
-    const page = await open(browser, DESK);
+    const page = await open(browser, Object.assign({ boot: true }, DESK));
     const st = await ev(page, () => { const s = FX.stats(); return { modules: s.modules, wrapped: s.wrapped, missing: s.missing, denied: s.denied, dead: s.dead }; });
     check('7 modules démarrés, 50 fonctions du jeu enveloppées, rien de manquant ni refusé',
       MODULES.every((m) => st.modules[m] === 'ok') && Object.keys(st.modules).length === MODULES.length && st.wrapped.length === 50 &&
       new Set(st.wrapped).size === 50 && st.missing.length + st.denied.length === 0 && !st.dead, st);
     check('aucun chemin chaud enveloppé (render*, draw*, handle*Move, canvas)',
       !st.wrapped.some((w) => /^(render|draw|handle|getCanvasPos|isPythDragging|init|setup)/.test(w)), st.wrapped);
+    const boot = await ev(page, () => (window.__boot ? window.__boot.names.length : -1));
+    check('démarrage photographié : les 50 enveloppes sont en place dès la fin du script de la couche', boot === 50 && (await hooksLost(page)).length === 0, [boot, await hooksLost(page)]);
     await wait(page, 3200);                                   // l'ouverture de l'accueil est finie
     let r = await rest(page);
     check('au repos après l\'ouverture de l\'accueil', atRest(r) && r.screens === 'screen-home', r);
@@ -298,6 +328,10 @@ module.exports = function (h) {
     await wait(page, 300);
     r = await rest(page);
     check('après le chaos : rien ne traîne', atRest(r), r);
+    /* L'inventaire du départ ne prouve que la présence au démarrage : après tout le parcours, chaque globale
+       doit être la MÊME fonction qu'alors (une réaffectation par le jeu contournerait le crochet en silence). */
+    const lost = await hooksLost(page);
+    check('après le parcours : les 50 globales sont encore les enveloppes du démarrage (aucun crochet contourné)', lost.length === 0, lost);
     await page.context().close();
   }
 
