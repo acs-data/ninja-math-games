@@ -306,6 +306,8 @@ async function open(browser, url, opts) {
     if (m.type() === 'error' && !/Failed to load resource|net::ERR_/.test(m.text())) page.errors.push('console: ' + m.text());
   });
   await page.addInitScript(harness, SEED);
+  /* opts.init = [[fonction, argument], …] : scripts propres au scénario, injectés après le harnais et avant ceux de la page. */
+  for (const [fn, a] of opts.init || []) await page.addInitScript(fn, a);
   await page.goto(url);
   await page.waitForTimeout(150);
   return page;
@@ -772,6 +774,60 @@ async function scenarioKernel(browser) {
   check('enveloppe (chaos) : les crochets ont bien levé', r.contract.chaosLeves >= 2, r.contract.chaosLeves);
   check('aucune erreur console / page (noyau)', page.errors.length === 0, page.errors);
   await page.context().close();
+  await Promise.all([kernelLoop(browser), kernelHidden(browser)]);
+}
+/* La boucle du moteur ne s'ouvre qu'UNE fois par image, même quand un effet démarre depuis un gestionnaire
+   (FX.on, vidé par la boucle elle-même) : sinon le canvas est effacé et redessiné plusieurs fois par image.
+   Les rappels de la boucle sont reconnus par leur nom (« tick », 01-engine.js) : le total contrôle que le nom tient. */
+async function kernelLoop(browser) {
+  const page = await open(browser, ANIME, { viewport: { width: 1280, height: 900 } });
+  await wait(page, 900);
+  const r = await page.evaluate(async () => {
+    const real = window.requestAnimationFrame, per = new Map();
+    FX.cancel('*');
+    window.requestAnimationFrame = function (fn) {
+      return real.call(window, fn && fn.name === 'tick' ? function (t) { per.set(t, (per.get(t) || 0) + 1); return fn(t); } : fn);
+    };
+    const pause = (ms) => new Promise((res) => setTimeout(res, ms));
+    /* 1. Effets lancés par un gestionnaire, à répétition (ce que font tous les modules). */
+    FX.on('t:boucle', () => { FX.fx.burst(200, 200, { n: 12, life: 400 }); FX.fx.ring(200, 200, {}); });
+    for (let i = 0; i < 8; i++) { FX.emit('t:boucle', 0, null); await pause(60); }
+    await pause(700);
+    const a = Array.from(per.values()), idleA = FX.stats().loop;
+    per.clear();
+    /* 2. Une vraie bonne réponse du QCM (gestionnaire « qcm:rep », minuteries, particules). */
+    startGame('6e_facile'); showScreen('game'); updateHUD(); loadQuestion();
+    await pause(400);
+    answer(state.questions[state.qIndex].correct);
+    await pause(1000);
+    const b = Array.from(per.values());
+    window.requestAnimationFrame = real;
+    return { a: [a.length, Math.max.apply(null, a)], b: [b.length, Math.max.apply(null, b)], idleA, idleB: FX.stats().loop, errors: FX.stats().errors };
+  });
+  check('boucle : une seule passe par image pendant des effets lancés par un gestionnaire (8 rafales)', r.a[0] >= 20 && r.a[1] === 1 && r.idleA === false, r);
+  check('boucle : une seule passe par image pendant une bonne réponse du QCM, puis arrêt', r.b[0] >= 20 && r.b[1] === 1 && r.idleB === false && r.errors.length === 0, r);
+  check('aucune erreur console / page (boucle)', page.errors.length === 0, page.errors);
+  await page.context().close();
+}
+/* Page chargée dans un onglet caché (document.hidden vrai, images retenues) : l'ouverture de l'accueil reste due
+   et joue quand l'élève arrive sur l'onglet — pas plus tard, à la fermeture d'une modale sans rapport. */
+async function kernelHidden(browser) {
+  const page = await open(browser, ANIME, { viewport: { width: 1280, height: 900 }, init: [[function () {
+    let hidden = true; const held = [], raf = window.requestAnimationFrame.bind(window);
+    Object.defineProperty(Document.prototype, 'hidden', { configurable: true, get() { return hidden; } });
+    Object.defineProperty(Document.prototype, 'visibilityState', { configurable: true, get() { return hidden ? 'hidden' : 'visible'; } });
+    window.requestAnimationFrame = function (fn) { if (hidden) { held.push(fn); return 0; } return raf(fn); };
+    window.__show = function () { hidden = false; held.splice(0).forEach((fn) => raf(fn)); document.dispatchEvent(new Event('visibilitychange')); };
+  }]] });
+  await wait(page, 1500);
+  const before = await page.evaluate(() => [FX.debug.log.length, FX.stats().suspended]);
+  await page.evaluate(() => window.__show());
+  await wait(page, 500);
+  const after = await logOf(page);
+  check('onglet caché au chargement : rien ne joue, la couche est suspendue', before[0] === 0 && before[1] === true, before);
+  check('onglet caché au chargement : l\'ouverture de l\'accueil joue à l\'arrivée sur l\'onglet', after[0] === 'accueil[ouverture]', after);
+  check('aucune erreur console / page (onglet caché)', page.errors.length === 0, page.errors);
+  await page.context().close();
 }
 
 /* ── Scénario 5 bis : réseau et média — la couche ne demande rien et n'ajoute aucune balise de ressource ── */
@@ -968,6 +1024,175 @@ async function scenarioArena(browser) {
 /* ── Scénario 7 : les moments du QCM (journal attendu, coupure nette, rien ne traîne) ── */
 async function scenarioCombat(browser) {
   await Promise.all([combatMain(browser), combatBoss(browser), combatPhone(browser)]);
+  await Promise.all([combatWords(browser), combatHeader(browser)]);
+}
+/* Observateurs injectés par opts.init (voir open) : ils regardent la page image par image, DANS la page, sur une
+   seule horloge — ce que la couche pose à l'écran pendant un effet, pas seulement ce qu'elle journalise.
+     __watchWords(ms)   un mot de la couche (texte flottant, bandeau, cut-in) posé sur un des deux libellés du centre
+                        de l'arène (pastille ×N, mot du combo) ? Rectangles du TEXTE (Range), nœuds visibles seulement
+                        (opacité ≥ 0,5, ancêtres compris). Un bandeau ou un cut-in opaque qui couvre un libellé EN
+                        ENTIER ne compte pas : rien ne se lit à moitié. -> { « mot sur libellé » : % du libellé couvert }
+     __watchOver(ms, sel, skip)   pendant « ms », chaque nœud de #fx-stage visible (hors transition d'écran et repère 👇,
+                        et hors classes de « skip ») croisé avec la partie VISIBLE (sous l'en-tête s'il est à l'écran,
+                        dans la fenêtre, opacité ≥ 0,5) des éléments du jeu de sel = { nom: sélecteur }.
+                        -> { over: { « nœud sur nom » : ms cumulées }, plates: textes des bandeaux / cut-in dans l'ordre
+                             d'apparition, plateCut: pour chacun, de combien de ms il a quitté l'écran AVANT la fin
+                             prévue de sa propre animation (≤ 0 : il est allé au bout ; plusieurs centaines : il a été
+                             chassé — par le bandeau suivant, par exemple), maxPlates: bandeaux visibles en même temps
+                             (au plus), onHeader: tous posés sur l'en-tête ?, last: dernier instant (ms) où la couche
+                             n'était pas au repos,
+                             lastDraw: idem sans compter les minuteries (rien à l'écran : ni particule, ni forme,
+                             ni animation, ni nœud), lag: retard (ms) dû à la machine pendant l'observation = temps
+                             cumulé des images au-delà de 34 ms (une machine au calme tient 17 ms : lag vaut 0). Un
+                             contrôle de durée le déduit (« last - lag ») pour ne pas imputer à la couche une machine
+                             saturée : particules et formes avancent au pas réel plafonné, la fin d'une animation
+                             n'est vue qu'à l'image suivante } */
+function watchers() {
+  const textRect = (el) => { if (!el || !el.textContent) return null; const r = document.createRange(); r.selectNodeContents(el); const b = r.getBoundingClientRect(); return b.width ? b : null; };
+  const inter = (a, b) => { const w = Math.min(a.right, b.right) - Math.max(a.left, b.left), h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top); return w > 1 && h > 1 ? w * h : 0; };
+  const shown = (el, min) => { for (let e = el; e && e.nodeType === 1; e = e.parentNode) if (+getComputedStyle(e).opacity < (min || 0.5)) return false; return true; };
+  window.__watchWords = function (ms) {
+    return new Promise((res) => {
+      const A = document.getElementById('fx-arena'), t0 = performance.now(), hits = {};
+      (function frame() {
+        const labels = ['combo', 'tag'].map((k) => A.querySelector('.fx-ar-' + k)).filter((el) => shown(el)).map((el) => [el, textRect(el)]);
+        document.querySelectorAll('#fx-stage .fx-float, #fx-stage .fx-banner, #fx-stage .fx-cutin').forEach((n) => {
+          if (!shown(n)) return;
+          const plate = !n.classList.contains('fx-float'), nr = plate ? n.getBoundingClientRect() : textRect(n);
+          labels.forEach(([el, lr]) => {
+            if (!lr || !nr) return;
+            const a = inter(nr, lr), pct = Math.round(100 * a / (lr.width * lr.height));
+            if (a > 0 && !(plate && pct >= 98)) { const key = n.textContent + ' sur « ' + el.textContent + ' »'; hits[key] = Math.max(hits[key] || 0, pct); }
+          });
+        });
+        if (performance.now() - t0 < ms) requestAnimationFrame(frame); else res(hits);
+      })();
+    });
+  };
+  window.__watchOver = function (ms, sel, skip) {
+    return new Promise((res) => {
+      const t0 = performance.now(), out = { over: {}, plates: [], plateCut: [], maxPlates: 0, onHeader: true, last: 0, lastDraw: 0 }, stage = document.getElementById('fx-stage');
+      const seen = [];                                       // par bandeau : { n: nœud, end: fin prévue de son animation, cut: avance à sa disparition }
+      let lag = 0;
+      const no = new RegExp('fx-(blade|cue' + (skip ? '|' + skip : '') + ')');
+      let prev = t0, lastPlate = null;
+      (function frame() {
+        const now = performance.now(), dt = now - prev, hd = document.querySelector('header[role="banner"]').getBoundingClientRect(), top = hd.bottom > 0 ? hd.bottom : 0, st = FX.stats();
+        prev = now;
+        lag += Math.max(0, dt - 34);
+        seen.forEach((p) => { if (p.cut === null && !p.n.isConnected) p.cut = Math.round(p.end - now); });
+        if (st.particles + st.shapes + st.anims + st.nodes + st.timers + st.queue > 0) out.last = Math.round(now - t0);
+        if (st.particles + st.shapes + st.anims + st.nodes > 0) out.lastDraw = Math.round(now - t0);
+        let plates = 0;
+        Array.from(stage.children).forEach((n) => {
+          if (no.test(n.className)) return;
+          const plate = /fx-(banner|cutin)/.test(n.className), r = n.getBoundingClientRect();
+          if (plate && shown(n, 0.05)) {
+            plates++;
+            if (n !== lastPlate) {
+              const a = n.getAnimations()[0], tm = a && a.effect.getComputedTiming();
+              lastPlate = n; out.plates.push(n.textContent);
+              seen.push({ n: n, end: tm ? now + tm.endTime - (a.currentTime || 0) : now, cut: null });
+            }
+            if (!(r.top >= hd.top - 1 && r.bottom <= hd.bottom + 1 && hd.top >= -1)) out.onHeader = false;
+          }
+          if (!shown(n)) return;
+          for (const k in sel) {
+            document.querySelectorAll(sel[k]).forEach((e) => {
+              const b = e.getBoundingClientRect();
+              if (!b.width || b.bottom <= top || b.top >= innerHeight || !shown(e)) return;
+              if (inter(r, { left: b.left, right: b.right, top: Math.max(b.top, top), bottom: Math.min(b.bottom, innerHeight) }) > 0) {
+                const key = n.className.replace(/fx-/g, '') + ' « ' + n.textContent.slice(0, 24) + ' » sur ' + k;
+                out.over[key] = Math.round((out.over[key] || 0) + dt);
+              }
+            });
+          }
+        });
+        out.maxPlates = Math.max(out.maxPlates, plates);
+        if (now - t0 < ms) requestAnimationFrame(frame); else { out.plateCut = seen.map((p) => (p.cut === null ? 0 : p.cut)); out.lag = Math.round(lag); res(out); }
+      })();
+    });
+  };
+}
+/* Les mots de l'arène ne se superposent jamais : « K.O. ! », « FIN DU COMBAT », l'ULTIME du niveau léger et les
+   onomatopées ne recouvrent ni la pastille ×N ni le mot du combo ; le « VS » d'attente disparaît dès que la
+   pastille porte un mot. */
+async function combatWords(browser) {
+  const CASES = [['naruto', 'complet', 1280, 800], ['myhero', 'complet', 1280, 800], ['naruto', 'leger', 1280, 800], ['myhero', 'complet', 412, 915], ['myhero', 'leger', 360, 640]];
+  await Promise.all(CASES.map(async ([uni, level, w, h]) => {
+    const tag = uni + ', ' + level + ', ' + w + '×' + h;
+    const page = await open(browser, ANIME, { viewport: { width: w, height: h }, init: [[watchers]] });
+    await page.evaluate(([u, l]) => { if (u !== 'naruto') selectUniverse(u); FX.setLevel(l); FX.cancel('*'); FX.seed(11); startGame('6e_facile'); }, [uni, level]);
+    await gameShown(page); await wait(page, 350);
+    /* Arène juste sous l'en-tête, XP loin d'un seuil, série imposée, puis bonne réponse observée image par image. */
+    const hit = (streak, ms) => page.evaluate(async ([streak, ms]) => {
+      const a = document.getElementById('fx-arena').getBoundingClientRect(), hd = document.querySelector('header').getBoundingClientRect().bottom;
+      window.scrollBy(0, a.top - hd - 12);
+      state.xp = (state.level - 1) * 500; state.streak = streak;
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const seen = !!FX.arena.geo();
+      FX.debug.log.length = 0;
+      answer(state.questions[state.qIndex].correct);
+      const hits = await window.__watchWords(ms);
+      const q = (k) => document.querySelector('#fx-arena .fx-ar-' + k);
+      return { seen, hits, combo: q('combo').textContent, tag: q('tag').textContent, vs: getComputedStyle(q('combo'), '::before').content,
+        floats: FX.debug.log.filter((e) => e.fx === 'anim' && e.info === 'fx-float').length };
+    }, [streak, ms]);
+    const next = async () => { await page.evaluate(() => nextQuestion()); await wait(page, 320); };
+    let r = await hit(1, 900);
+    check('mots de l\'arène (' + tag + ') : coup au combo ×2 → aucun mot posé sur un libellé du centre', r.seen && r.combo === '×2' && r.tag === 'DOUBLE !' && Object.keys(r.hits).length === 0, r);
+    await next();
+    r = await hit(4, 1200);
+    check('mots de l\'arène (' + tag + ') : ULTIME (×5) → rien sur « ×5 » ni sur « PENTA ! »', r.seen && r.combo === '×5' && r.tag === 'PENTA !' && Object.keys(r.hits).length === 0, r);
+    /* Dernier coup d'une partie gagnée, avec une série de 2 : « K.O. ! » dans la pastille, le mot du combo dessous. */
+    await page.evaluate(() => {
+      let g = 0; nextQuestion();
+      while (!(state.qIndex >= state.questions.length - 1 && !state.missedQueue.length) && g++ < 200) { answer(state.questions[state.qIndex].correct); nextQuestion(); }
+    });
+    await wait(page, 1300);
+    r = await hit(1, 1200);
+    check('mots de l\'arène (' + tag + ') : K.O. final → « K.O. ! » écrit dans la pastille de l\'arène, « DOUBLE ! » lisible dessous, rien posé dessus',
+      r.seen && r.combo === 'K.O. !' && r.tag === 'DOUBLE !' && Object.keys(r.hits).length === 0, r);
+    check('aucune erreur (mots de l\'arène, ' + tag + ')', page.errors.length === 0 && (await leftovers(page)).errors.length === 0, [page.errors, await leftovers(page)]);
+    await page.context().close();
+  }));
+  /* Revanche : le bandeau tient entre les deux combattants et les libellés du centre s'effacent dessous.
+     Boss : « FIN DU COMBAT » dans la pastille, sans le « VS » d'attente derrière. */
+  for (const [w, h] of [[360, 640], [1280, 800]]) {
+    const page = await open(browser, ANIME, { viewport: { width: w, height: h }, init: [[watchers]] });
+    await page.evaluate(() => { FX.cancel('*'); startGame('6e_facile'); }); await gameShown(page); await wait(page, 350);
+    const r = await page.evaluate(async () => {
+      const a = document.getElementById('fx-arena').getBoundingClientRect(), hd = document.querySelector('header').getBoundingClientRect().bottom;
+      window.scrollBy(0, a.top - hd - 12);
+      state.xp = (state.level - 1) * 500; state.streak = 2; state.questions[state.qIndex]._retry = true;
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      answer(state.questions[state.qIndex].correct);
+      await new Promise((r) => setTimeout(r, 350));
+      const b = document.querySelector('#fx-stage .fx-banner'), q = (s) => document.querySelector('#fx-arena ' + s).getBoundingClientRect(), br = b && b.getBoundingClientRect(), ar = q('');
+      const out = { text: b && b.textContent, inArena: !!br && br.top >= ar.top - 1 && br.bottom <= ar.bottom + 1, hero: !!br && br.left - q('.fx-ar-l').right, foe: !!br && q('.fx-ar-r').left - br.right,
+        mid: getComputedStyle(document.querySelector('#fx-arena .fx-ar-m')).opacity };
+      out.hits = await window.__watchWords(800);
+      return out;
+    });
+    check('revanche (' + w + '×' + h + ') : bandeau au centre de l\'arène, entre les deux combattants, libellés du centre effacés dessous',
+      /REVANCHE RÉUSSIE/.test(r.text) && r.inArena && r.hero >= 0 && r.foe >= 0 && r.mid === '0' && Object.keys(r.hits).length === 0, r);
+    await page.evaluate(() => { showHome(); startGame('boss'); }); await gameShown(page); await wait(page, 300);
+    for (let i = 0; i < 2; i++) { await wrong(page); await wait(page, 40); await next(page); await wait(page, 60); }
+    const k = await page.evaluate(async () => {
+      const a = document.getElementById('fx-arena').getBoundingClientRect(), hd = document.querySelector('header').getBoundingClientRect().bottom;
+      window.scrollBy(0, a.top - hd - 12);
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      answer((state.questions[state.qIndex].correct + 1) % 4);
+      FX.debug.log.length = 0;
+      const hits = await window.__watchWords(1100), c = document.querySelector('#fx-arena .fx-ar-combo');
+      return { hits, combo: c.textContent, vs: getComputedStyle(c, '::before').content, op: getComputedStyle(c).opacity, down: document.getElementById('fx-arena').classList.contains('fx-down'),
+        floats: FX.debug.log.filter((e) => e.fx === 'anim' && e.info === 'fx-float').length };
+    });
+    check('boss vaincu par… le boss (' + w + '×' + h + ') : « FIN DU COMBAT » dans la pastille de l\'arène, sans « VS » derrière, aucun texte flottant',
+      k.down && k.combo === 'FIN DU COMBAT' && k.vs === 'none' && k.op === '1' && k.floats === 0 && Object.keys(k.hits).length === 0, k);
+    check('aucune erreur (revanche et fin du combat, ' + w + '×' + h + ')', page.errors.length === 0 && (await leftovers(page)).errors.length === 0, [page.errors, await leftovers(page)]);
+    await page.context().close();
+  }
 }
 async function combatMain(browser) {
   const page = await open(browser, ANIME, { viewport: { width: 1280, height: 800 }, colorScheme: 'dark' });
@@ -1067,6 +1292,77 @@ async function combatMain(browser) {
   check('dernier coup : K.O. final', has(log, 'qcm-ko') && has(log, 'confetti') && a.etat === 'sorti', [log, a]);
   check('aucune erreur (QCM)', page.errors.length === 0 && (await leftovers(page)).errors.length === 0, [page.errors, await leftovers(page)]);
   await page.context().close();
+}
+/* Arène HORS champ (petit téléphone : l'élève lit la fin de la question, la bande est passée sous l'en-tête
+   collant) : chaque moment garde une forme propre, sur l'en-tête, et rien de neuf ne se pose sur la question,
+   les réponses ou l'explication. Le niveau gagné attend que le bandeau du moment soit parti. */
+async function combatHeader(browser) {
+  const SEL = { question: '#question-text', reponses: '#answers-grid .answer-btn', explication: '#feedback-panel' };
+  await Promise.all([[360, 640, 'complet'], [390, 664, 'complet'], [360, 640, 'leger']].map(async ([w, h, level]) => {
+    const tag = w + '×' + h + ', ' + level, full = level === 'complet';
+    const page = await open(browser, ANIME, { viewport: { width: w, height: h }, init: [[watchers]] });
+    await page.evaluate((l) => { FX.setLevel(l); FX.cancel('*'); FX.seed(5); startGame('6e_facile'); }, level);
+    await gameShown(page); await wait(page, 350);
+    /* L'arène passe juste sous l'en-tête (la page défile de ce qu'il faut), série imposée, réponse, observation. */
+    const play = (o) => page.evaluate(async ([o, SEL]) => {
+      const a = document.getElementById('fx-arena').getBoundingClientRect(), hd = document.querySelector('header').getBoundingClientRect().bottom, q = state.questions[state.qIndex];
+      window.scrollBy(0, a.bottom - hd + 4);
+      state.xp = o.level ? state.level * 500 - 20 : (state.level - 1) * 500;
+      if (o.streak !== undefined) state.streak = o.streak;
+      if (o.retry) q._retry = true;
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const out = { arena: !!FX.arena.geo(), y0: scrollY, power: FX.palette().power.toUpperCase(), hero: FX.palette().heroEmoji };
+      FX.debug.log.length = 0;
+      answer(o.wrong ? (q.correct + 1) % 4 : q.correct);
+      const seen = await window.__watchOver(o.ms || 1500, SEL);
+      const log = FX.debug.log.map((e) => e.fx + (e.info ? '[' + e.info + ']' : '') + (e.level === 'leger' ? '~' : ''));
+      const stars = FX.debug.log.filter((e) => e.fx === 'burst' && e.info === 'star').map((e) => e.n);
+      return Object.assign(out, seen, { log, stars, y1: scrollY, level: state.level });
+    }, [o, SEL]);
+    const next = async () => { await page.evaluate(() => nextQuestion()); await wait(page, 320); };
+    const clean = (r) => !r.arena && r.y0 === r.y1 && Object.keys(r.over).length === 0;
+    const none = (r, re) => !r.log.some((l) => re.test(l));
+    let r = await play({});
+    check('arène hors champ (' + tag + ') : coup simple → étincelle sur la réponse, points vers le score, aucun bandeau, aucune étoile',
+      clean(r) && has(r.log, 'qcm-juste[×1]') && r.plates.length === 0 && r.stars.length === 0 && none(r, /fx-cutin|fx-tint|fx-ar-/), r);
+    await next();
+    r = await play({ streak: 2 });
+    check('arène hors champ (' + tag + ') : combo ×3 → onde et étoiles sur le compteur de série (le mot est celui du bandeau du jeu), aucun bandeau',
+      clean(r) && has(r.log, 'qcm-juste[×3]') && r.plates.length === 0 && r.stars.length === 1 && has(r.log, 'ring'), r);
+    check('arène hors champ (' + tag + ') : le bandeau de combo du jeu reste visible (il porte le mot du combo)',
+      (await page.evaluate(() => !document.documentElement.hasAttribute('data-fx-combo-off') && document.getElementById('combo-display').textContent)) === '🌪️ TRIPLE !');
+    await next();
+    r = await play({ streak: 4 });
+    check('arène hors champ (' + tag + ') : ULTIME → bandeau « <pouvoir> ULTIME ! » SUR l\'en-tête, éclat d\'étoiles parti de sa ligne, ni cut-in ni teinte',
+      clean(r) && has(r.log, 'qcm-ultime[×5]') && r.plates.length === 1 && r.plates[0] === r.hero + r.power + ' ULTIME !' && r.onHeader && r.maxPlates === 1 && r.plateCut[0] <= 150 &&
+      r.stars.length === 1 && (full ? r.stars[0] >= 24 : r.stars[0] > 0 && r.stars[0] <= 8) && none(r, /fx-cutin|fx-tint/), r);
+    check('arène hors champ (' + tag + ') : ULTIME fini en 1,1 s (retard de la machine déduit)', r.last > 300 && r.last - r.lag <= 1100, [r.last, r.lag]);
+    await next();
+    r = await play({ wrong: true });
+    check('arène hors champ (' + tag + ') : erreur → ni bandeau ni étoile, rien sur l\'en-tête (repère calme seulement)',
+      !r.arena && has(r.log, 'qcm-erreur') && r.plates.length === 0 && r.stars.length === 0 && Object.keys(r.over).length === 0 && none(r, /burst|confetti|fx-tint/), r);
+    await next();
+    r = await play({ retry: true, streak: 0 });
+    check('arène hors champ (' + tag + ') : erreur corrigée → « REVANCHE RÉUSSIE ! » SUR l\'en-tête, avec son éclat',
+      clean(r) && has(r.log, 'qcm-revanche') && r.plates.length === 1 && r.plates[0] === '🌟REVANCHE RÉUSSIE !' && r.onHeader && r.stars.length === 1 && r.last - r.lag <= 1100, r);
+    /* ULTIME + niveau gagné sur le même coup : deux bandeaux sur l'en-tête, l'un APRÈS l'autre. */
+    await next();
+    r = await play({ streak: 4, level: true, ms: 2700 });
+    check('arène hors champ (' + tag + ') : ULTIME puis niveau gagné → deux bandeaux sur l\'en-tête, jamais ensemble, l\'ULTIME d\'abord et jusqu\'au bout de son animation (le niveau ne le chasse pas)',
+      clean(r) && r.plates.length === 2 && / ULTIME !$/.test(r.plates[0]) && r.plates[1] === '⭐NIVEAU ' + r.level + ' !' && r.maxPlates === 1 && r.onHeader && has(r.log, 'niveau') &&
+      r.plateCut[0] <= 150 && r.plateCut[1] <= 150, r);
+    /* Dernier coup de la partie. */
+    await page.evaluate(() => {
+      let g = 0; nextQuestion();
+      while (!(state.qIndex >= state.questions.length - 1 && !state.missedQueue.length) && g++ < 200) { answer(state.questions[state.qIndex].correct); nextQuestion(); }
+    });
+    await wait(page, 1300);
+    r = await play({ streak: 1, ms: 1300 });
+    check('arène hors champ (' + tag + ') : fin de l\'adversaire → « K.O. ! » SUR l\'en-tête, avec son éclat, fini en 1,1 s',
+      clean(r) && has(r.log, 'qcm-ko') && r.plates.length === 1 && r.plates[0] === r.hero + 'K.O. !' && r.onHeader && r.stars.length === 1 && (full ? r.stars[0] >= 24 : r.stars[0] <= 8) && r.last - r.lag <= 1100, r);
+    check('aucune erreur (arène hors champ, ' + tag + ')', page.errors.length === 0 && (await leftovers(page)).errors.length === 0, [page.errors, await leftovers(page)]);
+    await page.context().close();
+  }));
 }
 /* Boss : fin de combat brève, dans la fenêtre de 1500 ms du jeu, puis verdict doux. */
 async function combatBoss(browser) {
@@ -1187,19 +1483,38 @@ async function scenarioVerdict(browser) {
   check('verdict : rien si le joueur a déjà quitté l\'écran de résultat', !has(log, 'bilan'), log);
   check('aucune erreur (verdict)', page.errors.length === 0 && (await leftovers(page)).errors.length === 0, [page.errors, await leftovers(page)]);
   await page.context().close();
-  /* Téléphone, page défilée (le jeu ne fait jamais défiler) : le rang est au-dessus de la fenêtre.
-     La cérémonie se joue alors en vignette sous l'en-tête, sans toucher au rang du jeu. */
+  /* Rang hors champ. Le jeu affiche l'écran de résultat depuis le haut : le rang n'est hors champ que si la page
+     défile encore quand le résultat arrive (élan d'un défilement tactile : elle repart dans le même tick) ou dans
+     une fenêtre de moins de ~140 px de haut. La cérémonie se réduit alors à UN moment sur l'en-tête collant, sans
+     toucher au rang du jeu ni retenir un seul nœud du résultat. */
   page = await start();
-  await page.evaluate(() => window.scrollTo(0, 700));
-  await playThrough(page, 0.9); await wait(page, 250);
+  await page.evaluate(() => {
+    let guard = 0, acc = 0;
+    while (document.getElementById('screen-game').style.display === 'block' && guard++ < 400) {
+      const q = state.questions[state.qIndex];
+      acc += 0.9;
+      if (acc >= 1) { acc -= 1; answer(q.correct); } else answer((q.correct + 1) % 4);
+      nextQuestion();
+    }
+    window.__y0 = pageYOffset;
+    window.scrollTo(0, 700);
+  });
+  await wait(page, 250);
   v = await view(page);
-  const chip = await page.evaluate(() => { const c = document.querySelector('.fx-ladder-chip'), h = document.querySelector('header').getBoundingClientRect(), r = document.getElementById('result-rank').getBoundingClientRect(); return c ? [Math.round(c.getBoundingClientRect().top - h.bottom), Math.round(r.bottom)] : null; });
-  check('verdict hors champ : échelle en vignette sous l\'en-tête, rang du jeu intact', chip !== null && chip[0] >= 0 && chip[0] < 60 && chip[1] < 62 && v.rankFx === 0 && v.ladder === 5, [chip, v]);
-  await wait(page, 900);
+  const head = await page.evaluate(() => {
+    const b = document.querySelector('#fx-stage .fx-banner'), h = document.querySelector('header').getBoundingClientRect(), rank = document.getElementById('result-rank'), q = b && b.getBoundingClientRect();
+    return { y0: window.__y0, y: Math.round(pageYOffset), rankBottom: Math.round(rank.getBoundingClientRect().bottom), headerBottom: Math.round(h.bottom), stage: document.querySelectorAll('#fx-stage > :not(.fx-blade)').length,
+      text: b && b.textContent, emoji: rank.textContent, onHeader: !!q && q.top >= h.top && q.bottom <= h.bottom, inside: !!q && q.left >= 0 && q.right <= document.documentElement.clientWidth };
+  });
+  check('verdict hors champ (page qui défilait à l\'arrivée) : le jeu avait remis la page en haut, le rang est passé sous l\'en-tête',
+    head.y0 === 0 && head.y > 100 && head.rankBottom < head.headerBottom, head);
+  check('verdict hors champ : un seul nœud de la couche (hors rideau d\'arrivée), le bandeau du rang, posé SUR l\'en-tête ; ni échelle ni animation sur le rang du jeu',
+    head.stage === 1 && !!head.text && head.text.indexOf(head.emoji) === 0 && head.onHeader && head.inside && v.rankFx === 0 && v.ladder === 0 && v.rank === '1', [head, v]);
   log = await logOf(page);
-  check('verdict hors champ : rang annoncé par un bandeau de la couche', has(log, 'anim[fx-banner]') && !has(log, 'anim[bilan-rang]'), log.filter((l) => /bilan|banner/.test(l)));
-  await wait(page, 1700);
-  check('verdict hors champ : terminé, rien ne reste', isIdle(await leftovers(page)) && page.errors.length === 0, [await leftovers(page), page.errors]);
+  check('verdict hors champ : bandeau et étoiles parties de l\'en-tête, aucun nœud du résultat animé ou retenu par la couche',
+    has(log, 'anim[fx-banner]') && has(log, 'burst[star]') && !log.some((l) => /^anim\[(bilan-|fx-rung|fx-ladder)/.test(l)) && !has(log, 'confetti'), log.filter((l) => /bilan|banner|burst|confetti|rung/.test(l)));
+  await wait(page, 1000);
+  check('verdict hors champ : terminé en 1,3 s, rien ne reste', isIdle(await leftovers(page)) && page.errors.length === 0, [await leftovers(page), page.errors]);
   await page.context().close();
   /* Niveau léger : pas d'échelle, ≤ 1,2 s. */
   page = await start(null, 'leger');
@@ -1290,7 +1605,7 @@ const SCENARIOS = [
 /* Scénarios des modules : un fichier par module dans tools/anime-tests/ (ordre alphabétique).
    Chaque fichier exporte function (h) { return [[clé, titre, async (browser) => {…}], …]; }
    où h regroupe les aides de ce fichier (voir HELPERS). */
-const HELPERS = { check, open, wait, settle, waapi, gameShown, snap, firstDiff, keepDom, domChecks, VOLATILE, logOf, during, leftovers, isIdle, harness,
+const HELPERS = { check, open, wait, settle, waapi, gameShown, snap, firstDiff, keepDom, domChecks, VOLATILE, logOf, during, leftovers, isIdle, harness, watchers,
   ROOT, INDEX, ANIME, SEED };
 const EXTRA_DIR = path.join(__dirname, 'anime-tests');
 if (fs.existsSync(EXTRA_DIR)) {

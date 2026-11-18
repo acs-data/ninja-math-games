@@ -465,6 +465,9 @@ module.exports = function (h) {
       live: document.getElementById('fx-root').classList.contains('fx-live') };
   }, [sel, inset]);
   /* Les nœuds de texte de la couche (mentions, 👇) : contenu, position, dans la fenêtre ? */
+  /* XP du joueur : une mention « +n XP » doit reprendre l'écart réellement donné par le jeu pendant l'action
+     (jamais un montant recopié d'index.html). */
+  const xp = (page) => ev(page, () => state.xp);
   const floats = (page) => ev(page, () => Array.from(document.querySelectorAll('#fx-stage .fx-float')).map((n) => {
     const r = n.getBoundingClientRect();
     return { text: n.textContent, cls: n.className, x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2), hidden: n.getAttribute('aria-hidden'),
@@ -631,11 +634,13 @@ module.exports = function (h) {
     check('atelier : essai manqué 1,5 s plus tard → le repère revient', count(log, 'defi-erreur') === 1, log);
     await ev(page, () => { let g = 0; while (pythState.challenge.target.name !== '3-4-5' && g++ < 80) newPythChallenge(); }); await wait(page, 80);
     await center(page, '#pyth-challenge');
+    let gain = await xp(page);
     log = await during(page, () => ev(page, () => validatePythChallenge()), 170);
+    gain = (await xp(page)) - gain;
     check('atelier : défi réussi → lumière sur le cadre du canvas et mention', has(log, 'defi-juste') && count(log, 'slash') === 2 && has(log, 'trail') && has(log, 'anim[fx-float]'), log);
     f = await floats(page); c = await corner(page, '#pyth-challenge-feedback'); k = await ink(page, '#pyth-canvas', 26);
-    check('atelier : mention « +40 XP » sur le coin de l\'explication, rien sur la figure',
-      f.length === 1 && f[0].text === '+40 XP' && onCorner(f[0], c) && k.total > 0 && k.inside === 0, [f, c, k]);
+    check('atelier : mention « +n XP » (les XP donnés par le jeu) sur le coin de l\'explication, rien sur la figure',
+      gain > 0 && f.length === 1 && f[0].text === '+' + gain + ' XP' && onCorner(f[0], c) && k.total > 0 && k.inside === 0, [gain, f, c, k]);
     await settle(page, 620, 'atelier : tout est fini 800 ms après la réussite');
     log = await during(page, () => ev(page, () => validatePythChallenge()), 150);
     check('atelier : valider après la réussite (ignoré par le jeu) → aucun effet', log.length === 0, log);
@@ -674,22 +679,28 @@ module.exports = function (h) {
     check('arbre : arbre à corriger → rien de plus que le jeu', log.length === 0 && (await ev(page, () => document.querySelectorAll('.proba-slot.wrong').length)) === 2, log);
     await ev(page, () => __fillTree()); await wait(page, 500);
     await center(page, '#proba-phase-placement');
-    await ev(page, () => { FX.debug.log.length = 0; validateProbaPlacement(); validateProbaPlacement(); });
+    let gain = await ev(page, () => { const x = state.xp; FX.debug.log.length = 0; validateProbaPlacement(); const g = state.xp - x; validateProbaPlacement(); return g; });
     await wait(page, 150);
     f = await floats(page); k = await corner(page, '#proba-placement-feedback');
     await wait(page, 900);
     log = await logOf(page);
     check('arbre : validé (double clic) → une seule chorégraphie, la lumière descend branche par branche',
       count(log, 'arbre-juste') === 1 && count(log, 'slash') === 6 && count(log, 'ring') === 6 && !has(log, 'burst') && (await ev(page, () => state.xp)) === 80, log);
-    check('arbre : mention « +40 XP » sur le coin du message, hors de son texte', f.length === 1 && f[0].text === '+40 XP' && f[0].inView && onCorner(f[0], k), [f, k]);
+    check('arbre : mention « +n XP » (les XP donnés par l\'appel qui a validé) sur le coin du message, hors de son texte',
+      gain > 0 && f.length === 1 && f[0].text === '+' + gain + ' XP' && f[0].inView && onCorner(f[0], k), [gain, f, k]);
     k = await ev(page, () => ({ arbre: getComputedStyle(document.getElementById('proba-phase-placement')).display, q: probaState.phaseQuestion }));
     check('arbre : tout est fini 1,05 s après la validation, avant que le jeu ne masque l\'arbre (1,5 s)', isIdle(await leftovers(page)) && k.arbre !== 'none' && k.q === false, [await leftovers(page), k]);
     await wait(page, 650);
     await center(page, '#proba-question-answers');
+    /* Pour cet essai, le jeu donne 30 XP de plus qu'aujourd'hui (addXP majoré, comme si index.html avait changé
+       ses montants) : la mention doit suivre ce que le jeu a réellement donné, pas un montant recopié. */
+    gain = await ev(page, () => { const real = window.addXP; window.__addXP = real; window.addXP = function (n) { return real.call(this, n + 30); }; return state.xp; });
     log = await during(page, async () => click(page, '#proba-question-answers .answer-btn:nth-child(' + ((await ev(page, () => probaState.currentQuestion.correct)) + 1) + ')'), 150);
+    gain = (await ev(page, () => { window.addXP = window.__addXP; return state.xp; })) - gain;
     check('arbre : question juste → anneau sur la réponse et mention', has(log, 'proba-juste') && count(log, 'ring') === 1 && has(log, 'anim[fx-float]') && calm(log), log);
     f = await floats(page); k = await corner(page, '#proba-question-feedback');
-    check('arbre : mention « +50 XP » sur le coin de l\'explication, hors de son texte', f.length === 1 && f[0].text === '+50 XP' && f[0].inView && onCorner(f[0], k), [f, k]);
+    check('arbre : mention « +n XP » = les XP réellement donnés par le jeu (montant majoré de 30 pour l\'essai), sur le coin de l\'explication, hors de son texte',
+      gain > 30 && f.length === 1 && f[0].text === '+' + gain + ' XP' && f[0].inView && onCorner(f[0], k), [gain, f, k]);
     log = await during(page, () => ev(page, () => answerProbaQuestion(0)), 150);
     check('arbre : réponse après réponse (ignorée par le jeu) → aucun effet', mine(log).length === 0, log);
     await wait(page, 700);
@@ -761,11 +772,13 @@ module.exports = function (h) {
     await wait(page, 700);
     await ev(page, () => nextGraphChallenge()); await until('qcm'); await wait(page, 60);
     await center(page, '#graph-qcm-answers');
+    let gain = await xp(page);
     log = await during(page, () => answer(true), 150);
+    gain = (await xp(page)) - gain;
     check('graphique : QCM juste → anneau sur la réponse, mention de l\'XP du combo', has(log, 'graph-juste[×3]') && count(log, 'ring') === 1 && has(log, 'anim[fx-float]'), log);
     f = await floats(page); k = await corner(page, '#graph-feedback');
-    check('graphique : mention « +45 XP » (30 + 5 × combo) sur le coin de l\'explication, hors de son texte',
-      f.length === 1 && f[0].text === '+45 XP' && f[0].inView && onCorner(f[0], k), [f, k]);
+    check('graphique : mention « +n XP » (les XP donnés par le jeu au combo ×3) sur le coin de l\'explication, hors de son texte',
+      gain > 0 && f.length === 1 && f[0].text === '+' + gain + ' XP' && f[0].inView && onCorner(f[0], k), [gain, f, k]);
     await wait(page, 700);
     await ev(page, () => nextGraphChallenge()); await until('dedans'); await wait(page, 60);
     await center(page, '#graph-canvas');
@@ -922,10 +935,12 @@ module.exports = function (h) {
     await ev(page, () => { selectPythAtelier('trigo'); __angle(pythState.challenge.target.angle); }); await wait(page, 350); await quiet(page);
     await center(page, '#pyth-validate-btn');
     k = await ev(page, () => document.getElementById('pyth-canvas').getBoundingClientRect().bottom);
+    let gain = await xp(page);
     log = await during(page, () => ev(page, () => validatePythChallenge()), 170);
+    gain = (await xp(page)) - gain;
     f = await floats(page); c = await corner(page, '#pyth-challenge-feedback');
-    check('téléphone, atelier : canvas hors champ → la lumière entoure le message, mention dans la fenêtre, hors du texte',
-      k < 0 && has(log, 'defi-juste') && count(log, 'slash') === 2 && has(log, 'trail') && f.length === 1 && f[0].text === '+40 XP' && f[0].inView && onCorner(f[0], c), [k, log, f, c]);
+    check('téléphone, atelier : canvas hors champ → la lumière entoure le message, mention (XP donnés par le jeu) dans la fenêtre, hors du texte',
+      k < 0 && has(log, 'defi-juste') && count(log, 'slash') === 2 && has(log, 'trail') && gain > 0 && f.length === 1 && f[0].text === '+' + gain + ' XP' && f[0].inView && onCorner(f[0], c), [k, log, gain, f, c]);
     await settle(page, 650, 'téléphone, atelier : tout est fini');
     await ev(page, () => showHome()); await wait(page, 300);
 

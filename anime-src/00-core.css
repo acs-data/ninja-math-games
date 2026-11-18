@@ -59,11 +59,12 @@ html[data-fx="off"] #fx-root { display: none; }
 
 /* Boutons de réglage (tiroir, accueil, modales de pause). */
 #fx-lite-drawer:disabled, #fx-set-drawer:disabled, #fx-set-home:disabled,
-#fx-set-pause:disabled, #fx-set-auto-pause:disabled { opacity: .45; cursor: default; }
+#fx-set-pause[aria-disabled], #fx-set-auto-pause[aria-disabled] { opacity: .45; cursor: default; }
 #fx-set-pause, #fx-set-auto-pause { font-size: .95rem; letter-spacing: 1px; }
 
-/* Niveau off : « OFF » arrête vraiment tout mouvement, y compris les boucles décoratives du jeu
-   (points de chakra, emoji flottant de l'accueil, spirale de chargement). */
-html[data-fx="off"] .chakra-dot,
-html[data-fx="off"] .hero-ninja,
-html[data-fx="off"] #screen-loading > div { animation-play-state: paused !important; }
+/* Niveau off CHOISI : « OFF » arrête vraiment tout mouvement, y compris les boucles décoratives du jeu
+   (points de chakra, emoji flottant de l'accueil, spirale de chargement). Couche coupée (data-fx-dead :
+   disjoncteur ou navigateur incompatible) : la page est celle d'index.html, ces boucles tournent. */
+html[data-fx="off"]:not([data-fx-dead]) .chakra-dot,
+html[data-fx="off"]:not([data-fx-dead]) .hero-ninja,
+html[data-fx="off"]:not([data-fx-dead]) #screen-loading > div { animation-play-state: paused !important; }

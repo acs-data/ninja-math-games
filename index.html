@@ -5205,6 +5205,28 @@ function showScreen(id) {
   // Écrans utilisant flex column
   const flexScreens = ['home', 'loading', 'result', 'auto-menu', 'auto-result', 'tf-result', 'story-result', 'dnb-intro', 'dnb-transition', 'dnb-result', 'proba-tree-result', 'graph-reader-result'];
   el.style.display = flexScreens.includes(id) ? 'flex' : 'block';
+  // Écrans de résultat : toujours affichés depuis le haut. Sinon la page reste défilée là où
+  // se trouvait le dernier bouton « suivant » et le rang arrive coupé sous l'en-tête.
+  if (/result$/.test(id)) window.scrollTo(0, 0);
+}
+
+// Ramène un bloc dans la zone visible, entre l'en-tête collant et le bas de la fenêtre.
+// Ne fait rien s'il est déjà entièrement visible. Sinon cale le bas du bloc en bas de la fenêtre
+// (on garde un maximum de contexte au-dessus : chrono, progression) sans jamais cacher le haut
+// du bloc sous l'en-tête. Défilement instantané (aucune animation), le focus n'est pas déplacé.
+function bringIntoView(el) {
+  if (!el) return;
+  const r = el.getBoundingClientRect();
+  if (!r.height) return; // écran masqué
+  const header = document.querySelector('header');
+  const top = header ? Math.max(0, header.getBoundingClientRect().bottom) : 0;
+  const bottom = window.innerHeight || document.documentElement.clientHeight;
+  if (r.top >= top && r.bottom <= bottom) return; // déjà entièrement visible
+  const gap = 8;
+  const y = window.pageYOffset || document.documentElement.scrollTop || 0;
+  const alignTop = y + r.top - top - gap;
+  const alignBottom = y + r.bottom - bottom + gap;
+  window.scrollTo(0, Math.max(0, Math.min(alignTop, alignBottom)));
 }
 
 function showHome() {
@@ -5692,6 +5714,10 @@ function loadQuestion() {
   // Timer
   updateTimerUI();
   startTimer();
+
+  // Sur petit écran, la page reste défilée là où se trouvait « QUESTION SUIVANTE » :
+  // on ramène la nouvelle question (énoncé + réponses) dans la fenêtre.
+  bringIntoView(document.getElementById('question-wrap'));
 }
 
 function startTimer() {

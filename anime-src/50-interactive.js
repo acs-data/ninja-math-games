@@ -88,12 +88,12 @@ FX.module('ateliers', function (FX) {
      Sinon : repère calme vers l'explication — un trait descend le long de son bord gauche ; si elle
      s'ouvre sous le bas de l'écran, un 👇 immobile dans le coin bas droit (0,7 s ; portée « cue » du
      noyau : retiré au premier défilement). */
-  function verdict(nom, ok, fb, txt, fn, info) {
+  function verdict(nom, ok, fb, txt, fn, info) {      // txt : nombre = XP donnés par le jeu (« +n XP »), sinon texte
     FX.play(nom + (ok ? '-juste' : '-erreur'), function (lv, pal) {
       var r = FX.rect(fb), v = vu(fb), h = FX.vh(), y = r && r.y;
       if (ok) {
         fn(pal.good, pal);
-        if (y > 76 && y < h - 24) F.float(txt, r.x + r.w - 44, y - 7, Q({ cls: 'fx-at-stamp', color: pal.good, size: 16, rotate: -6, dy: 0 }));
+        if (y > 76 && y < h - 24) F.float(txt === +txt ? '+' + txt + ' XP' : txt, r.x + r.w - 44, y - 7, Q({ cls: 'fx-at-stamp', color: pal.good, size: 16, rotate: -6, dy: 0 }));
       } else if (v) F.slash(v.x + 2, v.y + 3, v.x + 2, v.y + v.h - 3, Q({ width: 4, ms: 420, color: pal.calm }));
       else if (y > h - 40) F.float('👇', FX.vw() - 30, h - 40, { size: 24, dy: 0, scope: 'cue' });
     }, { info: info });
@@ -137,10 +137,10 @@ FX.module('ateliers', function (FX) {
      cumulent) ; un essai manqué se martèle : au plus un repère par 1,5 s. Changement d'onglet =
      l'atelier change vraiment (init et resize repassent le même). */
   FX.wrap('validatePythChallenge', function () {
-    return pythState.challenge && !pythState.challengeAnswered;
-  }, function (vif) {
+    return pythState.challenge && !pythState.challengeAnswered ? state.xp : -1;
+  }, function (x) {
     var ok = pythState.challengeAnswered, n = performance.now();
-    if (vif && (ok || n - frein > 1500)) { frein = n; send('defi', 'pythagore', ok); }
+    if (x >= 0 && (ok || n - frein > 1500)) { frein = n; send('defi', 'pythagore', ok && state.xp - x); }
   });
   FX.wrap('selectPythAtelier', function () { return pythState.atelier; }, function (avant, a) {
     if (a[0] !== avant) send('onglet', 'pythagore', a[0]);
@@ -148,23 +148,26 @@ FX.module('ateliers', function (FX) {
 
   /* Arbre : pose = la case reçoit une autre pièce ; validation = front de probaState.validated (la
      fonction n'a aucun garde : un double clic la rejoue) ; question = front de questionAnswered.
-     probaState est réassigné par le jeu : jamais en cache. */
+     probaState est réassigné par le jeu : jamais en cache.
+     Valeur d'un verdict réussi = les XP que le jeu a réellement donnés pendant l'appel (écart de state.xp,
+     comme pour le puzzle) : la mention « +n XP » ne recopie aucun montant d'index.html. false = raté. */
   FX.wrap('placeProbaPiece', function (id) {
     var p = probaState.placements[id];
     return p ? p.pieceIdx : -1;
   }, function (avant, a) {
     if (avant !== a[1]) send('ppose', 'proba-tree', a[0]);
   });
-  FX.wrap('validateProbaPlacement', function () { return probaState.validated; }, function (v) {
-    if (!v && probaState.validated) send('arbre', 'proba-tree');
+  function xpAv(k) { return function () { return probaState[k] ? -1 : state.xp; }; }
+  FX.wrap('validateProbaPlacement', xpAv('validated'), function (x) {
+    if (x >= 0 && probaState.validated) send('arbre', 'proba-tree', state.xp - x);
   });
-  FX.wrap('answerProbaQuestion', function () { return probaState.questionAnswered; }, function (v) {
+  FX.wrap('answerProbaQuestion', xpAv('questionAnswered'), function (x) {
     var p = probaState;
-    if (!v && p.questionAnswered) send('pq', 'proba-tree', p.scenarioCorrect[p.scenarioIdx] === true);
+    if (x >= 0 && p.questionAnswered) send('pq', 'proba-tree', p.scenarioCorrect[p.scenarioIdx] === true && state.xp - x);
   });
-  /* Graphique : le premier argument de finalizeGraphAnswer est l'issue ; valeur = combo (0 = faux). */
-  FX.wrap('finalizeGraphAnswer', null, function (x, a) {
-    send('graph', 'graph-reader', a[0] ? graphState.combo : 0);
+  /* Graphique : le premier argument de finalizeGraphAnswer est l'issue. */
+  FX.wrap('finalizeGraphAnswer', function () { return state.xp; }, function (x, a) {
+    send('graph', 'graph-reader', !!a[0] && state.xp - x);
   });
   /* Résultats : « après » de la fonction — l'écran de résultat est affiché une fois rempli. */
   FX.wrap('endProbaTree', null, function () { send('bilan', 'proba-tree-result', 'proba'); });
@@ -194,7 +197,7 @@ FX.module('ateliers', function (FX) {
   /* ── Verdict du puzzle : résolu → anneaux en file sur les cases, éclat au-dessus du plateau, XP ;
         tri à revoir ou temps écoulé → repère calme ── */
   H.puzzle = function (n) {
-    verdict('puzzle', n, '#puzzle-feedback', '+' + n + ' XP', function (c, pal) {
+    verdict('puzzle', n, '#puzzle-feedback', n, function (c, pal) {
       var l = D.querySelectorAll('.puzzle-slot.correct'), a = vu('#puzzle-game-area'), i;
       for (i = 0; i < l.length; i++) FX.after(i * 70, anneau.bind(null, l[i], c), 'q');
       if (a) F.burst(a.cx, a.y, Q({ n: 22, kind: 'star', angle: -1.57, spread: 3.14, colors: [pal.u, pal.warn] }));
@@ -204,14 +207,14 @@ FX.module('ateliers', function (FX) {
      (collant sur l'accueil), jamais sur le titre ni sur l'accroche. */
   H.fin = function (txt) {
     FX.play('atelier-fin', function (lv, pal) {
-      F.banner(txt, { anchor: 'header', emoji: '🏆', color: pal.warn, ms: 1100 });
+      F.head(txt, { emoji: '🏆', color: pal.warn, ms: 1100 });
     }, { info: txt });
   };
 
   /* ── Constructeur : défi réussi → lumière sur le cadre du canvas (ou du message s'il est seul à
         l'écran : téléphone) ; essai manqué → repère calme ── */
-  H.defi = function (ok) {
-    verdict('defi', ok, '#pyth-challenge-feedback', '+40 XP', function (c) {
+  H.defi = function (xp) {
+    verdict('defi', xp !== false, '#pyth-challenge-feedback', xp, function (c) {
       if (!tour('#pyth-canvas', 24, c)) tour('#pyth-challenge-feedback', 24, c);
     });
   };
@@ -225,8 +228,8 @@ FX.module('ateliers', function (FX) {
   /* ── Arbre validé : la lumière descend branche par branche (départ → 1er tirage → 2e tirage), sur
         le calque ; fini à 0,9 s — le jeu masque l'arbre 1,5 s après la validation. Niveau léger : les
         anneaux seuls. Un arbre à corriger : rien de plus que le jeu. ── */
-  H.arbre = function () {
-    verdict('arbre', 1, '#proba-placement-feedback', '+40 XP', function (c, pal) {
+  H.arbre = function (xp) {
+    verdict('arbre', 1, '#proba-placement-feedback', xp, function (c, pal) {
       var l = D.querySelectorAll('.proba-slot'), i;
       function branche(i) {
         var r = vu(l[i]), p = vu(i < 2 ? '.proba-root' : l[i < 4 ? 0 : 1]);
@@ -237,8 +240,8 @@ FX.module('ateliers', function (FX) {
     });
   };
   /* Question finale du scénario. */
-  H.pq = function (ok) {
-    verdict('proba', ok, '#proba-question-feedback', '+50 XP', function (c) {
+  H.pq = function (xp) {
+    verdict('proba', xp !== false, '#proba-question-feedback', xp, function (c) {
       eclat('#proba-question-answers .correct', c);
     });
   };
@@ -247,12 +250,12 @@ FX.module('ateliers', function (FX) {
         dessiné, cas fréquent hérité ; ou éclat sur la réponse du QCM) ; faux → un anneau calme se
         referme sur le point attendu, que le jeu vient de donner, puis repère vers l'explication.
         Rien ne dépend du toucher du canvas (inopérant sur écran tactile, défaut hérité). ── */
-  H.graph = function (n) {
-    var g = graphState, c = g.current, v = vu('#graph-canvas'), r = FX.rect('#graph-canvas'), k = r && r.w / g.W,
+  H.graph = function (xp) {
+    var g = graphState, n = xp === false ? 0 : g.combo, c = g.current, v = vu('#graph-canvas'), r = FX.rect('#graph-canvas'), k = r && r.w / g.W,
       m = v && c.mode === 'click' && (n ? g.clickedPoint : c.target), p = m && mathToPx(m.x, m.y),
       x = m && r.x + p.x * k, y = m && r.y + p.y * k;
     m = m && y > v.y + 6 && y < v.y + v.h - 6;                 // le point est dans la partie visible du canvas
-    verdict('graph', n, '#graph-feedback', '+' + (30 + 5 * n) + ' XP', function (col) {
+    verdict('graph', n, '#graph-feedback', xp, function (col) {
       if (m) F.ring(x, y, Q({ r0: 8, r1: 34, width: 4, color: col }));
       else if (c.mode === 'qcm') eclat('#graph-qcm-answers .correct', col);
       else tour('#graph-canvas', 16, col);
@@ -261,13 +264,15 @@ FX.module('ateliers', function (FX) {
   };
 
   /* ── Résultats (arbre, graphique) : l'émoji du palier arrive, puis fête proportionnelle au palier
-        écrit par le jeu (💪 🥷 ⭐ 🏆 : 8 à 44 étoiles, confettis pour les deux plus hauts). Le jeu ne
-        remonte pas la page : sur téléphone l'émoji est souvent hors champ, la fête part alors du
-        milieu du bord haut de la fenêtre. ≤ 2 s (léger : ≤ 1,1 s). ── */
+        écrit par le jeu (💪 🥷 ⭐ 🏆 : 8 à 44 étoiles, confettis pour les deux plus hauts) ; ≤ 2 s (léger :
+        ≤ 1,1 s). Le jeu affiche l'écran depuis le haut ; si l'émoji n'est pourtant pas à l'écran (page qui
+        défile encore), rien ne joue : ces deux écrans sont hors de #app, l'en-tête est sorti avec lui, et
+        un effet de résultat ne se pose jamais sur un texte du résultat. ── */
   H.bilan = function (m) {
     var e = D.getElementById(m + '-result-emoji'), k = Math.max(0, ['💪', '🥷', '⭐', '🏆'].indexOf(e.textContent));
     FX.play('bilan-' + m, function (lv, pal) {
-      var r = vu(e) || { cx: FX.vw() / 2, cy: 0 };
+      var r = FX.seen(e);
+      if (!r) return;
       FX.anim(e, [{ opacity: 0, transform: 'scale(.3)' }, { opacity: 1, transform: 'none' }],
         { duration: 420, delay: 120, easing: 'cubic-bezier(.2,1.5,.4,1)', leger: FADE });
       FX.after(360, function () {

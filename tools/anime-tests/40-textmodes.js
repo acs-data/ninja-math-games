@@ -662,19 +662,26 @@ module.exports = function (h) {
     log = await during(page, () => ev(page, () => answerStoryStep((storyState.currentStep.correct + 1) % 4)), 150);
     r = await ev(page, () => { const p = document.getElementById('story-feedback').getBoundingClientRect(); return [p.top < innerHeight - 40, !!document.querySelector('.fx-float')]; });
     check('téléphone : explication à l\'écran → trait calme, pas de 👇', r[0] === true && has(log, 'histoire-erreur') && has(log, 'slash') && !r[1], [log, r]);
-    /* Résultat : le jeu ne remonte pas la page ; si l'émoji du palier est hors champ, vignette en haut. */
+    /* Résultat : le jeu l'affiche depuis le haut, l'émoji du palier est à l'écran. Il n'est hors champ que si la
+       page défile encore à l'arrivée (élan : elle repart dans le même tick) : le palier — et son titre s'il est
+       hors champ lui aussi — est alors dit en UN bandeau posé sur l'en-tête collant, jamais sur le résultat. */
     await ev(page, () => { answerStoryStep(0); nextStoryStep(); });        // dernière étape (appel ignoré), puis fin de mission
     await ev(page, () => { if (FX.env.screen() !== 'story-result') { answerStoryStep(storyState.currentStep.correct); nextStoryStep(); } });
     await wait(page, 2200);
     await ev(page, () => { startTrueFalse(); window.scrollTo(0, 400); }); await wait(page, 400);
     await ev(page, () => { tfState.correct = 15; tfState.qIdx = 19; answerTf(tfState.questions[19].isTrue); state.xp = (state.level - 1) * 500; });
-    log = await during(page, () => ev(page, () => __later()), 500);
+    log = await during(page, () => ev(page, () => { __later(); window.__y0 = pageYOffset; window.scrollTo(0, 400); }), 500);
     r = await ev(page, () => {
-      const e = document.getElementById('tf-result-emoji').getBoundingClientRect(), b = document.querySelector('.fx-banner'), q = b && b.getBoundingClientRect();
-      return { emojiVu: e.bottom > 0 && e.top < innerHeight, banner: b && b.textContent, x: q && q.left, r: q && q.right, vw: document.documentElement.clientWidth, scroll: pageYOffset };
+      const e = document.getElementById('tf-result-emoji').getBoundingClientRect(), t = document.getElementById('tf-result-msg').getBoundingClientRect(), b = document.querySelector('.fx-banner'), q = b && b.getBoundingClientRect(),
+        h = document.querySelector('header').getBoundingClientRect();
+      return { y0: window.__y0, emojiVu: (e.top + e.bottom) / 2 > h.bottom, titreVu: (t.top + t.bottom) / 2 > h.bottom, banner: b && b.textContent, x: q && q.left, r: q && q.right, vw: document.documentElement.clientWidth, scroll: pageYOffset,
+        onHeader: !!q && q.top >= h.top && q.bottom <= h.bottom, stage: document.querySelectorAll('#fx-stage > :not(.fx-blade)').length,
+        fx: document.getAnimations().filter((a) => !(a instanceof CSSAnimation) && !(a instanceof CSSTransition) && !a.effect.target.closest('#fx-root')).length };
     });
-    check('téléphone : résultat avec émoji hors champ → vignette (palier + titre du jeu) qui tient dans l\'écran',
-      has(log, 'bilan-tf[palier 3]') && !r.emojiVu && r.scroll > 0 && /EXCELLENT/.test(r.banner || '') && r.x >= 0 && r.r <= r.vw, [log, r]);
+    check('téléphone : résultat affiché depuis le haut par le jeu ; page qui défilait encore → émoji du palier hors champ',
+      has(log, 'bilan-tf[palier 3]') && r.y0 === 0 && r.scroll > 0 && !r.emojiVu, [log, r]);
+    check('téléphone : émoji hors champ → UN bandeau sur l\'en-tête (palier' + (r.titreVu ? ' seul : son titre est à l\'écran' : ' + titre du jeu') + '), qui tient dans l\'écran, aucun nœud du jeu animé',
+      r.banner === '⚡' + (r.titreVu ? '' : 'EXCELLENT') && r.onHeader && r.stage === 1 && r.x >= 0 && r.r <= r.vw && r.fx === 0 && !has(log, 'confetti'), [log, r]);
     await wait(page, 2200);
     check('téléphone : aucun reste', isIdle(await leftovers(page)), await leftovers(page));
     r = await ev(page, () => document.documentElement.scrollWidth);

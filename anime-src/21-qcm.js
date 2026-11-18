@@ -6,11 +6,15 @@
    repère) est coupé net — le joueur peut répondre et passer à la suite dans le même tick.
    Règles tenues ici : rien ne retarde ni ne couvre « QUESTION SUIVANTE » ; une erreur n'est jamais
    punie (contre PARÉ, puis repère calme vers l'explication) ; le moment le plus fêté est une
-   erreur corrigée (« REVANCHE RÉUSSIE ! ») ; effets finis (≈ 700 ms, 1,1 s pour un moment spécial). */
+   erreur corrigée (« REVANCHE RÉUSSIE ! ») ; effets finis (≈ 700 ms, 1,1 s pour un moment spécial).
+   Arène hors champ (petit téléphone, page défilée) : chaque moment garde une forme PROPRE, sur l'en-tête
+   collant — combo : onde et étoiles sur le compteur de série, d'autant plus larges que le cran monte ;
+   « REVANCHE RÉUSSIE ! », « … ULTIME ! », « K.O. ! » : bandeau et éclat (FX.fx.head) — et rien de plus
+   sur la question, les réponses ou l'explication. La couche ne fait jamais défiler la page. */
 FX.module('combat', function (FX) {
   var A = FX.arena, D = document, PI = Math.PI;
   if (!A) return;
-  var qAt = 0, lvAt = 0, tense = false, gel = false, busy = 0, rep = null, repTok = 0, repAt = 0;
+  var qAt = 0, lvAt = 0, lvK = 0, lvB = null, tense = false, gel = false, rep = null, repTok = 0, repAt = 0, F = FX.fx;
   var MELEE = { vortex: 1, impact: 1, crescent: 1 };       // gestes au corps à corps : le héros se rue
 
   function now() { return performance.now(); }
@@ -27,6 +31,8 @@ FX.module('combat', function (FX) {
   function mv(node, frames, ms, delay, fill) {
     return FX.anim(node, frames, { duration: ms, delay: delay || 0, fill: fill || 'none', scope: 'q', name: node.className });
   }
+  /* Les deux libellés du centre de l'arène s'effacent le temps d'un bandeau ou d'un cut-in posé sur elle. */
+  function voile(ms) { mv(A.tag.parentNode, [tf('none', 1), tf('none', 0, 0.15), tf('none', 0, 0.8), tf('none', 1)], ms); }
   function btnRect(i) {
     var l = D.querySelectorAll('#answers-grid .answer-btn');
     return i >= 0 && l[i] ? FX.rect(l[i]) : null;
@@ -116,66 +122,87 @@ FX.module('combat', function (FX) {
     var c = pal.c, u = pal.u, R = f.h * 0.55 * k, i, a, x, y, nx, pts = [];
     if (s === 'vortex') {                 // spirale d'étincelles autour de la cible
       for (i = 0; i <= 12; i++) { a = i * 0.95; pts.push([f.cx + Math.cos(a) * (5 + i * R / 9), f.cy + Math.sin(a) * (5 + i * R / 9)]); }
-      FX.fx.trail(pts, Q({ n: Math.round(16 * k), color: c, life: 420, stagger: 160 }));
-      FX.fx.ring(f.cx, f.cy, Q({ r1: R * 1.5, color: u }));
+      F.trail(pts, Q({ n: Math.round(16 * k), color: c, life: 420, stagger: 160 }));
+      F.ring(f.cx, f.cy, Q({ r1: R * 1.5, color: u }));
     } else if (s === 'stretch') {         // long trait épais, double onde de choc
-      FX.fx.slash(h.cx, h.cy, f.cx, f.cy, Q({ width: 9 * k, ms: 240, color: c }));
-      FX.fx.ring(f.cx, f.cy, Q({ r1: R * 1.3, width: 4, color: u }));
-      FX.fx.ring(f.cx, f.cy, Q({ r1: R * 1.8, ms: 400, color: c }));
+      F.slash(h.cx, h.cy, f.cx, f.cy, Q({ width: 9 * k, ms: 240, color: c }));
+      F.ring(f.cx, f.cy, Q({ r1: R * 1.3, width: 4, color: u }));
+      F.ring(f.cx, f.cy, Q({ r1: R * 1.8, ms: 400, color: c }));
     } else if (s === 'beam') {            // charge sur le héros puis rayon droit
-      FX.fx.ring(h.cx, h.cy, Q({ r0: h.h * 0.7, r1: 5, ms: 220, color: u }));
-      FX.fx.slash(h.cx, h.cy, f.cx, f.cy, Q({ width: 11 * k, ms: 280, color: u }));
-      FX.fx.slash(h.cx, h.cy, f.cx, f.cy, Q({ width: 4 * k, ms: 280, color: pal.light ? c : '#FFFFFF' }));
-      FX.fx.streaks(h.cx, h.cy, f.cx, f.cy, Q({ n: Math.round(8 * k), ms: 170, jitter: 9, color: c }));
+      F.ring(h.cx, h.cy, Q({ r0: h.h * 0.7, r1: 5, ms: 220, color: u }));
+      F.slash(h.cx, h.cy, f.cx, f.cy, Q({ width: 11 * k, ms: 280, color: u }));
+      F.slash(h.cx, h.cy, f.cx, f.cy, Q({ width: 4 * k, ms: 280, color: pal.light ? c : '#FFFFFF' }));
+      F.streaks(h.cx, h.cy, f.cx, f.cy, Q({ n: Math.round(8 * k), ms: 170, jitter: 9, color: c }));
     } else if (s === 'crescent') {        // un à trois arcs d'entaille
       for (i = 0; i < (k > 1.3 ? 3 : k > 1 ? 2 : 1); i++) {
-        FX.fx.slash(f.cx - R, f.cy - R + i * 9, f.cx + R, f.cy + R - i * 9,
+        F.slash(f.cx - R, f.cy - R + i * 9, f.cx + R, f.cy + R - i * 9,
                     Q({ curve: (i % 2 ? -1 : 1) * R * 0.7, width: 5, ms: 240 + i * 50, color: i ? u : c }));
       }
-      FX.fx.burst(f.cx, f.cy, Q({ n: Math.round(6 * k), kind: 'rect', speed: 120, gravity: 160, color: c }));
+      F.burst(f.cx, f.cy, Q({ n: Math.round(6 * k), kind: 'rect', speed: 120, gravity: 160, color: c }));
     } else if (s === 'bolt') {            // éclair en zigzag
       x = h.cx; y = h.cy;
       for (i = 1; i <= 5; i++) {
         nx = h.cx + (f.cx - h.cx) * i / 5; a = i === 5 ? f.cy : h.cy + (i % 2 ? -1 : 1) * 9 * k;
-        FX.fx.slash(x, y, nx, a, Q({ width: 3.5 * k, ms: 230, color: u }));
+        F.slash(x, y, nx, a, Q({ width: 3.5 * k, ms: 230, color: u }));
         x = nx; y = a;
       }
-      FX.fx.burst(f.cx, f.cy, Q({ n: Math.round(8 * k), kind: 'star', speed: 240, gravity: 0, life: 380, color: c }));
+      F.burst(f.cx, f.cy, Q({ n: Math.round(8 * k), kind: 'star', speed: 240, gravity: 0, life: 380, color: c }));
     } else {                              // impact (repli générique) : éclats droits + onomatopée
-      FX.fx.burst(f.cx, f.cy, Q({ n: Math.round(12 * k), kind: 'streak', speed: 300, gravity: 0, life: 300, color: c }));
-      FX.fx.ring(f.cx, f.cy, Q({ r1: R * 1.6, width: 5, color: u }));
-      FX.fx.float(FX.pick(['BAM !', 'PAF !', 'BOUM !']), f.cx - R * 3, f.cy - R * 0.3, Q({ rotate: -12, color: c, size: 18, ms: 460, dy: -10 }));
+      F.burst(f.cx, f.cy, Q({ n: Math.round(12 * k), kind: 'streak', speed: 300, gravity: 0, life: 300, color: c }));
+      F.ring(f.cx, f.cy, Q({ r1: R * 1.6, width: 5, color: u }));
+      /* Onomatopée AU PIED de l'adversaire, côté extérieur : jamais sur le ×N ni sur le mot du centre, et
+         sous les points gagnés, qui partent de son centre vers le haut. */
+      F.float(FX.pick(['BAM !', 'PAF !', 'BOUM !']), Math.min(f.cx + 6, FX.vw() - 34), f.cy + f.h * 0.52, Q({ rotate: -8, color: c, size: 18, ms: 460, dy: 6 }));
     }
   }
 
   /* ── Bonne réponse : l'énergie quitte la réponse → attaque du héros → l'adversaire encaisse ── */
   function juste(d, lv, pal, b, g, ult) {
     var full = lv > 1, c = pal.c, u = pal.u, x0 = 0, y0 = 0, h, f, sc, t0 = 0, T, dx, k, dash, seg, i, pts,
-        txt = d.free ? '✔' : '+' + d.pts.toLocaleString('fr-FR');
+        txt = d.free ? '✔' : '+' + d.pts.toLocaleString('fr-FR'),
+        rev = 'REVANCHE RÉUSSIE !', ulti = pal.power.toUpperCase() + ' ULTIME !',
+        /* Mot du moment spécial, un seul : fin du combat (écrit par l'arène) > revanche > ULTIME. */
+        mot = d.fin ? A.combo.textContent : d.retry ? rev : ult && !d.free ? ulti : '';
     if (b && b.inView) {                  // éclat bref sur le bord de la réponse choisie (≤ 340 ms)
       x0 = b.x + 27; y0 = b.y;
-      FX.fx.ring(x0, b.cy, Q({ r0: 12, r1: 25, color: pal.good }));
-      FX.fx.burst(x0, y0, Q({ n: 8 + 2 * Math.min(d.n, 5), speed: 170, life: 340, angle: -PI / 2, spread: PI, gravity: 0, color: c }));
+      F.ring(x0, b.cy, Q({ r0: 12, r1: 25, color: pal.good }));
+      F.burst(x0, y0, Q({ n: 8 + 2 * Math.min(d.n, 5), speed: 170, life: 340, angle: -PI / 2, spread: PI, gravity: 0, color: c }));
     }
-    if (!g) {                             // arène hors champ : l'énergie file vers le score de l'en-tête
+    if (!g) {
+      /* Arène hors champ : l'énergie file vers le score de l'en-tête, et le moment se dit SUR l'en-tête.
+         Moment spécial : son mot en bandeau, avec un éclat parti de la ligne de l'en-tête (≤ 1,1 s ; rien
+         si l'en-tête n'est pas entier à l'écran). Sinon, dès le cran 2 du combo : une onde et des étoiles
+         sur le compteur de série, d'autant plus larges que le cran monte (l'aura du héros, en petit) —
+         sans mot : le jeu affiche déjà « ×N » dans ce compteur et le mot du combo juste sous l'en-tête. */
       sc = FX.rect('score');
       if (x0 && sc && sc.inView) {
-        FX.fx.streaks(x0, y0, sc.cx, sc.cy, Q({ n: 6, ms: 280, color: c }));
-        FX.fx.float(txt, sc.cx, sc.cy + 22, Q({ color: pal.good, size: 20, ms: 600, dy: -18 }));
+        F.streaks(x0, y0, sc.cx, sc.cy, Q({ n: 6, ms: 280, color: c }));
+        if (!mot) F.float(txt, sc.cx, sc.cy + 22, Q({ color: pal.good, size: 20, ms: 600, dy: -18 }));
+      }
+      k = Math.min(d.n, 5);
+      if (mot) F.head(mot, Q({ emoji: mot === rev ? '🌟' : pal.heroEmoji, color: mot === rev ? pal.good : c, colors: pal.set, n: mot === rev ? 20 : 30, ms: 1000 }));
+      else if (k > 1 && (sc = FX.rect('streak')) && sc.inView) {
+        F.ring(sc.cx, sc.cy, Q({ r0: 10, r1: 14 + 6 * k, width: 2 + k / 2, color: c }));
+        F.burst(sc.cx, sc.cy, Q({ n: 3 * k, kind: 'star', speed: 90 + 20 * k, life: 420, gravity: 0, color: c }));
       }
       return;
     }
     h = g.h; f = g.f;
-    if (x0) FX.fx.streaks(x0, y0, h.cx, h.cy, Q({ n: 8, ms: 190, color: c }));
-    /* Moment spécial : un seul bandeau à la fois (revanche > ULTIME), posé sur la bande de combat. */
+    if (x0) F.streaks(x0, y0, h.cx, h.cy, Q({ n: 8, ms: 190, color: c }));
+    /* Moment spécial : un seul bandeau à la fois (revanche > ULTIME), posé AU CENTRE de la bande de combat,
+       entre les deux combattants ; les deux libellés du centre s'effacent le temps du bandeau (jamais un mot
+       à cheval sur un autre, rien sur la question).
+       Niveau léger et cible d'entraînement : pas de cut-in, le mot du combo de l'arène grossit un instant
+       (jamais un second mot posé par-dessus). */
     if (d.retry) {
-      FX.fx.banner('REVANCHE RÉUSSIE !', Q({ y: g.a.y + g.a.h + 4, emoji: '🌟', color: pal.good, ms: 1000 }));
-      busy = now() + 1000;
+      F.banner(rev, Q({ anchor: g.a, emoji: '🌟', color: pal.good, ms: 1000, cls: 'fx-rev' }));
+      voile(1000);
     } else if (ult && full && !d.free) {
-      FX.fx.cutin(pal.power.toUpperCase() + ' ULTIME !', Q({ anchor: g.a, emoji: pal.heroEmoji, color: c, ms: 560, cls: 'fx-ult' }));
-      FX.fx.tint(u, Q({ rect: g.a, alpha: 0.1, ms: 420 }));
-      t0 = 340; busy = now() + 560;
-    } else if (ult) FX.fx.float('ULTIME !', g.a.cx, g.a.cy + g.a.h * 0.2, Q({ color: c, size: 22, ms: 500, dy: -6 }));
+      F.cutin(ulti, Q({ anchor: g.a, emoji: pal.heroEmoji, color: c, ms: 560, cls: 'fx-ult' }));
+      F.tint(u, Q({ rect: g.a, alpha: 0.1, ms: 420 }));
+      voile(560);
+      t0 = 340;
+    } else if (ult) mv(A.tag, [tf('scale(1.7)'), tf('none')], 300);
     T = t0 + (full ? 180 : 90);           // instant de l'impact
     k = ult ? 2 : d.n >= 4 ? 1.35 : d.n === 3 ? 1.2 : 1;
     /* Héros : élan, ruée (ou pose de tir), retour. */
@@ -193,20 +220,22 @@ FX.module('combat', function (FX) {
     }
     seg = A.hp.querySelector('.fx-off');  // le segment de vie qui vient de s'éteindre
     if (seg) mv(seg, [tf('none', 1), tf('scaleY(1.7)', 1, 0.4), tf('none', 0.2)], 300, T, 'backwards');
-    if (d.n >= 2) mv(A.combo, [tf('scale(1.8)'), tf('none')], 240);
+    /* Pastille centrale : le ×N grossit un instant ; au dernier coup, le mot de fin écrit par l'arène
+       (« K.O. ! », « BOSS VAINCU ! », « BRAVO ! ») s'abat à l'impact. */
+    if (d.fin) mv(A.combo, [tf('scale(2.6)', 0), tf('none', 1)], 300, T, 'backwards');
+    else if (d.n >= 2) mv(A.combo, [tf('scale(1.8)'), tf('none')], 240);
     FX.after(T, function () {
       if (full) geste(pal.style, h, f, pal, k);
-      FX.fx.burst(f.cx, f.cy, Q({ n: Math.round(8 * k), kind: 'star', speed: 180 * k, life: 420, color: u }));
-      FX.fx.float(txt, Math.min(f.cx, FX.vw() - 56), f.cy - 4, Q({ color: d.free ? pal.good : pal.warn, size: d.pts > 999 ? 26 : 22, ms: full ? 520 : 420, dy: -24 }));
+      F.burst(f.cx, f.cy, Q({ n: Math.round(8 * k), kind: 'star', speed: 180 * k, life: 420, color: u }));
+      F.float(txt, Math.min(f.cx, FX.vw() - 56), f.cy - 4, Q({ color: d.free ? pal.good : pal.warn, size: d.pts > 999 ? 26 : 22, ms: full ? 520 : 420, dy: -24 }));
       if (d.retry) {                      // couronne d'étoiles : l'erreur est corrigée
         for (pts = [], i = 0; i <= 10; i++) pts.push([f.cx + Math.cos(i * 0.63) * f.h * 0.8, f.cy + Math.sin(i * 0.63) * f.h * 0.8]);
-        FX.fx.trail(pts, Q({ n: 14, color: pal.warn, life: 520, stagger: 220 }));
-        FX.fx.confetti(Q({ n: 20, from: f, ms: 900 }));
+        F.trail(pts, Q({ n: 14, color: pal.warn, life: 520, stagger: 220 }));
+        F.confetti(Q({ n: 20, from: f, ms: 900 }));
       }
       if (d.fin) {                        // dernier coup de la partie
-        FX.fx.float(d.free ? 'BRAVO !' : d.boss ? 'BOSS VAINCU !' : 'K.O. !', g.a.cx, g.a.cy + g.a.h * 0.2, Q({ color: u, size: full ? 30 : 24, ms: 800, dy: -6 }));
-        FX.fx.ring(f.cx, f.cy, Q({ r1: f.h * 1.6, width: 5, ms: 420, color: c }));
-        FX.fx.confetti(Q({ n: d.free ? 12 : 30, from: f, ms: 900 }));
+        F.ring(f.cx, f.cy, Q({ r1: f.h * 1.6, width: 5, ms: 420, color: c }));
+        F.confetti(Q({ n: d.free ? 12 : 30, from: f, ms: 900 }));
       }
     }, 'q');
   }
@@ -236,14 +265,15 @@ FX.module('combat', function (FX) {
         else if (!d.down) {
           mv(A.hero, [tf('none'), tf('translateX(-7px) rotate(-5deg)'), tf('none')], 260, 150);
           FX.after(150, function () {
-            FX.fx.ring(h.cx + h.w * 0.45, h.cy, Q({ r0: 8, r1: h.h * 0.75, width: 4, color: pal.calm }));
-            FX.fx.sprite('🛡️', h.cx + h.w * 0.75, h.cy, Q({ size: 20, life: 420 }));
+            F.ring(h.cx + h.w * 0.45, h.cy, Q({ r0: 8, r1: h.h * 0.75, width: 4, color: pal.calm }));
+            F.sprite('🛡️', h.cx + h.w * 0.75, h.cy, Q({ size: 20, life: 420 }));
           }, 'q');
         }
       }
-      if (d.ko) FX.after(560, function () { FX.fx.float('FIN DU COMBAT', g.a.cx, g.a.cy - g.a.h * 0.2, Q({ color: pal.calm, size: 20, ms: 700, dy: -4 })); }, 'q');
+      /* « FIN DU COMBAT » : écrit par l'arène dans sa pastille centrale, il n'apparaît qu'une fois le héros tombé. */
+      if (d.ko) mv(A.combo, [tf('none', 0), tf('none', 1)], 280, 560, 'backwards');
     }
-    if (d.to && (t = FX.rect('#timer-num')) && t.inView) FX.fx.ring(t.cx, t.cy, Q({ r0: 24, r1: 5, ms: 420, color: pal.warn }));
+    if (d.to && (t = FX.rect('#timer-num')) && t.inView) F.ring(t.cx, t.cy, Q({ r0: 24, r1: 5, ms: 420, color: pal.warn }));
     cue();
   }
 
@@ -275,15 +305,15 @@ FX.module('combat', function (FX) {
         l = D.querySelectorAll('#answers-grid .answer-btn');
         for (i = 0; i < l.length; i++) {
           if (l[i].style.opacity === '0.2' && (r = FX.rect(l[i])) && r.inView) {
-            FX.fx.slash(r.x + 10, r.cy + 7, r.x + r.w - 10, r.cy - 7, Q({ width: 3, ms: 260, color: pal.calm }));
+            F.slash(r.x + 10, r.cy + 7, r.x + r.w - 10, r.cy - 7, Q({ width: 3, ms: 260, color: pal.calm }));
           }
         }
-        if (h) FX.fx.sprite('✂️', h.cx, h.y, Q({ size: 20, life: 520, speed: 28 }));
+        if (h) F.sprite('✂️', h.cx, h.y, Q({ size: 20, life: 520, speed: 28 }));
       } else if (type === 'hint') {       // rien près des réponses : l'indice du jeu est volontairement discret
-        if (h) { FX.fx.sprite('💡', h.cx, h.y, Q({ size: 20, life: 560, speed: 28 })); FX.fx.ring(h.cx, h.cy, Q({ r1: h.h * 0.8, color: pal.warn })); }
+        if (h) { F.sprite('💡', h.cx, h.y, Q({ size: 20, life: 560, speed: 28 })); F.ring(h.cx, h.cy, Q({ r1: h.h * 0.8, color: pal.warn })); }
       } else if (f) {                     // temps figé : l'adversaire se fige (état fixe posé par sync)
-        FX.fx.ring(f.cx, f.cy, Q({ r0: f.h, r1: 8, ms: 420, color: pal.calm }));
-        FX.fx.burst(f.cx, f.cy, Q({ n: 10, speed: 60, life: 700, gravity: -40, color: pal.calm }));
+        F.ring(f.cx, f.cy, Q({ r0: f.h, r1: 8, ms: 420, color: pal.calm }));
+        F.burst(f.cx, f.cy, Q({ n: 10, speed: 60, life: 700, gravity: -40, color: pal.calm }));
       }
     }, { info: type });
   });
@@ -294,7 +324,7 @@ FX.module('combat', function (FX) {
     A.sync();
     g = A.geo();
     FX.play('qcm-tension', function (lv, pal) {
-      if (g) FX.fx.ring(g.f.cx, g.f.cy, Q({ r1: g.f.h * 0.9, color: pal.warn, min: 2 }));
+      if (g) F.ring(g.f.cx, g.f.cy, Q({ r1: g.f.h * 0.9, color: pal.warn, min: 2 }));
     });
   });
 
@@ -309,18 +339,23 @@ FX.module('combat', function (FX) {
           étoiles sur le badge seulement, s'il est visible. Épreuves : l'onde seule (profil sobre). ── */
   FX.on('xp:niveau', function () {
     var id = FX.env.screen(), game = id === 'game', fete = FX.env.profile() === 'ceremony',
-        txt = game || (fete && FX.effective() > 1);
+        txt = game || (fete && FX.effective() > 1), k = ++lvK;
     lvAt = 0;
     if (id === 'result') return;
-    FX.after(game ? Math.max(0, busy - now()) + 320 : txt ? 1300 : fete ? 600 : 0, function () {
-      var hd = FX.rect('header'), r = FX.rect('level');
+    FX.after(game ? 320 : txt ? 1300 : fete ? 600 : 0, function go() {
+      var hd = FX.rect('header'), r = FX.rect('level'), w = txt && !(lvB && lvB.parentNode) && F.busy();
+      if (k !== lvK) return;                                              // un niveau plus récent prend la suite
+      /* Un autre bandeau occupe l'écran (moment spécial du QCM, palier d'un résultat) : le niveau attend
+         qu'il soit parti — jamais deux bandeaux à la fois, jamais l'un chassant l'autre. Un bandeau de
+         niveau encore affiché, lui, est simplement remplacé (niveaux gagnés coup sur coup). */
+      if (w) { FX.after(w + 80, go); return; }
       if (!hd || hd.y < -4 || !(txt || (r && r.inView))) return;          // en-tête sorti (même en partie) : rien
       FX.play('niveau', function (lv, pal) {
         var st = FX.game.state();
-        if (txt) FX.fx.banner('NIVEAU ' + (st ? st.level : '') + ' !', { anchor: hd, emoji: '⭐', color: pal.warn, ms: 1000 });
+        if (txt) lvB = F.banner('NIVEAU ' + (st ? st.level : '') + ' !', { anchor: hd, emoji: '⭐', color: pal.warn, ms: 1000 });
         if (r && r.inView) {
-          FX.fx.ring(r.cx, r.cy, { r1: 30, color: pal.warn });
-          FX.fx.burst(r.cx, r.cy, { n: 12, kind: 'star', speed: 140, gravity: 60, color: pal.warn, min: fete ? 2 : 1 });
+          F.ring(r.cx, r.cy, { r1: 30, color: pal.warn });
+          F.burst(r.cx, r.cy, { n: 12, kind: 'star', speed: 140, gravity: 60, color: pal.warn, min: fete ? 2 : 1 });
         }
       });
     });

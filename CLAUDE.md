@@ -533,6 +533,15 @@ Si une nouvelle version ne s'affiche pas chez l'utilisateur après déploiement 
 1. Vérifier que `__CACHE_VERSION__` a bien été remplacé par le SHA dans `sw.js` (regarder le workflow run logs)
 2. L'utilisateur voit-il le toast "🔄 Nouvelle version disponible" ? Sinon, son SW n'a pas détecté la mise à jour (devra attendre 1h ou rafraîchir)
 
+### 8.13 Défilement géré par le jeu (question et résultats)
+
+Deux comportements d'`index.html`, ajoutés pour les petits écrans, à préserver :
+
+- **`bringIntoView(el)`**, appelé à la fin de `loadQuestion()` sur `#question-wrap` : si la carte question (énoncé + réponses) n'est pas entièrement visible entre l'en-tête collant et le bas de la fenêtre, la page défile aussitôt (sans animation, sans toucher au focus) pour caler le bas de la carte en bas de la fenêtre, sans jamais cacher son haut sous l'en-tête. Ne fait rien si la carte est déjà visible. Avant, la page restait défilée là où se trouvait « QUESTION SUIVANTE » et l'énoncé suivant commençait caché sous l'en-tête.
+- **`showScreen()`** : tout écran dont l'identifiant finit par `result` s'affiche depuis le haut (`window.scrollTo(0, 0)`).
+
+L'édition animée en dépend (arène du QCM visible au moment de la réponse, cérémonie de résultat complète). Après toute retouche : `node tools/test_anime.js --only defilement,defilement-partie`.
+
 -----
 
 ## 9. Évolutions possibles et leur impact
@@ -665,23 +674,25 @@ Quelques décisions importantes (à ne pas remettre en question sans discussion)
 
 ## 13. Édition animée (`anime.html`)
 
-`anime.html` = `index.html` (copié tel quel, **jamais modifié**) + une couche d'animation injectée (`<style id="fx-style">` et `<script id="fx-script">`, ≈ 99 Ko, une seule globale `FX`) : transitions d'écran, combat du QCM, moment de bonne réponse dans chaque mode, écrans de résultat animés. Le jeu classique reste `index.html` ; les deux pages sont déployées côte à côte (`https://acs-data.github.io/ninja-math-games/anime.html`).
+`anime.html` = `index.html` (copié tel quel, **jamais modifié**) + une couche d'animation injectée (`<style id="fx-style">` et `<script id="fx-script">`, ≈ 101 Ko, une seule globale `FX`) : transitions d'écran, combat du QCM, moment de bonne réponse dans chaque mode, écrans de résultat animés. Le jeu classique reste `index.html` ; les deux pages sont déployées côte à côte (`https://acs-data.github.io/ninja-math-games/anime.html`).
 
 ### 13.1 À savoir avant toute modification
 
 - **`anime.html` est GÉNÉRÉ** : ne jamais l'éditer à la main. Modifier `anime-src/`, puis `python3 tools/build_anime.py`.
 - **Toute modification d'`index.html` impose de reconstruire et de retester** : `python3 tools/build_anime.py && node tools/test_anime.js`. La couche enveloppe 50 fonctions globales du jeu par leur nom (`answer`, `showScreen`, `endGame`, `validateDraw`…). Le build **refuse** de construire (code 2, rien n'est écrit) si disparaît un nom dont dépend le noyau de la couche (`showScreen`, `openModal`, `closeModal`, `toggleSave`, `isSaveEnabled`, `state`, `currentUniverse`, `UNIVERSES`, `CHARS`, `#app`, la classe `modal-overlay`, l'écran d'une épreuve) ou l'arène du QCM (`loadQuestion`, `answer`, `timeOut`, `useJutsu`, `updateTimerUI`, `addXP`, `applyTheme`) ; pour les autres fonctions enveloppées il **avertit** (un effet en moins). Les tests disent si un comportement a changé. `anime.html` est versionné ; le déploiement (`pages.yml`) le reconstruit aussi, sans jamais bloquer le jeu principal : si la construction est refusée, c'est l'`anime.html` versionné qui est déployé — une édition animée alors en retard sur le jeu classique, signalée par une annotation d'erreur du déroulé GitHub Actions.
 - **La recette de validation du § 7.3 ne s'applique pas à `anime.html`** (deux blocs `<script>`) : utiliser `python3 tools/build_anime.py --check` (lints de la couche, contrat avec `index.html`, `node --check` sur chaque bloc ; code 1 si le fichier n'est pas à jour, code 2 si la construction est refusée).
-- **Tests** : `node tools/test_anime.js` (Playwright + Chromium, plus `python3` et `bash` pour le scénario `build` ; ≈ 4 min 30, aucune dépendance ajoutée au dépôt ; `--only clé1,clé2` pour quelques scénarios, `--list` pour les clés). Le script ne rend 0 que si des vérifications ont tourné et sont toutes vertes (Playwright introuvable : 3 ; option ou clé inconnue : 2 ; aucune vérification : 1). Principe : la même session scriptée sur `index.html` et `anime.html` doit donner le même état de jeu, le même focus, les mêmes toasts et annonces, et le même DOM une fois retirés les nœuds de la couche. Les lints du build sont un fil d'alarme, pas un bac à sable.
+- **Tests** : `node tools/test_anime.js` (Playwright + Chromium, plus `python3` et `bash` pour le scénario `build` ; ≈ 6 min, à lancer seule sur la machine, aucune dépendance ajoutée au dépôt ; `--only clé1,clé2` pour quelques scénarios, `--list` pour les clés). Le script ne rend 0 que si des vérifications ont tourné et sont toutes vertes (Playwright introuvable : 3 ; option ou clé inconnue : 2 ; aucune vérification : 1). Principe : la même session scriptée sur `index.html` et `anime.html` doit donner le même état de jeu, le même focus, les mêmes toasts et annonces, et le même DOM une fois retirés les nœuds de la couche. Les lints du build sont un fil d'alarme, pas un bac à sable.
 - **`localStorage` partagé** entre les deux pages (même origine, dans un même navigateur et un même profil) : même progression, mêmes stats, même opt-in. La couche n'ajoute qu'une clé, `amat_fx_v1` (niveau d'animation), écrite seulement si `isSaveEnabled()`.
-- **Réglage joueur** : « Animations : ON / OFF » (accueil, tiroir, modales de pause) et « Effets légers » ; OFF par défaut si `prefers-reduced-motion`. Au niveau OFF, aucun effet de la couche ne joue et le jeu se déroule comme dans `index.html` ; deux différences demeurent : les boutons de réglage restent en place (accueil, tiroir, modales de pause), et les boucles décoratives du jeu (points de chakra, emoji flottant de l'accueil, spirale de chargement) sont mises en pause.
+- **Réglage joueur** : « Animations : ON / OFF » (accueil, tiroir, modales de pause) et « Effets légers » ; OFF par défaut si `prefers-reduced-motion`. Le réglage système l'emporte aussi sur un choix fait avant qu'il soit activé ; un choix fait pendant qu'il est actif est respecté (rallumage au niveau léger). Au niveau OFF, aucun effet de la couche ne joue et le jeu se déroule comme dans `index.html` ; deux différences demeurent : les boutons de réglage restent en place (accueil, tiroir, modales de pause), et les boucles décoratives du jeu (points de chakra, emoji flottant de l'accueil, spirale de chargement) sont mises en pause.
+- **Couche coupée** (disjoncteur après des erreurs répétées, ou navigateur sans Web Animations / canvas 2D) : la page redevient celle d'`index.html` — plus aucun effet, boutons de réglage retirés des modales de pause, boucles décoratives du jeu rendues à elles-mêmes.
+- **Défilement** : l'édition animée s'appuie sur deux comportements d'`index.html` (§ 8.13) — la carte question ramenée dans la fenêtre à chaque question (l'arène vient avec) et les écrans de résultat affichés depuis le haut (cérémonie complète). La couche, elle, ne fait jamais défiler la page.
 - **Service worker** (`sw.js`, commun aux deux pages) : `anime.html` et `manifest-anime.json` sont optionnels — jamais téléchargés pour un joueur du jeu classique seul, remis en cache à chaque version pour un joueur qui a déjà ouvert l'édition animée, sans retarder l'installation de plus de 3 s. `.gitattributes` impose des fins de ligne LF aux fichiers dont dépend la construction.
 - **Contrat complet** (architecture, API `FX`, modules existants, ajout d'un module, tests) : `anime-src/README.md` — à lire avant de toucher à la couche.
 
 ### 13.2 Règles de la couche (résumé)
 
 1. **Jeu intact** : aucun changement de score, de minuteur, de flux de questions, de focus, d'annonce lecteur d'écran ni de raccourci clavier. Un défaut d'`index.html` se corrige dans `index.html`, jamais par la couche (ni corrigé ni masqué).
-2. **Lecture d'abord** : effets finis (≤ ~700 ms après une réponse, ≤ ~2,5 s pour un résultat), aucune boucle sur un écran de question, rien ne couvre durablement une question, une réponse, une explication ou un champ.
+2. **Lecture d'abord** : effets finis (≤ ~700 ms après une réponse, ≤ ~2,5 s pour un résultat), aucune boucle sur un écran de question, rien ne couvre durablement une question, une réponse, une explication ou un champ ; un effet de résultat ne se pose jamais sur un texte du résultat (bandeau sur l'en-tête collant, ou rien).
 3. **Une erreur est une étape d'apprentissage** : ni flash rouge, ni secousse, ni moquerie — un repère calme vers l'explication.
 4. **Épreuves sobres** : Automatismes (6 pools) et DNB Blanc plafonnés au niveau léger, zéro particule ; seule leur page de résultat fête.
 5. **Un seul effet focal à la fois** : un niveau gagné ou un retour à l'accueil n'ajoute jamais un second effet sur le verdict d'un mode (`anime-src/README.md` § 6.8).

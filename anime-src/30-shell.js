@@ -27,13 +27,7 @@ FX.module('accueil', function (FX) {
 
   function now() { return performance.now(); }
   function Q(o) { o.scope = 'q'; return o; }
-  /* Rectangle d'une cible réellement lisible : dans la fenêtre et pas sous l'en-tête collant. */
-  function vis(t) {
-    var r = FX.rect(t), h;
-    if (!r || !r.inView || r.cy > FX.vh()) return null;
-    h = FX.rect('header');
-    return h && h.inView && r.cy < h.y + h.h ? null : r;
-  }
+  var vis = FX.seen, F = FX.fx;      // cible réellement lisible : dans la fenêtre et pas sous l'en-tête collant
   function later(ms, fn) { if (ms) FX.after(ms, fn); else fn(); }
   function pal() { return FX.palette(); }
 
@@ -50,25 +44,25 @@ FX.module('accueil', function (FX) {
       if (r) {
         /* L'énergie converge sur le héros par les deux côtés (sa rangée ne contient que lui)… */
         if (full) for (k = -1; k < 2; k += 2) {
-          FX.fx.streaks(r.cx + k * 170, r.cy, r.cx + k * 26, r.cy, { n: 5, ms: 220, jitter: r.h * 0.3, color: pal.u });
+          F.streaks(r.cx + k * 170, r.cy, r.cx + k * 26, r.cy, { n: 5, ms: 220, jitter: r.h * 0.3, color: pal.u });
         }
         /* … puis l'onde : elle reste autour de lui, au-dessus du titre. */
         later(full ? 210 : 0, function () {
-          FX.fx.ring(r.cx, r.cy, { r0: 12, r1: r.h * 0.62, color: pal.u, ms: full ? 420 : 340 });
-          FX.fx.burst(r.cx, r.cy + r.h * 0.4, { n: full ? 12 : 8, angle: -PI / 2, spread: 3.6, speed: 170, life: full ? 520 : 360, size: 3, color: pal.c, min: 2 });
+          F.ring(r.cx, r.cy, { r0: 12, r1: r.h * 0.62, color: pal.u, ms: full ? 420 : 340 });
+          F.burst(r.cx, r.cy + r.h * 0.4, { n: full ? 12 : 8, angle: -PI / 2, spread: 3.6, speed: 170, life: full ? 520 : 360, size: 3, color: pal.c, min: 2 });
         });
         /* Lueurs : trois vagues de cinq, qui montent doucement autour du héros puis s'éteignent. */
         if (full) for (i = 0; i < 3; i++) wave(r.cx + (i - 1) * r.w * 0.7, r.y + r.h, 480 + 220 * i, pal);
       }
       /* Scintillement qui court le long du haut du titre (jamais sur le texte d'accroche). */
       if (t) later(full ? 300 : 0, function () {
-        FX.fx.trail([[t.x, t.y], [t.x + t.w, t.y]], { n: full ? 14 : 8, life: full ? 460 : 260, stagger: full ? 300 : 90, size: 4, jitter: 3, color: pal.u });
+        F.trail([[t.x, t.y], [t.x + t.w, t.y]], { n: full ? 14 : 8, life: full ? 460 : 260, stagger: full ? 300 : 90, size: 4, jitter: 3, color: pal.u });
       });
     }, { info: full ? 'ouverture' : 'retour' });
   }
   function wave(x, y, ms, pal) {
     FX.after(ms, function () {
-      FX.fx.burst(x, y, { n: 5, angle: -PI / 2, spread: 1.2, speed: 52, gravity: -28, drag: 0.4, life: 1600, size: 5, kind: 'star', colors: [pal.u, pal.c] });
+      F.burst(x, y, { n: 5, angle: -PI / 2, spread: 1.2, speed: 52, gravity: -28, drag: 0.4, life: 1600, size: 5, kind: 'star', colors: [pal.u, pal.c] });
     });
   }
   /* Les effets sont posés dans le repère de la fenêtre : dès que le joueur fait défiler la page, ce qui
@@ -110,8 +104,8 @@ FX.module('accueil', function (FX) {
     if (d.id === 'home') { FX.after(160, function () { opening(false); }); return; }
     if (!p || d.profile === 'sobre' || d.id === 'loading' || now() - p.t > 700) return;
     FX.play('envol', function (lv, pal) {
-      FX.fx.ring(p.x, p.y, { r0: 10, r1: 76, color: pal.u, ms: 320 });
-      FX.fx.burst(p.x, p.y, { n: 14, kind: 'streak', speed: 460, life: 340, gravity: 0, drag: 2, size: 3, color: pal.u });
+      F.ring(p.x, p.y, { r0: 10, r1: 76, color: pal.u, ms: 320 });
+      F.burst(p.x, p.y, { n: 14, kind: 'streak', speed: 460, life: 340, gravity: 0, drag: 2, size: 3, color: pal.u });
     }, { info: d.id });
   });
 
@@ -123,11 +117,11 @@ FX.module('accueil', function (FX) {
     var r = vis('.universe-card.selected');
     if (!r) return;
     FX.play('univers', function (lv, pal) {
-      FX.fx.tint(pal.u, { alpha: 0.1, ms: 420, scope: 'q' });
-      FX.fx.ring(r.cx, r.cy, Q({ r0: 20, r1: Math.max(FX.vw(), FX.vh()) * 0.8, width: 16, color: pal.u, ms: 520, min: 2 }));
-      FX.fx.ring(r.cx, r.cy, Q({ r0: 14, r1: r.w * 0.7, width: 4, color: pal.u, ms: 380 }));
-      FX.fx.burst(r.cx, r.cy, Q({ n: 18, speed: 260, life: 520, color: pal.u }));
-      FX.fx.sprite(pal.uniEmoji, r.cx, r.y + r.h * 0.3, Q({ size: 30, life: 560, speed: 90, drag: 1.5, min: 2 }));
+      F.tint(pal.u, { alpha: 0.1, ms: 420, scope: 'q' });
+      F.ring(r.cx, r.cy, Q({ r0: 20, r1: Math.max(FX.vw(), FX.vh()) * 0.8, width: 16, color: pal.u, ms: 520, min: 2 }));
+      F.ring(r.cx, r.cy, Q({ r0: 14, r1: r.w * 0.7, width: 4, color: pal.u, ms: 380 }));
+      F.burst(r.cx, r.cy, Q({ n: 18, speed: 260, life: 520, color: pal.u }));
+      F.sprite(pal.uniEmoji, r.cx, r.y + r.h * 0.3, Q({ size: 30, life: 560, speed: 90, drag: 1.5, min: 2 }));
       if (lv > 1) FX.after(250, function () { ripple(pal.u); }, 'q');
     }, { info: pal().universe });
   });
@@ -137,7 +131,7 @@ FX.module('accueil', function (FX) {
     function one(el, k) {
       FX.after(45 * k, function () {
         var c = vis(el);
-        if (c) FX.fx.ring(c.cx, c.cy, Q({ r0: 8, r1: c.w * 0.5, width: 2, color: color, ms: 300 }));
+        if (c) F.ring(c.cx, c.cy, Q({ r0: 8, r1: c.w * 0.5, width: 2, color: color, ms: 300 }));
       }, 'q');
     }
     for (i = 0; i < l.length && i < 6; i++) one(l[i], i);
@@ -152,8 +146,8 @@ FX.module('accueil', function (FX) {
     var r = vis(el), e = r && el.querySelector('.char-emoji');
     if (!r) return;
     FX.play('perso', function (lv, pal) {
-      FX.fx.ring(r.cx, r.cy, Q({ r0: 12, r1: Math.max(r.w, r.h) * 0.62, color: pal.c, ms: 340 }));
-      FX.fx.burst(r.cx, r.cy, Q({ n: 10, speed: 190, life: 420, size: 3, kind: 'star', color: pal.c }));
+      F.ring(r.cx, r.cy, Q({ r0: 12, r1: Math.max(r.w, r.h) * 0.62, color: pal.c, ms: 340 }));
+      F.burst(r.cx, r.cy, Q({ n: 10, speed: 190, life: 420, size: 3, kind: 'star', color: pal.c }));
       if (e) FX.anim(e, [{ transform: 'scale(1)' }, { transform: 'scale(1.35)', offset: 0.4 }, { transform: 'scale(1)' }],
                      Q({ duration: 320, leger: false, name: 'perso' }));
     }, { info: pal().char });
@@ -167,7 +161,7 @@ FX.module('accueil', function (FX) {
   FX.on('sh:classe', function () {
     var r = vis('.mission-tab.active');
     if (r) FX.play('classe', function (lv, pal) {
-      FX.fx.slash(r.x + 8, r.y + r.h + 3, r.x + r.w - 8, r.y + r.h + 3, Q({ color: pal.u, width: 3, ms: 280 }));
+      F.slash(r.x + 8, r.y + r.h + 3, r.x + r.w - 8, r.y + r.h + 3, Q({ color: pal.u, width: 3, ms: 280 }));
       FX.anim('#mission-chips', [{ opacity: 0.3 }, { opacity: 1 }], Q({ duration: 200, name: 'classe' }));
     });
   });

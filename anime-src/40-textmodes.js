@@ -9,6 +9,8 @@
    · DNB Blanc (sobre)     : contour sur la réponse, révélation discrète de la transition ;
                              la seule fête de l'épreuve est l'écran de résultat (note « tamponnée »).
    · Résultats (cérémonie) : fête proportionnelle au palier lu sur l'émoji écrit par le jeu ; ≤ 2 s.
+                             Jamais sur un texte du résultat : si l'émoji du palier n'est pas à l'écran, UN
+                             moment sur l'en-tête (FX.fx.head, ≤ 1,2 s ; léger ≤ 0,6 s) et rien d'autre.
    Crochets en O(1) (lecture de quelques champs + FX.emit, aucune lecture du DOM) ; l'issue se lit
    sur un front d'état (avant/après), jamais sur le simple appel. Chaque crochet vérifie l'écran
    courant : les minuteries « question suivante » du jeu ne sont jamais annulées et tournent encore
@@ -181,17 +183,22 @@ FX.module('textes', function (FX) {
   FX.on('tm:bilan', function (m) {
     var e = D.getElementById(m + '-result-emoji'), k = TIER[e.textContent] || 0;
     FX.play('bilan-' + m, function (lv, pal) {
-      var dnb = m === 'dnb', r = FX.rect(e), vu = r && r.inView && r.cy > 70, x = vu ? r.cx : FX.vw() / 2, y = vu ? r.cy : 100, i,
+      var dnb = m === 'dnb', r = FX.seen(e), t = e.nextElementSibling, x, y, i,
         l = D.querySelectorAll('#screen-' + m + '-result .result-stat, #dnb-breakdown .dnb-phase-line'),
         g = dnb && D.getElementById('dnb-result-grade').parentNode;
+      /* Émoji du palier hors champ (fenêtre minuscule, zoom très fort) : un seul moment, sur l'en-tête —
+         le palier, avec son titre seulement si le titre écrit par le jeu n'est pas lui-même à l'écran
+         (jamais deux fois les mêmes mots). Aucun nœud du jeu n'est retenu. */
+      if (!r) {
+        F.head(FX.seen(t) ? '' : t.textContent, { emoji: e.textContent, color: k ? pal.u : pal.calm, colors: k && pal.set, n: 8 + 8 * k, ms: lv > 1 ? 1100 : 600 });
+        return;
+      }
+      x = r.cx; y = r.cy;
       FX.anim(e, [{ opacity: 0, transform: 'scale(.3)' }, VU], { duration: 420, easing: 'cubic-bezier(.2,1.5,.4,1)', leger: FADE });
       for (i = 0; i < l.length; i++) {
         FX.anim(l[i], [{ opacity: 0, transform: 'translateY(8px)' }, VU], { duration: 240, delay: 260 + 110 * i, leger: FADE });
       }
       if (g) FX.anim(g, [{ opacity: 0, transform: 'scale(1.4)' }, VU], { duration: 360, delay: 420, leger: FADE });
-      /* Le jeu ne remonte jamais la page : si l'émoji du palier est hors champ ou sous l'en-tête (téléphone), le palier
-         et son titre (déjà écrits par le jeu plus haut dans la page) sont rappelés dans une vignette. */
-      if (!vu) F.banner(e.nextElementSibling.textContent, { y: y, emoji: e.textContent, ms: 1200 });
       FX.after(260, function () {
         F.ring(x, y, { r1: 58, width: k ? 5 : 3, ms: k ? 380 : 600, color: k ? pal.u : pal.calm });
         F.burst(x, y, k ? { n: 8 + 8 * k, kind: 'star', speed: 150 + 25 * k, life: 700, gravity: dnb ? -30 : 120, colors: pal.set }

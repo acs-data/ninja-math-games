@@ -42,6 +42,12 @@ FX.rect = function (t) {
              inView: y + h > 0 && y < FX.vh() && x + w > 0 && x < FX.vw() };
   } catch (e) { return null; }
 };
+/* Rectangle d'une cible réellement LISIBLE : son centre est dans la fenêtre et pas sous l'en-tête (collant sur
+   l'accueil, le QCM, Vrai/Faux… ; ailleurs il défile avec la page). null sinon : rien ne doit alors y jouer. */
+FX.seen = function (t) {
+  var r = FX.rect(t), h = FX.rect('header');
+  return r && r.inView && r.cy > 0 && r.cy < FX.vh() && !(h && h.inView && r.cy < h.y + h.h) ? r : null;
+};
 /* Crée un nœud FX décoratif (aria-hidden, insensible au pointeur). Ses classes commencent par « fx- ». */
 FX.el = function (tag, cls, parent, text) {
   var el = D.createElement(tag);
@@ -258,8 +264,10 @@ function wake() {
   running = true; lastT = 0;
   requestAnimationFrame(tick);
 }
+/* « running » reste vrai pendant toute l'image : un effet lancé par un gestionnaire (flush) ou par une
+   primitive appelle wake(), qui ne doit pas ouvrir une seconde chaîne rAF (le canvas serait effacé et
+   redessiné plusieurs fois par image). */
 function tick(t) {
-  running = false;
   try {
     if (S.dead || S.pref === 'off') FX.cancel('*');
     else if (blocked()) suspend('bloqué');         // modale ouverte sans openModal, onglet caché
@@ -276,8 +284,8 @@ function tick(t) {
     }
   } catch (e) { oops(e, 'tick'); pn = 0; shapes.length = 0; }
   lastT = t;
-  if (pn || shapes.length || queue.length) { running = true; requestAnimationFrame(tick); }
-  else showCanvas(false);
+  if (pn || shapes.length || queue.length) requestAnimationFrame(tick);
+  else { running = false; showCanvas(false); }
 }
 
 /* ── WAAPI : FX.anim(el, images, opts) -> Animation | null ──
@@ -320,7 +328,7 @@ FX.anim = function (el, frames, o) {
 };
 
 /* ── Nœuds de scène (texte flottant, bandeau, cut-in) : enfants de #fx-stage ── */
-var nodes = [], plateEl = null;
+var nodes = [], plateEl = null, plateEnd = 0;
 function dropNode(el) {
   var i;
   for (i = nodes.length - 1; i >= 0; i--) if (nodes[i].el === el) nodes.splice(i, 1);
@@ -359,17 +367,19 @@ FX.fx.float = function (text, x, y, o) {                 // texte flottant centr
 };
 /* Bandeau (kind 0) ou cut-in (kind 1) : un seul à la fois. */
 function plate(kind, text, o) {
-  var lv = gate(o), r, right = o.side === 'right';
+  var lv = gate(o), r, right = o.side === 'right', ms;
   if (!lv || !stage) return null;
   if (lv < 2) kind = 0;                                  // au niveau léger, un cut-in devient un bandeau
   if (plateEl) dropNode(plateEl);
   r = o.anchor ? FX.rect(o.anchor) : null;
+  ms = o.ms || (kind ? 1000 : 900);
+  plateEnd = now() + ms;
   return (plateEl = stageNode(kind ? 'fx-cutin' : 'fx-banner', o, kind ? 'translateY(-50%) ' : 'translate(-50%,-50%) ',
     kind ? 'translateX(' + (right ? '' : '-') + '100%)' : (lv < 2 ? '' : 'scale(.6)'),
     kind ? 'translateX(' + (right ? '-' : '') + '30%)' : (lv < 2 ? '' : 'scale(1.05)'),
-    o.ms || (kind ? 1000 : 900), function (el) {
+    ms, function (el) {
       if (o.emoji) FX.el('span', 'fx-emoji', el, o.emoji);
-      FX.el('strong', '', el, text);
+      if (text) FX.el('strong', '', el, text);
       if (o.sub) FX.el('small', '', el, o.sub);
       if (o.color) el.style.setProperty('--fx-c', o.color);
       el.style.top = (r ? r.cy : dflt(o.y, FX.vh() * 0.28)) + 'px';
@@ -377,6 +387,26 @@ function plate(kind, text, o) {
 }
 FX.fx.banner = function (text, o) { return plate(0, text, o || {}); };
 FX.fx.cutin = function (text, o) { return plate(1, text, o || {}); };
+/* Temps (ms) que le bandeau ou le cut-in en cours occupe encore l'écran ; 0 s'il n'y en a pas. Un effet qui
+   veut poser le sien attend ce délai : jamais deux bandeaux à la suite l'un sur l'autre (§ 6.8). */
+FX.fx.busy = function () { return plateEl ? Math.max(1, plateEnd - now()) : 0; };
+/* Moment d'en-tête : un bandeau posé SUR l'en-tête, et o.n étoiles qui partent de sa ligne basse, vers le
+   haut et les côtés (rien ne retombe sur le contenu). C'est la forme que prend un mot de la couche
+   quand sa place naturelle (arène, rang, émoji du palier) est hors champ : jamais sur un texte du jeu.
+   null, et rien n'est joué, si l'en-tête n'est pas ENTIER à l'écran (il défile avec la page sur les écrans
+   placés hors de #app). Options de FX.fx.banner + n. */
+FX.fx.head = function (text, o) {
+  var h = FX.rect('header'), el;
+  if (!h || h.y < -4 || h.y + h.h > FX.vh()) return null;
+  o = o || {};
+  o.anchor = h;
+  el = plate(0, text, o);
+  if (el && o.n) {
+    FX.fx.burst(h.cx, h.y + h.h, { n: o.n, kind: 'star', angle: -1.5708, spread: 3, speed: 440, life: 640, size: 6, gravity: 40, drag: 2.4,
+                                   colors: o.colors, color: o.color, scope: o.scope });
+  }
+  return el;
+};
 
 /* Teinte de grande surface — limiteur unique : une par seconde au plus, alpha <= .12, fondus
    >= 120 ms, alpha réduit tant que la luminance de la page varierait de plus de 0,08

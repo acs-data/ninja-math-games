@@ -26,7 +26,8 @@ Ce fichier est le **contrat** entre le noyau et les modules. Toute évolution du
 10. Chaque effet a une **portée** (`screen` par défaut) ; `FX.cancel/bump` l'arrête net. Le noyau fait
     `bump('screen')` + `bump('q')` à chaque changement d'écran, et coupe tout à l'ouverture d'une modale.
 11. Disjoncteur : 3 erreurs sur un crochet → ce crochet est coupé ; 8 erreurs au total → la couche se coupe
-    (`data-fx="off"`), le jeu continue comme `index.html`.
+    (`data-fx="off"` + `data-fx-dead`), le jeu continue comme `index.html` (§ 3.6 « Couche coupée »). Un
+    navigateur sans canvas 2D, sans Web Animations ou sans `requestAnimationFrame` la fait naître coupée.
 12. Le hasard de la couche vient de `FX.rnd()` (jamais du générateur du jeu) : à graine égale, les deux pages
     tirent les mêmes questions (test différentiel).
 
@@ -48,7 +49,7 @@ Ce fichier est le **contrat** entre le noyau et les modules. Toute évolution du
 | `50-interactive.js`, `50-interactive.css` | module `ateliers` : Tracé, Puzzle, Constructeur, Arbre de probabilités, Lecteur de graphique, Stats |
 
 Les modules existants sont décrits au § 6 ; leurs scénarios de test sont dans `tools/anime-tests/` (§ 5).
-Poids : ≈ 99 Ko injectés (plafond : 105 000 octets, avertissement du build au-delà) ; le build affiche le poids
+Poids : ≈ 101 Ko injectés (plafond : 105 000 octets, avertissement du build au-delà) ; le build affiche le poids
 injecté de chaque fragment.
 
 ## 2. Règles qu'un module doit respecter
@@ -112,10 +113,26 @@ effets finis : ≤ ~700 ms après une réponse, ≤ ~1,1 s pour un moment spéci
 une cérémonie de résultat. Un effet ne couvre jamais la question, les réponses, l'explication ou un champ plus de
 ~400 ms. Une erreur est une étape d'apprentissage : pas de flash rouge, pas de secousse violente, pas de moquerie.
 
+**Un effet de résultat ne se pose jamais sur un texte du résultat.** Sur un écran de résultat, aucun nœud de la
+couche ne recouvre le titre, le commentaire, les chiffres, les trophées ou les boutons. Le jeu affiche l'écran depuis
+le haut : la fête se joue À LA PLACE du rang ou de l'émoji du palier (nœuds du jeu animés, particules sur le canvas),
+sans bandeau. Si ce nœud n'est pourtant pas à l'écran (page encore en train de défiler à l'arrivée, fenêtre de moins
+de ~140 px de haut), la fête se réduit à UN moment sur l'en-tête collant (`FX.fx.head` : le palier en bandeau, des
+étoiles depuis la ligne de l'en-tête ; ≤ 1,2 s, léger ≤ 0,6 s), sans retenir ni animer un seul nœud du résultat — et à
+rien du tout si l'en-tête est sorti lui aussi (écrans placés hors de `#app`). Un bandeau ne répète jamais des mots
+déjà à l'écran : le titre du palier n'y figure que si le titre écrit par le jeu est hors champ.
+
+**La couche ne fait jamais défiler la page** (lint). Le jeu, lui, ramène la carte de question à l'écran à chaque
+question et affiche tout écran de résultat depuis le haut (`bringIntoView`, `showScreen` dans `index.html`) : la
+couche en profite — l'arène revient avec la carte, le rang est à l'écran — mais ne suppose jamais que sa cible est
+visible : elle mesure au moment de l'effet (`FX.rect`, `FX.seen`) et prend sa forme d'en-tête sinon.
+
 **Un seul effet focal à la fois.** Le moment d'un mode (verdict d'une réponse, fête d'un résultat) est l'effet
 focal ; ce qui arrive en même temps attend son tour ou se réduit à un accent hors des zones de lecture (voir § 6.8 :
 niveau gagné, retour sur l'accueil, repère d'explication). Un bandeau ne se pose jamais sur un texte du jeu : il
-s'ancre sur l'en-tête (`anchor: 'header'`) ou sur un nœud de la couche.
+s'ancre sur l'en-tête (`FX.fx.head`, ou `anchor: 'header'`) ou sur un nœud de la couche — et alors jamais à cheval
+sur un libellé de ce nœud (dans l'arène, les deux libellés du centre s'effacent le temps du bandeau). Jamais deux
+bandeaux à la fois, jamais l'un chassant l'autre : le second attend que le premier soit parti (`FX.fx.busy()`).
 
 **Photosensibilité.** Rien ne clignote plus de 3 fois par seconde ; aucun flash de luminance plein écran. Toute
 teinte de grande surface passe par `FX.fx.tint` (limiteur unique).
@@ -157,7 +174,7 @@ Unités : px CSS dans le repère de la fenêtre (`getBoundingClientRect`), duré
 | `FX.game.state() / universe() / uni() / char() / theme() / saveOn()` | lecture sûre : `state`, `currentUniverse`, `UNIVERSES[…]`, `CHARS[state.char]`, `'dark'\|'light'`, `isSaveEnabled()` ; `null`/`false` en cas d'échec |
 
 Attributs posés sur `<html>` (utilisables en CSS) : `data-fx="off|leger|complet"`, `data-fx-screen="<id>"`,
-`data-fx-profile="<profil>"`, `data-fx-dead` (couche coupée).
+`data-fx-profile="<profil>"`, `data-fx-dead="<raison>"` (couche coupée : `erreurs`, `incompatible`, `boot`…).
 
 **Profils** (`FX.PROFILES` : écran → profil, `FX.CAPS` : profil → `{ max, p: [particules léger, particules complet] }`) :
 
@@ -179,7 +196,8 @@ Ne pas assouplir `sobre`. Plafond absolu : 160 particules vivantes.
 FX.wrap(nom, avant, apres, opts) // -> boolean
 //   avant(...args) -> ctx          même this et mêmes arguments que l'original ; peut être null
 //   apres(ctx, args, retour)       non appelé si « avant » a levé ou si le jeu a levé ; peut être null
-//   opts.always = true             le crochet tourne aussi au niveau off (suivi d'état, pas d'effet)
+//   opts.always = true             le crochet tourne aussi au niveau off ET couche coupée (suivi d'état, jamais
+//                                  d'effet : écran courant, nettoyage de la clé de réglage)
 // Plusieurs modules peuvent envelopper la même fonction (une seule enveloppe, plusieurs paires).
 // false si la fonction n'existe pas (FX.stats().missing) ou est refusée (FX.stats().denied) :
 //   trapFocus, getCanvasPos, isPythDragging, getThemeColor, isSaveEnabled, handle*Move, et tout
@@ -209,7 +227,8 @@ FX.module(nom, init)             // init(FX) appelée au démarrage dans son pro
 | `fx:input` | synchrone, écoute passive : `pointerdown` ou `keydown` (pour « un appui passe la cérémonie ») | `'pointer' \| 'key'` |
 | `fx:kill` | synchrone : le disjoncteur a coupé la couche | raison |
 
-Au niveau off : `FX.emit` renvoie `false`, les crochets sans `always` ne tournent pas, rien n'est journalisé.
+Au niveau off et couche coupée : `FX.emit` renvoie `false`, les crochets sans `always` ne tournent pas, rien n'est
+journalisé.
 
 Types d'évènements des modules (préfixe par module, pour éviter les collisions) : `qcm:*` et `xp:niveau`
 (`21-qcm.js`, `25-result.js`), `sh:*` (`30-shell.js`), `tm:*` (`40-textmodes.js`), `at:*` (`50-interactive.js`).
@@ -254,6 +273,8 @@ Options communes : `color` (défaut `palette().c`) ou `colors: [...]`, `scope` (
 | `FX.fx.float(texte, x, y, o)` → nœud\|null | `color, size=22, ms=700, dy=-46, dx=0, rotate=0 deg, cls` | apparition en zoom puis dérive | sans zoom, dérive ÷ 2 | comme léger |
 | `FX.fx.banner(texte, o)` → nœud\|null | `anchor` (cible `FX.rect`) ou `y` (défaut 28 % de la hauteur), `emoji, sub, color, ms=900, cls` ; un seul bandeau/cut-in à la fois | zoom d'entrée | fondu | fondu |
 | `FX.fx.cutin(texte, o)` → nœud\|null | comme `banner` + `side='left'\|'right'`, `ms=1000` ; à ancrer hors des zones de lecture | bande pleine largeur | rendu en bandeau | rendu en bandeau |
+| `FX.fx.head(texte, o)` → nœud\|null | **moment d'en-tête** : options de `banner` + `n` (étoiles, défaut 0) ; bandeau posé SUR l'en-tête, `n` étoiles parties de sa ligne basse vers le haut et les côtés (rien ne retombe sur le contenu) ; `null`, et rien n'est joué, si l'en-tête n'est pas entier à l'écran ; `texte` vide = l'émoji seul | bandeau + étoiles | fondu + ≈ n × 0,35 étoiles | bandeau seul |
+| `FX.fx.busy()` → ms | temps que le bandeau ou le cut-in en cours occupe encore l'écran (`0` : aucun) : un effet qui veut poser le sien attend ce délai | — | — | — |
 | `FX.fx.tint(couleur, o)` → bool | `alpha=.1` (plafonné à .12 et réduit si la luminance varierait de plus de 0,08), `ms=500` (≥ 320), `rect` (défaut : fenêtre), `min=2` ; **une par seconde** | joué | refusé | refusé |
 | `FX.anim(el, images, o)` → Animation\|null | `duration=300, delay=0, easing='ease-out', iterations=1, fill, leger` (images de remplacement au niveau léger, `false` = ne rien jouer), `remove` (retire un nœud FX à la fin/annulation), `done` (rappel en fin normale), `name` | `images` | `o.leger` sinon `images` | comme léger |
 | `FX.node(cls, portee)` → nœud\|null | nœud libre dans `#fx-stage`, retiré avec sa portée | — | — | — |
@@ -263,7 +284,9 @@ plus au total ; refus (`null`) pour `html`, `body`, `#app`, `main` et pour un `t
 Sur un nœud FX : `fill` défaut `'both'` ; `iterations: Infinity` accepté seulement en profil `home` ou `ceremony`.
 WAAPI ignore la règle `prefers-reduced-motion` du jeu : le niveau est la seule porte.
 
-Chaque primitive jouée ajoute une entrée au journal ; les émetteurs réveillent la boucle, qui s'arrête seule.
+Chaque primitive jouée ajoute une entrée au journal ; les émetteurs réveillent la boucle, qui s'arrête seule. La
+boucle ne s'ouvre qu'une fois par image, même quand un effet démarre depuis un gestionnaire `FX.on` (vidé par la
+boucle elle-même) : le canvas est effacé et redessiné une seule fois par image.
 Particules et formes avancent au pas réel de l'horloge (plafonné à 100 ms par image) : les durées annoncées sont
 tenues jusqu'à 10 images/s, pas seulement à 60.
 
@@ -281,6 +304,8 @@ FX.paint(el)   // pose --fx-u, --fx-c, --fx-ink, --fx-bg sur un nœud FX (déjà
 FX.color.fix(c, theme, min=3) / mix(a, b, t) / alpha(c, a) / contrast(a, b) / lum(c) / rgb(c) / hex([r,g,b])
 
 FX.rect(cible) // -> { x, y, w, h, cx, cy, inView } | null. cible = élément, sélecteur, nom d'ancre ou { x, y, w, h }
+FX.seen(cible) // -> le même rectangle si la cible est réellement LISIBLE (son centre est dans la fenêtre et pas sous
+               //    l'en-tête quand il est à l'écran), sinon null : rien ne doit alors y jouer (forme d'en-tête à la place)
 FX.defAnchor(nom, cible)   // cible = sélecteur, élément ou fonction ; ancres fournies : 'center' (fenêtre),
                            // 'screen' (écran courant), 'header', 'logo', 'score', 'streak', 'level'
 FX.vw() / FX.vh()          // taille de la fenêtre (documentElement.clientWidth/Height, pas innerWidth)
@@ -290,22 +315,44 @@ FX.rnd()  FX.rand(a, b)  FX.pick(tableau)  FX.seed(n)   // générateur propre �
 ```
 
 Mesurer **au moment de l'effet** (les grilles sont re-générées, l'en-tête défile hors écran sur certains écrans) et
-ne rien jouer si `rect` est `null` ou `inView` faux. Les effets vivent dans le repère de la fenêtre : ils ne suivent
+ne rien jouer si `rect` est `null` ou `inView` faux. L'en-tête est collant sur les écrans placés dans `#app` (accueil,
+QCM et son résultat, Vrai/Faux, Histoire, Automatismes, Tracé, Puzzle) ; ailleurs (DNB, Constructeur, Arbre,
+Graphique, Stats) il défile avec la page. Les effets vivent dans le repère de la fenêtre : ils ne suivent
 pas un défilement en cours (d'où des durées courtes).
 
 ### 3.6 Réglages (noyau)
 
-- Défaut : `complet` ; `off` si le système demande moins d'animations (suivi en direct tant que le joueur n'a pas
-  choisi) ; un joueur « mouvement réduit » qui rallume démarre à `leger`.
+- Défaut : `complet` ; `off` si le système demande moins d'animations (`prefers-reduced-motion`), suivi en direct.
+- **Le système contre un choix du joueur.** Un choix fait AVANT que le système ne demande moins d'animations ne
+  lui survit pas : tant que le système le demande, le niveau est `off` (en direct, et au chargement avec une clé
+  enregistrée) ; le choix n'est pas perdu, il revient si le système cesse de le demander. Un choix fait PENDANT que le
+  système le demande engage le joueur dans les deux sens : c'est le chemin « rallumer » — le bouton rallume alors au
+  niveau `leger`. L'état du système au moment du choix est gardé avec lui (`r`).
 - Boutons (vrais `<button>`, `aria-pressed`, ≥ 44 px, mis à jour sur place) : `#fx-set-drawer` et `#fx-lite-drawer`
   (tiroir, avant « Sauvegarde »), `#fx-set-home` (accueil, après le thème), `#fx-set-pause`, `#fx-set-auto-pause`
-  (dernier bouton des deux modales de pause). Aucun toast, aucune annonce. Sur l'accueil, le bouton ajoute une
-  rangée (54 px) à la barre de réglages sur les écrans étroits, à tous les niveaux.
-- Persistance : clé `amat_fx_v1` = `{"v":1,"n":niveau,"d":dernier niveau actif}`, écrite seulement si
-  `isSaveEnabled()` et choix explicite ; effacée quand la sauvegarde est coupée (crochet `toggleSave`) et au
-  démarrage si la sauvegarde est inactive. Sans opt-in, le choix vit en mémoire.
+  (dernier bouton des deux modales de pause). Aucun toast, aucune annonce. L'état est porté par le texte (« Animations :
+  ON / OFF ») et par `aria-pressed`, jamais par la classe `active` du jeu (2,76:1 en thème clair : inacceptable pour un
+  bouton allumé par défaut). Sur l'accueil, le bouton ajoute une rangée (54 px) à la barre de réglages sur les écrans
+  étroits, à tous les niveaux.
+- Persistance : clé `amat_fx_v1` = `{"v":1,"n":niveau,"d":dernier niveau actif,"r":1 si le système demandait moins
+  d'animations au moment du choix, sinon 0}`, écrite seulement si `isSaveEnabled()` et choix explicite ; effacée quand
+  la sauvegarde est coupée dans `anime.html` (crochet `toggleSave`, `always` : vrai aussi couche coupée) et au
+  démarrage si la sauvegarde est inactive. Sans opt-in, le choix vit en mémoire. Une sauvegarde coupée depuis
+  `index.html` (qui ne connaît pas cette clé) n'est appliquée à la clé qu'au prochain chargement d'`anime.html`.
+- La clé est validée à la lecture, tout entière dans un `try` : version `1`, `n` de type chaîne et de valeur connue,
+  `d` connu ou ignoré. Une valeur invalide (mauvais type, autre version, texte illisible, clé écrite à la main) ne
+  donne aucun choix, ne coupe jamais la couche, et la clé est effacée. Une clé sans `r` (première version) vaut `r = 0`.
 - Niveau off : calque masqué, aucun crochet d'effet, et les boucles décoratives du jeu (points de chakra, emoji
   flottant de l'accueil, spirale de chargement) sont mises en pause par CSS.
+- **Couche coupée** (disjoncteur, ou navigateur incompatible : la couche naît coupée) = le jeu d'`index.html` : plus
+  aucun effet ni crochet d'effet ; les boucles décoratives du jeu tournent (elles ne sont en pause qu'au niveau off
+  CHOISI) ; les deux boutons des modales de pause sont **retirés du DOM** (jamais montés si la couche naît coupée) —
+  le piège à focus du jeu prend le dernier `<button>` de la modale, actif ou non, et un bouton inactif à cette place
+  laisserait Tab sortir de la modale. Si l'un d'eux a le focus à l'instant de la coupure, il reste en place, inerte
+  (`aria-disabled`), jusqu'à ce que le focus le quitte. Les trois autres boutons restent, inactifs, avec le libellé
+  « Animations : indisponibles ». Seuls les crochets `always` continuent (écran suivi, nettoyage de la clé).
+- Page chargée dans un onglet caché : la couche démarre suspendue, et l'ouverture de l'accueil joue à l'arrivée sur
+  l'onglet (signal `fx:resume`).
 
 ### 3.7 Diagnostic (utilisé par les tests)
 
@@ -366,7 +413,7 @@ python3 tools/build_anime.py --check         # n'écrit rien : code 1 si anime.h
 python3 tools/build_anime.py --modules arena,qcm,result,battle --out /tmp/essai/anime.html   # construction privée : noyau + combat du QCM
 python3 tools/build_anime.py --src /tmp/essai/anime-src --out /tmp/essai/anime.html   # fragments lus ailleurs (mutants)
 python3 tools/build_anime.py --ci            # avertissements et refus aussi en annotations GitHub Actions
-node tools/test_anime.js                     # toute la suite (≈ 4 min 30, Playwright + Chromium, python3, bash)
+node tools/test_anime.js                     # toute la suite (≈ 6 min 10, Playwright + Chromium, python3, bash)
 node tools/test_anime.js --only diff,combat,ensemble-niveau                 # quelques scénarios (clés ci-dessous)
 node tools/test_anime.js --anime /tmp/essai/anime.html --only diff,miseenpage
 node tools/test_anime.js --list              # clés des scénarios
@@ -477,17 +524,21 @@ cas, pour une machine où l'absence de test est assumée). Dernière ligne atten
   identiques), `reglages`, `reduit`, `miseenpage`, `noyau` (garde-fous du noyau et **contrat de l'enveloppe** : sur une
   globale jetable enveloppée par `FX.wrap`, même `this`, mêmes arguments, valeur renvoyée telle quelle, exception du
   jeu propagée — le même objet —, original appelé exactement une fois ; aux niveaux complet et off, sous chaos et
-  couche coupée), `reseau` (toutes les requêtes des deux pages pendant une session courte : l'édition animée ne
+  couche coupée ; une seule passe de la boucle par image ; page chargée dans un onglet caché), `reseau` (toutes les requêtes des deux pages pendant une session courte : l'édition animée ne
   demande rien qu'`index.html` ne demande, son manifest excepté ; aucune balise `img` / `audio` / `video` / `iframe` /
   `script` / `link` / `source` / `object` / `embed` en plus, hors `#fx-style` et `#fx-script` ; aucune police
-  déclarée en plus), puis ceux du combat : `arene`, `combat`, `verdict`, `parties`.
+  déclarée en plus), puis ceux du combat : `arene`, `combat` (dont : les mots de l'arène ne se superposent jamais,
+  observés image par image ; arène hors champ → formes d'en-tête, rien sur la question), `verdict`, `parties`.
 - **Scénarios des modules : un fichier par module dans `tools/anime-tests/`**, nommé comme son fragment
   (`30-shell.js` pour `anime-src/30-shell.js`), chargé automatiquement par `test_anime.js` (ordre alphabétique).
   Il exporte `function (h) { return [[clé, titre, async (browser) => { … }], …]; }` ; `h` fournit
   `{ check, open, wait, settle, waapi, gameShown, snap, firstDiff, keepDom, domChecks, VOLATILE, logOf, during,
-  leftovers, isIdle, harness, ROOT, INDEX, ANIME, SEED }` (hasard du jeu à graine fixe, `setInterval` piloté par
-  `__tick(n)`, `setTimeout` réel mais suivi, tutoriel déjà vu). Les clés
-  commencent par le nom du module et servent à `--only` : `shell-diff`, `shell-nav`, `shell-accueil` ;
+  leftovers, isIdle, harness, watchers, ROOT, INDEX, ANIME, SEED }` (hasard du jeu à graine fixe, `setInterval` piloté
+  par `__tick(n)`, `setTimeout` réel mais suivi, tutoriel déjà vu ; `open(browser, url, { init: [[fonction, argument]] })`
+  injecte des scripts propres au scénario avant ceux de la page). Les clés
+  commencent par le nom du module et servent à `--only` : `reglages-coupee`, `reglages-systeme`, `reglages-cle`
+  (`03-settings.js` : couche coupée ou née coupée comparée à `index.html`, `prefers-reduced-motion` contre un choix,
+  clé validée, contraste du bouton de l'accueil) ; `shell-diff`, `shell-nav`, `shell-accueil` ;
   `txt-diff`, `txt-moments`, `txt-tel` ; `interactive-diff`, `interactive-moments`, `interactive-tel`.
   Les minuteries longues du jeu (« question suivante » : 1,5 à 5 s) y sont retenues et déclenchées à la main
   (`__later()`) ; un scénario chronométré fixe d'abord l'XP loin d'un seuil (`state.xp = (state.level - 1) * 500`),
@@ -501,10 +552,29 @@ cas, pour une machine où l'absence de test est assumée). Dernière ligne atten
   après le chargement (≤ 2,6 s) ; partir d'un autre écran, ou attendre puis `FX.cancel('*')`.
 - **Scénarios d'ensemble** (`tools/anime-tests/90-ensemble.js`, aucun fragment ne porte ce numéro) : ce qui ne se
   voit que lorsque tous les modules tournent ensemble — `ensemble-niveau`, `ensemble-fin`, `ensemble-repere`
-  (les trois règles du § 6.8), `ensemble-parcours` (7 modules et 50 fonctions enveloppées, navigation rapide à
+  (les trois règles du § 6.8), `ensemble-resultats` (la règle « jamais un effet sur un texte du résultat » : les sept
+  écrans de résultat à cinq tailles de fenêtre, arrivée normale et page encore en train de défiler, observés image
+  par image), `ensemble-parcours` (7 modules et 50 fonctions enveloppées, navigation rapide à
   travers tous les modes aux niveaux complet et chaos, rien ne traîne ; les 50 enveloppes sont photographiées à la
   fin du script de la couche et, après tout le parcours, chaque globale doit être encore LA MÊME fonction : un
   crochet contourné par une réaffectation du jeu échoue ici). Un nouveau module y ajoute ses écrans.
+- **Défilement** (`tools/anime-tests/92-defilement.js`, aucun fragment ne porte ce numéro) : ce que le jeu fait
+  défiler lui-même, dans les deux pages. `defilement` : sur `index.html` SEUL, après chaque `loadQuestion` la carte de
+  question est entièrement visible dès qu'elle tient dans la fenêtre, son haut n'est jamais sous l'en-tête, le focus
+  n'est pas touché, et tout écran de résultat arrive avec `scrollY = 0` ; puis différentiel. `defilement-partie` : une
+  partie de 30 questions en VRAIS appuis (toucher ou souris, l'élève ne fait défiler que ce qu'il faut) — arène à
+  l'écran à l'instant de la réponse pour au moins 18 réponses sur 30 à 360×640 et 22 sur 30 à 390×664 (mesuré : 24 et
+  27 ; 1 sur 30 avant la correction du jeu), cérémonie complète du résultat aux trois tailles.
+  **Les deux pages défilent, pas forcément au même endroit** : au niveau off, `anime.html` doit défiler exactement
+  comme `index.html` (même position après chaque question) ; aux niveaux léger et complet, sur téléphone, la hauteur
+  au-dessus de la carte n'est pas la même (arène, bandeau compacté) : un différentiel n'y compare jamais des positions
+  de défilement brutes, mais « carte de question entièrement visible » sur les deux pages.
+- **Observer la couche image par image** (`watchers`, injecté par `opts.init`) : `__watchWords(ms)` (un mot de la
+  couche posé sur un libellé de l'arène ?) et `__watchOver(ms, { nom: sélecteur })` (quels nœuds de la couche
+  recouvrent quels textes du jeu, combien de temps ; bandeaux dans l'ordre, jamais deux à la fois, tous sur
+  l'en-tête, aucun chassé avant la fin de sa propre animation ; instant du retour au repos, et `lag` : le temps perdu
+  par la machine en images trop lentes, qu'un contrôle de durée déduit). Ce que la couche POSE à l'écran se vérifie
+  ainsi, dans la page et sur une seule horloge ; le journal (`FX.debug.log`) dit seulement ce qu'elle a lancé.
 - **Chaîne de construction et PWA** (`tools/anime-tests/95-build.js` et `96-pwa.js`, aucun fragment ne porte ces
   numéros) : ce qui entoure la couche. `build` travaille dans une copie jetable du dépôt (dossier temporaire),
   retouche `index.html` comme le ferait un mainteneur et relance `build_anime.py` : `<head>` tolérant, contrat du
@@ -545,10 +615,13 @@ cas, pour une machine où l'absence de test est assumée). Dernière ligne atten
   comptant des attentes côté Node : la suite reste juste sur une machine chargée (voir `combatBoss`).
 - **Charge de la machine : lancer la suite SEULE.** Les scénarios différentiels (`diff`, `reglages`, `miseenpage`,
   `shell-diff`, `txt-diff`, `interactive-diff`), `reduit`, `noyau`, `reseau` et `build` ne dépendent pas de la vitesse
-  de la machine (calme attendu, minuteries retenues, animations CSS du jeu menées à leur terme avant une mesure ;
+  de la machine, pas plus que `reglages-coupee`, `reglages-cle` et `defilement` (calme attendu, minuteries retenues,
+  animations CSS du jeu menées à leur terme avant une mesure ; deux réserves : `noyau` compte les passes de la boucle
+  sur au moins 20 images en 1 s, et `reglages-systeme` laisse 1 s à l'ouverture de l'accueil pour jouer ;
   `pwa` n'a qu'un contrôle de durée, large : mise à jour détectée en moins de 4,5 s quand le plafond est de 3 s). Les
   scénarios « moments » (`arene`, `combat`, `verdict`, `parties`, `shell-nav`, `shell-accueil`, `txt-moments`,
-  `txt-tel`, `interactive-moments`, `interactive-tel`, `ensemble-*`) regardent la couche jouer en temps réel : leurs
+  `txt-tel`, `interactive-moments`, `interactive-tel`, `ensemble-*`, `defilement-partie`) regardent la couche jouer en
+  temps réel : leurs
   contrôles de durée (« tout est fini n ms après… », effet encore en cours après une attente fixe) tiennent quand
   deux suites tournent côte à côte sur 4 cœurs, mais peuvent échouer à tort quand le processeur est saturé par
   autre chose. Avant de conclure sur un échec de ce genre, relancer le scénario seul (`--only clé`).
@@ -585,6 +658,10 @@ sans son animation, et est retiré par sa portée (`screen`) à tout changement 
 - L'arène ne retient rien : son image fixe est recalculée depuis l'état du jeu. États = attributs de `#fx-arena` :
   `data-fx-foe` (`sbire | boss | cible | revenant | gardien`), `data-fx-etat` (`'' | ko | fuite | sorti`),
   `data-fx-combo` (cran d'aura 0–3) ; classes `fx-tense`, `fx-gel`, `fx-down`.
+- **Les mots de l'arène s'écrivent DANS l'arène**, jamais en texte flottant par-dessus ses propres libellés : la
+  pastille centrale (`FX.arena.combo`) porte « ×N », puis le mot de fin — « K.O. ! », « BOSS VAINCU ! », « BRAVO ! »
+  au dernier coup, « FIN DU COMBAT » quand le héros tombe face au boss (le « VS » d'attente n'apparaît que si la
+  pastille est vide) ; le libellé du dessous (`FX.arena.tag`) porte le mot du combo ou le repère d'explication.
 - API privée du combat, `FX.arena` : `{ el, hero, foe, tag, combo, hp }` (nœuds), `sync()` (recalcule tout,
   renvoie l'état ou `null` hors partie), `apres(issue, dernier)` (image fixe après une réponse : `'ok' | 'faux' |
   'temps'`), `fin()` (dernière bonne réponse possible), `geo()` (`{ a, h, f }` : rectangles de l'arène, du héros
@@ -598,18 +675,40 @@ sans son animation, et est retiré par sa portée (`screen`) à tout changement 
   `qcm:tension`, `xp:niveau`.
 - Journal : `qcm-question[<adversaire>]`, `qcm-juste[×n]`, `qcm-ultime[×5]`, `qcm-revanche`, `qcm-ko`,
   `qcm-erreur`, `qcm-temps`, `qcm-ko-heros`, `qcm-pouvoir[50|hint|time]`, `qcm-tension`, `niveau`.
+- **Arène à l'écran** (`FX.arena.geo()` non nul) : la chorégraphie se joue dans la bande. Moment spécial, un seul à
+  la fois (fin du combat > revanche > ULTIME) : « REVANCHE RÉUSSIE ! » en bandeau au centre de la bande, entre les
+  deux combattants (`.fx-rev`) ; « <pouvoir> ULTIME ! » en cut-in sur toute la bande (niveau complet ; niveau léger :
+  le mot du combo grossit un instant). Les deux libellés du centre s'effacent le temps du bandeau ou du cut-in.
+  L'onomatopée du geste « impact » se pose au pied de l'adversaire, sous les points gagnés.
+- **Arène hors champ** (petit téléphone : la bande est passée sous l'en-tête collant quand l'élève répond — encore
+  6 réponses sur 30 à 360×640 malgré le défilement du jeu) : chaque moment garde une forme PROPRE, sur l'en-tête, et
+  rien de neuf ne se pose sur la question, les réponses ou l'explication.
+
+  | moment | forme d'en-tête |
+  |---|---|
+  | bonne réponse | étincelle sur la réponse choisie, l'énergie file vers le score, « +points » sous le score |
+  | combo ×2 à ×5 | en plus : onde et étoiles sur le compteur de série, d'autant plus larges que le cran monte. Pas de mot : le bandeau de combo du JEU (« DOUBLE ! », « TRIPLE ! »…), laissé visible dans ce cas, le dit déjà juste sous l'en-tête |
+  | série multiple de 5 | bandeau « <pouvoir> ULTIME ! » sur l'en-tête, 30 étoiles depuis sa ligne (≤ 1,1 s) |
+  | erreur corrigée | bandeau « REVANCHE RÉUSSIE ! » sur l'en-tête, 20 étoiles |
+  | fin de l'adversaire | bandeau « K.O. ! » (« BOSS VAINCU ! », « BRAVO ! ») sur l'en-tête, 30 étoiles |
+  | erreur, temps écoulé | rien sur l'en-tête : le repère calme vers l'explication, comme toujours |
 - `html[data-fx-combo-off]` : posé tant que le bandeau de combo du jeu (`#combo-display`, fixe, au-dessus du
   calque) recouvrirait l'arène ou le verdict ; une règle CSS le masque alors (sans effet au niveau off). L'arène
   affiche le même mot. L'attribut est recalculé à chaque question : il appartient au combat, ne pas le poser ailleurs.
 - Le niveau gagné (`niveau`) part du crochet `addXP`, quel que soit le mode : un autre module n'a pas à le fêter
-  lui-même, et n'a rien à faire pour l'éviter (règle et formes par écran : § 6.8).
+  lui-même, et n'a rien à faire pour l'éviter (règle et formes par écran : § 6.8). Son bandeau attend qu'un autre
+  bandeau (moment spécial, palier d'un résultat) ait quitté l'écran ; des niveaux gagnés coup sur coup ne donnent
+  qu'un bandeau, le dernier.
 - Le repère 👇 (`.fx-cue`, pastille) utilise la portée `cue` du noyau.
 
 ### 6.4 `verdict` — résultat du QCM et carte VS (`25-result.js`)
 
-- Crochet `endGame` → `qcm:bilan` : échelle des rangs (`.fx-ladder`, `.fx-rung`), arrivée du vrai `#result-rank`,
-  confettis proportionnels, trophées un par un. Journal : `bilan[rang <i> <pct> %]`, `bilan-passe` (tout appui
-  passe la cérémonie : signal `fx:input`). ≤ 2,5 s au niveau complet, ≤ 1,2 s au niveau léger.
+- Crochet `endGame` → `qcm:bilan` : échelle des rangs (`.fx-ladder`, `.fx-rung`, posée à la place du rang), arrivée
+  du vrai `#result-rank`, confettis proportionnels, trophées un par un. Journal : `bilan[rang <i> <pct> %]`,
+  `bilan-passe` (tout appui passe la cérémonie : signal `fx:input`). ≤ 2,5 s au niveau complet, ≤ 1,2 s au niveau léger.
+- Rang hors champ (§ 2 : page encore en train de défiler à l'arrivée, fenêtre minuscule) : un seul moment d'en-tête
+  (`FX.fx.head` : le rang, son titre si le titre du jeu est hors champ lui aussi, étoiles selon le rang ; ≤ 1,2 s,
+  léger ≤ 0,6 s) ; ni échelle ni vignette, aucun nœud du jeu animé ou retenu.
 - Crochet `startGame` → `qcm:vs` : carte `.fx-vs` (héros VS adversaire générique) pendant les 1200 ms de
   l'écran de chargement. Journal : `vs[<mode>]`.
 
@@ -647,8 +746,9 @@ courant, rien ne joue sur l'accueil.
 | `dnb-juste`, `dnb-erreur`, `dnb-transition` | DNB Blanc (`sobre`) | contour sur la réponse choisie ; transition dévoilée bloc par bloc | contour sur la bonne réponse + trait calme |
 | `bilan-auto`, `bilan-tf`, `bilan-story`, `bilan-dnb` `[palier k]` | 4 écrans de résultat (`ceremony`) | émoji du palier, tuiles en cascade, onde, étoiles, confettis aux deux paliers hauts (≤ 2 s) ; DNB : note « tamponnée », détail déroulé, pas de confettis | palier bas : onde douce et 7 étoiles qui montent |
 
-Si l'émoji du palier est hors champ à l'arrivée (téléphone), le palier et son titre sont rappelés dans une vignette
-(`FX.fx.banner`) sous l'en-tête. Ces noms `bilan-…` partagent le préfixe du `bilan[rang …]` du QCM (§ 6.4).
+Si l'émoji du palier est hors champ (§ 2), la fête se réduit au moment d'en-tête (`FX.fx.head` : le palier, son
+titre seulement si le titre écrit par le jeu est hors champ lui aussi) — ou à rien si l'en-tête est sorti (résultat du
+DNB Blanc, placé hors de `#app`). Ces noms `bilan-…` partagent le préfixe du `bilan[rang …]` du QCM (§ 6.4).
 
 ### 6.7 `ateliers` — Tracé, Puzzle, Constructeur, Arbre, Graphique, Stats (`50-interactive.js`, `50-interactive.css`)
 
@@ -662,12 +762,16 @@ chrono du puzzle sonne après un retour à l'accueil). Rien ne joue pendant un g
 |---|---|---|---|
 | `trace-juste[note]`, `trace-erreur` | `validateDraw` : `drawState.validated` | lumière sur le cadre du canvas, « ✔ n % » sur le coin de l'explication | trait calme le long de l'explication, ou 👇 |
 | `puzzle-pose`, `puzzle-juste[xp]`, `puzzle-erreur` | `dropOnSlot`, `validate*Puzzle`, `autoValidatePuzzle` | anneau sur la bonne case ; résolu : anneaux, éclat d'étoiles, « +n XP » | repère calme |
-| `defi-juste`, `defi-erreur`, `atelier-onglet[k]` | `validatePythChallenge` : `challengeAnswered` ; `selectPythAtelier` | cadre du canvas (ou du message) illuminé, « +40 XP » ; onglet : fondu de 200 ms | repère calme, un par 1,5 s au plus |
+| `defi-juste`, `defi-erreur`, `atelier-onglet[k]` | `validatePythChallenge` : `challengeAnswered` ; `selectPythAtelier` | cadre du canvas (ou du message) illuminé, « +n XP » ; onglet : fondu de 200 ms | repère calme, un par 1,5 s au plus |
 | `proba-pose`, `arbre-juste`, `proba-juste`, `proba-erreur` | `placeProbaPiece`, `validateProbaPlacement`, `answerProbaQuestion` | anneau neutre à la pose ; arbre validé : la lumière descend branche par branche (≤ 0,9 s) | arbre à corriger : rien de plus que le jeu |
 | `graph-juste[×n]`, `graph-erreur` | `finalizeGraphAnswer` | anneau sur le point choisi (ou cadre, ou réponse du QCM), « +n XP » | anneau calme sur le point attendu + repère |
-| `bilan-proba[k]`, `bilan-graph[k]` | `endProbaTree`, `endGraphReader` | émoji du palier, onde, étoiles, confettis aux deux paliers hauts (≤ 2 s) | — |
-| `atelier-fin[texte]` | dernier `nextDrawMission` / `nextPuzzle` (retour à l'accueil) | bandeau sur l'en-tête de l'accueil | — |
+| `bilan-proba[k]`, `bilan-graph[k]` | `endProbaTree`, `endGraphReader` | émoji du palier, onde, étoiles, confettis aux deux paliers hauts (≤ 2 s) ; émoji hors champ : rien (ces écrans sont hors de `#app`, l'en-tête est sorti avec lui) | — |
+| `atelier-fin[texte]` | dernier `nextDrawMission` / `nextPuzzle` (retour à l'accueil) | bandeau sur l'en-tête de l'accueil (`FX.fx.head`) | — |
 | `stats[n]` | `showStatsScreen` (à l'arrivée seulement) | les n barres poussent une fois (`clip-path`) | — |
+
+**Une mention « +n XP » dit les XP que le jeu vient de donner**, jamais un montant recopié d'`index.html` : chaque
+crochet de verdict lit `state.xp` avant et après l'appel du jeu et envoie l'écart (Puzzle, Constructeur, Arbre,
+question de l'Arbre, Graphique). Si le jeu change ses montants, la mention suit.
 
 ### 6.8 Règles d'ensemble (vérifiées par `90-ensemble.js`)
 
@@ -676,12 +780,14 @@ chrono du puzzle sonne après un retour à l'accueil). Rien ne joue pendant un g
 
   | écran | forme |
   |---|---|
-  | `game` | bandeau « NIVEAU n ! » 320 ms après le coup (le toast du jeu y est écrasé) + onde et étoiles sur `#hud-level` |
+  | `game` | bandeau « NIVEAU n ! » 320 ms après le coup (le toast du jeu y est écrasé) + onde et étoiles sur `#hud-level` ; si un bandeau de moment spécial occupe l'en-tête (ULTIME, revanche, K.O. avec l'arène hors champ), il attend qu'il soit parti |
   | résultat d'un autre mode (profil `ceremony`) | le même bandeau en dernier temps de la fête, à 1,3 s ; niveau léger : onde seule à 0,6 s |
   | `result` (QCM) | rien : la cérémonie du rang occupe l'écran |
   | ateliers, Vrai/Faux, Histoire, accueil | onde et étoiles sur `#hud-level` (le toast du jeu l'annonce déjà) |
   | épreuves (profil `sobre`) | l'onde seule |
 
+- **Un bandeau à la fois** : le bandeau de niveau attend `FX.fx.busy()` + 80 ms tant qu'un autre bandeau ou un cut-in
+  est à l'écran (palier d'un résultat posé sur l'en-tête, moment spécial du QCM) ; il ne le chasse jamais.
 - **Retour sur l'accueil** : la fioriture `accueil[retour]` ne joue pas quand un bandeau (`.fx-banner`) est à
   l'écran ; le bandeau de fin du Tracé ou du Puzzle est alors le seul effet focal, posé sur l'en-tête.
 - **Repère d'explication** (👇) : trois modules en posent un (`combat`, `textes`, `ateliers`), tous dans la portée

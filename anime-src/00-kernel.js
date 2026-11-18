@@ -13,7 +13,7 @@ var LEVEL_NAMES = ['off', 'leger', 'complet'];
 var S = {
   pref: 'complet',      // préférence du joueur : 'off' | 'leger' | 'complet'
   lastOn: 'complet',    // dernier niveau non-off (ce que rallume le bouton ON/OFF)
-  explicit: false,      // le joueur a choisi lui-même (sinon on suit le réglage système)
+  explicit: false,      // un choix du joueur s'applique (sinon on suit le réglage système)
   reduced: false,       // prefers-reduced-motion du système
   dead: false,          // disjoncteur déclenché ou navigateur incompatible
   suspended: false,     // modale ouverte ou onglet caché
@@ -51,7 +51,10 @@ var CHAOS = { message: 'chaos', chaos: true };   // erreur de test levée par ch
 
 function now() { return W.performance && performance.now ? performance.now() : Date.now(); }
 
-/* Disjoncteur : 3 erreurs sur un même crochet le coupent, 8 erreurs au total coupent la couche. */
+/* Disjoncteur : 3 erreurs sur un même crochet le coupent, 8 erreurs au total coupent la couche.
+   Couche coupée = le jeu d'index.html : plus aucun effet, plus aucun crochet d'effet, boucles décoratives du
+   jeu rendues à elles-mêmes, boutons des modales de pause retirés (syncUI). Seuls les crochets « always »
+   (suivi de l'écran, nettoyage de la clé de réglage) continuent de tourner. */
 function oops(e, where, pair) {
   if (e === CHAOS) { ST.chaos++; return; }
   ST.errCount++;
@@ -140,7 +143,7 @@ FX.pick = function (arr) { return arr[Math.floor(FX.rnd() * arr.length)]; };
    FX.wrap(nom, avant, apres, opts) -> boolean
      avant(...args)            -> ctx   (même this, mêmes arguments que l'original)
      apres(ctx, args, retour)           (non appelé si « avant » a levé, ou si le jeu a levé)
-     opts.always = true : le crochet tourne aussi au niveau off (suivi d'état uniquement).
+     opts.always = true : le crochet tourne aussi au niveau off et couche coupée (suivi d'état uniquement).
    L'original est appelé exactement une fois, hors de tout try, et sa valeur est renvoyée.
    Une seule enveloppe par fonction, posée par simple affectation et jamais retirée ;
    les appels suivants à FX.wrap ajoutent une paire de crochets à la même enveloppe. */
@@ -167,7 +170,7 @@ FX.wrap = function (name, before, after, opts) {
 function makeWrapper(name, rec) {
   var orig = rec.orig, pairs = rec.pairs;
   return function () {
-    var ctx = null, i, p, n = S.dead ? 0 : pairs.length, live = S.pref !== 'off';
+    var ctx = null, i, p, n = pairs.length, live = !S.dead && S.pref !== 'off';
     for (i = 0; i < n; i++) {
       p = pairs[i];
       if (p.off || !(live || p.always)) continue;

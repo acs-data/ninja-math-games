@@ -100,7 +100,7 @@ Le même jeu avec une couche d'animation par-dessus : `https://acs-data.github.i
 - **Écran de résultat** : arrivée du rang ou du palier, étoiles et confettis proportionnels au score
 - **Transitions** entre les écrans, accueil et changement d'univers animés
 - **Erreur** : aucun effet punitif, un repère discret vers l'explication ; les **épreuves** (Automatismes, DNB Blanc) restent volontairement sobres
-- Réglage **✨ Animations : ON / OFF** (accueil, menu, pause) et option « Effets légers » ; coupé par défaut si l'appareil demande moins d'animations (`prefers-reduced-motion`)
+- Réglage **✨ Animations : ON / OFF** (accueil, menu, pause) et option « Effets légers » ; coupé tant que l'appareil demande moins d'animations (`prefers-reduced-motion`), sauf si le joueur les rallume lui-même à ce moment-là (elles reviennent alors en « effets légers »)
 - Questions, scores, chronos, raccourcis clavier et lecteur d'écran identiques au jeu classique ; **même progression** que le jeu classique dans un même navigateur (même sauvegarde locale, propre à chaque navigateur et à chaque profil : rien n'est synchronisé d'un appareil à l'autre)
 - Mêmes contraintes légales : **émojis Unicode et formes abstraites uniquement**, aucun visuel, logo ni son des œuvres
 

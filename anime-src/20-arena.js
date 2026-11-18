@@ -46,21 +46,25 @@ FX.module('arene', function (FX) {
   /* État immobile après la réponse. res : 'ok' | 'faux' | 'temps'.
      Juste : le sbire est K.O. (le boss perd un segment, la cible d'entraînement reste debout).
      Faux / temps écoulé : le monstre s'échappe — c'est la question qui reviendra — et un repère
-     calme renvoie vers l'explication. Aucune moquerie, aucun cœur brisé. */
+     calme renvoie vers l'explication. Aucune moquerie, aucun cœur brisé.
+     Les mots de fin (« K.O. ! », « FIN DU COMBAT »…) s'écrivent DANS la pastille centrale de l'arène, à la
+     place du ×N : jamais un second texte flottant par-dessus ses propres libellés. */
   function apres(res, last) {
-    var st = FX.game.state(), boss = cur && cur.boss, free = cur && cur.free;
+    var st = FX.game.state(), boss = cur && cur.boss, free = cur && cur.free, down;
     if (!st || !cur) return;
     cls('fx-tense', 0); cls('fx-gel', 0);
     step(st.streak);
     if (res === 'ok') {
       put(tag, COMBOS[st.streak] || (st.streak > 5 ? 'COMBO !' : ''));
+      if (last) put(combo, free ? 'BRAVO !' : boss ? 'BOSS VAINCU !' : 'K.O. !');
       if (boss) bars(cur.n, last ? 0 : Math.max(0, cur.n - st.correct));
       else if (!free) bars(1, 0);
       el.setAttribute('data-fx-etat', free ? '' : last ? 'sorti' : boss ? '' : 'ko');
     } else {
       el.setAttribute('data-fx-etat', boss || free ? '' : 'fuite');
       put(tag, res === 'temps' ? '⏳ Temps écoulé' : `👇 Lis l'explication`);
-      cls('fx-down', boss && st.hp <= 0);
+      cls('fx-down', down = boss && st.hp <= 0);
+      if (down) put(combo, 'FIN DU COMBAT');
     }
   }
 
@@ -107,12 +111,8 @@ FX.module('arene', function (FX) {
   /* Géométrie au moment de l'effet : { a: arène, h: héros, f: adversaire }, ou null si la bande
      n'est pas réellement à l'écran (masquée, défilée, cachée sous l'en-tête collant). */
   function geo() {
-    var a = FX.rect(el), hd, h, f;
-    if (!a || !a.inView || a.cy > FX.vh()) return null;
-    hd = FX.rect('header');
-    if (hd && hd.inView && a.cy < hd.y + hd.h) return null;
-    h = FX.rect(hero); f = FX.rect(foe);
-    return h && f ? { a: a, h: h, f: f } : null;
+    var a = FX.seen(el), h = FX.rect(hero), f = FX.rect(foe);
+    return a && h && f ? { a: a, h: h, f: f } : null;
   }
 
   FX.arena = { el: el, hero: hero, foe: foe, tag: tag, combo: combo, hp: hp,

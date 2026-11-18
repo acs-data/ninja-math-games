@@ -7,9 +7,14 @@
    Les nœuds du JEU ne reçoivent que des animations WAAPI finies (fill « backwards ») : si la
    couche tombe ou si le joueur appuie (toute touche / tout appui passe la cérémonie), ils sont
    visibles par eux-mêmes, dans l'état exact d'index.html.
-   Le rang le plus bas reçoit une étincelle douce, jamais une moquerie. */
+   Le rang le plus bas reçoit une étincelle douce, jamais une moquerie.
+   Un effet de résultat ne se pose JAMAIS sur un texte du résultat. Le jeu affiche l'écran depuis le haut
+   (rang sous l'en-tête) : la cérémonie se joue à la place du rang. Si le rang n'est pourtant pas à l'écran
+   (fenêtre minuscule, zoom très fort), elle se réduit à UN moment sur l'en-tête collant — le rang et son
+   titre en bandeau, un éclat parti de la ligne de l'en-tête (≤ 1,2 s ; léger ≤ 0,6 s) — et aucun nœud du
+   jeu n'est retenu : chiffres, trophées et boutons sont là tout de suite. */
 FX.module('verdict', function (FX) {
-  var D = document, W = window, PI = Math.PI, last = '', lastT = 0, live = false;
+  var D = document, W = window, PI = Math.PI, last = '', lastT = 0, live = false, F = FX.fx;
   var BACK = 'cubic-bezier(.2,1.5,.4,1)';
 
   function $(id) { return D.getElementById(id); }
@@ -39,15 +44,20 @@ FX.module('verdict', function (FX) {
     live = FX.play('bilan', function (lv, pal) {
       var full = lv > 1, doux = d.ko || d.ri === 0, ranks = FX.game.uni() ? FX.game.uni().ranks : [],
           T = !full ? 0 : d.ko ? 300 : 280 + 140 * d.ri + 180, list = D.querySelectorAll('#trophies-list .trophy'),
-          hd = FX.rect('header'), top = hd && hd.inView ? hd.y + hd.h : 0, o = centre(rank), hh = rank.offsetHeight,
-          /* Le jeu ne fait jamais défiler la page : sur téléphone, le rang est souvent AU-DESSUS de la
-             fenêtre à l'arrivée. La cérémonie se joue alors dans une vignette sous l'en-tête. */
-          vu = o.y > top + 10 && o.y < FX.vh() - 10, x = vu ? o.x : FX.vw() / 2, y = vu ? o.y : top + 46,
+          hd = FX.rect('header'), o = centre(rank), hh = rank.offsetHeight, x = o.x, y = o.y, n = doux ? 7 : [0, 18, 26, 36, 48][d.ri] || 18,
           lad, i, tok;
-      if (!vu) hh = 56;
+      if (!(y > (hd && hd.inView ? hd.y + hd.h : 0) + 10 && y < FX.vh() - 10)) {
+        /* Rang hors champ : un seul moment, sur l'en-tête (rien si l'en-tête est sorti lui aussi) — le rang,
+           avec son titre seulement si le titre écrit par le jeu n'est pas lui-même à l'écran. */
+        if (ranks[d.ri]) {
+          F.head(FX.seen(msg) ? '' : ranks[d.ri].title, { emoji: ranks[d.ri].emoji, color: doux ? pal.calm : pal.u, colors: doux ? 0 : pal.set, n: n, ms: full ? 1100 : 600 });
+        }
+        FX.after(full ? 1100 : 600, function () { live = false; });
+        return;
+      }
       if (full) {
         /* Échelle des rangs : la lumière monte d'une marche toutes les 140 ms. */
-        if (!d.ko && ranks.length && (lad = FX.node('fx-ladder' + (vu ? '' : ' fx-ladder-chip')))) {
+        if (!d.ko && ranks.length && (lad = FX.node('fx-ladder'))) {
           lad.style.left = x + 'px'; lad.style.top = y + 'px';
           for (i = 0; i < ranks.length; i++) {
             tok = FX.el('span', 'fx-rung', lad, ranks[i].emoji);
@@ -59,14 +69,12 @@ FX.module('verdict', function (FX) {
           FX.anim(lad, [{ opacity: 1 }, { opacity: 0 }], { duration: 150, delay: T - 40, remove: true, name: 'fx-ladder' });
         }
         /* Le vrai rang attend la fin de l'ascension, puis s'abat (rang le plus bas : arrivée douce). */
-        if (vu) {
-          FX.anim(rank, doux ? [{ opacity: 0, transform: 'scale(.7)' }, { opacity: 1, transform: 'none' }]
-                             : [{ opacity: 0, transform: 'scale(3) rotate(-12deg)' }, { opacity: 1, transform: 'none' }],
-                  { duration: doux ? 480 : 380, delay: T, easing: doux ? 'ease-out' : BACK, name: 'bilan-rang' });
-          FX.anim(msg, [{ opacity: 0 }, { opacity: 1 }], { duration: 240, delay: T + 140, name: 'bilan-titre' });
-          FX.anim(quote, [{ opacity: 0 }, { opacity: 1 }], { duration: 240, delay: T + 300, name: 'bilan-citation' });
-        }
-      } else if (vu) FX.anim(rank, [{ opacity: 0 }, { opacity: 1 }], { duration: 220, name: 'bilan-rang' });
+        FX.anim(rank, doux ? [{ opacity: 0, transform: 'scale(.7)' }, { opacity: 1, transform: 'none' }]
+                           : [{ opacity: 0, transform: 'scale(3) rotate(-12deg)' }, { opacity: 1, transform: 'none' }],
+                { duration: doux ? 480 : 380, delay: T, easing: doux ? 'ease-out' : BACK, name: 'bilan-rang' });
+        FX.anim(msg, [{ opacity: 0 }, { opacity: 1 }], { duration: 240, delay: T + 140, name: 'bilan-titre' });
+        FX.anim(quote, [{ opacity: 0 }, { opacity: 1 }], { duration: 240, delay: T + 300, name: 'bilan-citation' });
+      } else FX.anim(rank, [{ opacity: 0 }, { opacity: 1 }], { duration: 220, name: 'bilan-rang' });
       /* Trophées : un par un (les suivants patientent, invisibles, sans retarder aucun bouton). */
       for (i = 0; i < list.length; i++) {
         FX.anim(list[i], full ? [{ opacity: 0, transform: 'scale(.3)' }, { opacity: 1, transform: 'none' }] : [{ opacity: 0 }, { opacity: 1 }],
@@ -75,25 +83,22 @@ FX.module('verdict', function (FX) {
       /* L'éclat, à l'instant où le rang arrive. */
       FX.after(T, function () {
         var w = FX.vw(), k;
-        if (!vu && ranks[d.ri]) {          // vignette : émoji et titre du rang (déjà écrits par le jeu plus haut dans la page)
-          FX.fx.banner(ranks[d.ri].title, { y: y, emoji: ranks[d.ri].emoji, color: doux ? pal.calm : pal.u, ms: 1300 });
-        }
         if (doux) {                        // étincelle douce : quelques étoiles qui montent, une onde calme
-          FX.fx.ring(x, y, { r1: hh * 0.9, ms: 600, color: pal.calm });
-          FX.fx.burst(x, y + hh * 0.2, { n: 7, kind: 'star', speed: 70, life: 1100, gravity: -50, spread: PI, angle: -PI / 2, color: pal.warn });
+          F.ring(x, y, { r1: hh * 0.9, ms: 600, color: pal.calm });
+          F.burst(x, y + hh * 0.2, { n: n, kind: 'star', speed: 70, life: 1100, gravity: -50, spread: PI, angle: -PI / 2, color: pal.warn });
           return;
         }
-        FX.fx.ring(x, y, { r1: hh * 0.9, width: 5, color: pal.u });
-        FX.fx.ring(x, y, { r1: hh * 1.5, ms: 520, color: pal.c });
-        FX.fx.burst(x, y, { n: [0, 18, 26, 36, 48][d.ri] || 18, kind: 'star', speed: 190 + 30 * d.ri, life: 700, gravity: 120, colors: pal.set });
+        F.ring(x, y, { r1: hh * 0.9, width: 5, color: pal.u });
+        F.ring(x, y, { r1: hh * 1.5, ms: 520, color: pal.c });
+        F.burst(x, y, { n: n, kind: 'star', speed: 190 + 30 * d.ri, life: 700, gravity: 120, colors: pal.set });
         if (!full) return;
-        FX.fx.confetti({ n: Math.round(d.pct * 0.6), ms: 950 });            // 18 à 60 selon le pourcentage
+        F.confetti({ n: Math.round(d.pct * 0.6), ms: 950 });               // 18 à 60 selon le pourcentage
         for (k = 0; k < d.ri - 1; k++) {                                     // feux d'artifice de part et d'autre du rang : rangs 3 (deux) et 4 (trois)
           (function (k) {
             FX.after(200 + 200 * k, function () {
-              var fx = x + [-1, 1, -0.62][k] * Math.min(w * 0.34, 250), fy = y - hh * [0, 0.3, 0.5][k] + (vu ? 0 : 70);
-              FX.fx.ring(fx, fy, { r1: 34, color: pal.set[k] });
-              FX.fx.burst(fx, fy, { n: 20, kind: 'star', speed: 170, life: 700, gravity: 140, colors: pal.set });
+              var fx = x + [-1, 1, -0.62][k] * Math.min(w * 0.34, 250), fy = y - hh * [0, 0.3, 0.5][k];
+              F.ring(fx, fy, { r1: 34, color: pal.set[k] });
+              F.burst(fx, fy, { n: 20, kind: 'star', speed: 170, life: 700, gravity: 140, colors: pal.set });
             });
           })(k);
         }
@@ -129,8 +134,8 @@ FX.module('verdict', function (FX) {
       FX.after(420, function () {
         var r = FX.rect(v);
         if (!r) return;
-        FX.fx.ring(r.cx, r.cy, { r1: 60, width: 4, color: pal.u });
-        FX.fx.burst(r.cx, r.cy, { n: 14, kind: 'star', speed: 220, life: 500, gravity: 0, colors: [pal.u, pal.c] });
+        F.ring(r.cx, r.cy, { r1: 60, width: 4, color: pal.u });
+        F.burst(r.cx, r.cy, { n: 14, kind: 'star', speed: 220, life: 500, gravity: 0, colors: [pal.u, pal.c] });
       });
     }, { info: s.mode });
   });

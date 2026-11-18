@@ -11,6 +11,12 @@
    · ensemble-repere   : le repère « l'explication est plus bas » (👇) des trois familles de modes (QCM,
                          textes, ateliers) est retiré au premier défilement et à la question suivante
                          (portée « cue » du noyau).
+   · ensemble-resultats: un effet de résultat ne se pose JAMAIS sur un texte du résultat. Les sept écrans de
+                         résultat, à cinq tailles de fenêtre : arrivée normale (le jeu affiche l'écran depuis le
+                         haut → cérémonie complète à la place du rang ou de l'émoji du palier) et arrivée
+                         « page encore en train de défiler » (rang hors champ → UN moment sur l'en-tête collant,
+                         ou rien si l'en-tête est sorti). Observé image par image : aucun nœud de la couche sur
+                         le titre, le texte, les chiffres, les trophées ou les boutons ; un seul bandeau à la fois.
    · ensemble-parcours : inventaire des crochets (7 modules, 50 fonctions, rien de manquant ni refusé),
                          navigation rapide à travers tous les modes aux niveaux complet puis « chaos » :
                          aucune erreur, rien ne traîne, le jeu finit sur l'accueil, et chacune des 50
@@ -22,7 +28,7 @@
 'use strict';
 
 module.exports = function (h) {
-  const { check, wait, logOf, leftovers, isIdle, harness, ANIME, SEED } = h;
+  const { check, wait, logOf, leftovers, isIdle, harness, watchers, ANIME, SEED } = h;
   const has = (log, name) => log.some((l) => l.indexOf(name) === 0);
   const from = (log, name) => { const i = log.findIndex((l) => l.indexOf(name) === 0); return i < 0 ? [] : log.slice(i); };
   const LOUD = /^(burst|streaks|trail|confetti|sprite)/;
@@ -65,6 +71,7 @@ module.exports = function (h) {
     await page.addInitScript(harness, SEED);
     await page.addInitScript(holdLongTimers);
     if (opts.boot) await page.addInitScript(trapBoot);
+    if (opts.watch) await page.addInitScript(watchers);
     await page.goto(ANIME);
     await page.waitForTimeout(150);
     return page;
@@ -261,6 +268,131 @@ module.exports = function (h) {
     await page.context().close();
   }
 
+  /* ════════════ Résultats : jamais un effet sur un texte du résultat ════════════ */
+  /* Les sept écrans de résultat : [écran, nœud du rang ou du palier, en-tête collant ?, fin de mode jouée par le jeu]. */
+  const RES = [
+    ['result', 'result-rank', true],
+    ['tf-result', 'tf-result-emoji', true],
+    ['story-result', 'story-result-emoji', true],
+    ['auto-result', 'auto-result-emoji', true],
+    ['dnb-result', 'dnb-result-emoji', false],
+    ['proba-tree-result', 'proba-result-emoji', false],
+    ['graph-reader-result', 'graph-result-emoji', false]
+  ];
+  /* Dans la page : termine un mode par la fonction de fin du jeu (état de réussite posé à la main), fait
+     éventuellement défiler la page DANS LE MÊME TICK (élan d'un défilement tactile encore en cours quand le
+     résultat arrive : le jeu a remis la page en haut, elle repart), puis observe image par image. */
+  function finish(arg) {
+    const id = arg.id, e = document.getElementById(arg.node), scr = document.getElementById('screen-' + id);
+    state.xp = arg.level ? state.level * 500 - 40 : (state.level - 1) * 500;
+    FX.debug.log.length = 0;
+    if (id === 'result') {
+      let g = 0;
+      while (document.getElementById('screen-game').style.display === 'block' && g++ < 400) { answer(state.questions[state.qIndex].correct); nextQuestion(); }
+    } else if (id === 'tf-result') { tfState.correct = 18; tfState.score = 2400; endTrueFalse(); }
+    else if (id === 'story-result') { storyState.correct = STORY_MISSIONS[storyState.missionIdx].steps.length; endStoryMode(); }
+    else if (id === 'auto-result') { dnbState.active = false; autoState.correct = 19; autoState.qIdx = 20; endAutoMode(); }
+    else if (id === 'dnb-result') { dnbState.autoCorrect = 18; dnbState.exerciseCorrectByExo = [4, 4, 4, 3]; endDnbBlanc(); }
+    else if (id === 'proba-tree-result') { probaState.scenarioCorrect = [true, true, true]; probaState.scenarioValidated = [true, true, true]; endProbaTree(); }
+    else { graphState.correct = 10; graphState.bestCombo = 6; endGraphReader(); }
+    const y0 = Math.round(window.pageYOffset);
+    if (arg.scrolled) window.scrollTo(0, 100000);
+    const hd = document.querySelector('header[role="banner"]').getBoundingClientRect(), r = e.getBoundingClientRect(), t = e.nextElementSibling.getBoundingClientRect();
+    const top = hd.bottom > 0 ? hd.bottom : 0, cy = (r.top + r.bottom) / 2, ty = (t.top + t.bottom) / 2, vh = document.documentElement.clientHeight;
+    const pos = (y) => (y > top + 15 && y < vh - 15 ? 'vu' : y < top - 5 || y > vh + 5 ? 'hors champ' : 'limite');
+    const out = { shown: getComputedStyle(scr).display !== 'none', y0, y: Math.round(window.pageYOffset), header: hd.top >= -1 && hd.bottom <= vh, tier: pos(cy), title: pos(ty),
+      emoji: e.textContent, titleText: id === 'result' ? (RANKS.find((k) => k.emoji === e.textContent) || {}).title : e.nextElementSibling.textContent };
+    const sel = { titre: '#' + arg.node + ' + *', contenu: '#screen-' + id + ' > :nth-child(n+3)', 'trophées': '#trophies-list .trophy', boutons: '#screen-' + id + ' button' };
+    return new Promise((res) => requestAnimationFrame(() => requestAnimationFrame(() => {
+      /* Deux images plus tard, la couche a lancé son moment : anime-t-elle un nœud du JEU ? */
+      out.gameAnims = document.getAnimations().filter((a) => !(a instanceof CSSAnimation) && !(a instanceof CSSTransition) && a.effect && a.effect.target &&
+        !a.effect.target.closest('#fx-root')).length;
+      out.ladder = document.querySelectorAll('.fx-ladder .fx-rung').length;
+      window.__watchOver(arg.ms, sel).then((w) => {
+        out.log = FX.debug.log.map((l) => l.fx + (l.info ? '[' + l.info + ']' : '') + (l.level === 'leger' ? '~' : ''));
+        out.stars = FX.debug.log.filter((l) => l.fx === 'burst' && l.info === 'star').length;
+        res(Object.assign(out, w));
+      });
+    })));
+  }
+  /* Amène la page sur l'écran du mode, prête à finir. */
+  async function enter(page, id) {
+    await ev(page, () => { __later(); showHome(); window.scrollTo(0, 0); });
+    if (id === 'result') {
+      await ev(page, () => startGame('6e_facile'));
+      await page.waitForFunction(() => document.getElementById('screen-game').style.display === 'block');
+    } else {
+      await ev(page, (id) => {
+        if (id === 'tf-result') startTrueFalse();
+        else if (id === 'story-result') startStoryMode();
+        else if (id === 'auto-result') startAutoMode('auto_6e');
+        else if (id === 'dnb-result') { startDnbBlanc(); showScreen('dnb-ex'); }
+        else if (id === 'proba-tree-result') startProbaTree();
+        else startGraphReader();
+      }, id);
+    }
+    await wait(page, 350);
+    await quiet(page);
+  }
+  async function resultats(browser, w, h, level, scrolled) {
+    const page = await open(browser, { viewport: { width: w, height: h }, colorScheme: 'dark', watch: true });
+    const full = level === 'complet', tag = w + '×' + h + (full ? '' : ', léger') + (scrolled ? ', page qui défile' : ', arrivée normale');
+    const seen = { complet: 0, entete: 0, rien: 0 };
+    if (!full) await ev(page, () => FX.setLevel('leger'));
+    for (const [id, node, sticky] of RES) {
+      await enter(page, id);
+      const r = await ev(page, finish, { id, node, scrolled, ms: scrolled ? 1500 : id === 'result' ? 2800 : 2200 });
+      const nom = id + ' (' + tag + ')', over = Object.keys(r.over).filter((k) => r.over[k] > 300), bilan = r.log.some((l) => /^bilan/.test(l));
+      check(nom + ' : écran affiché par le jeu depuis le haut, cérémonie lancée', r.shown && r.y0 === 0 && bilan, [r.shown, r.y0, r.log.slice(0, 4)]);
+      check(nom + ' : aucun nœud de la couche sur le titre, le texte, les chiffres, les trophées ou les boutons (≤ 300 ms)', over.length === 0, r.over);
+      check(nom + ' : au plus un bandeau à la fois, toujours sur l\'en-tête', r.maxPlates <= 1 && r.onHeader, [r.maxPlates, r.onHeader, r.plates]);
+      if (r.tier === 'vu') {
+        /* Rang ou palier à l'écran : cérémonie complète à sa place, aucun bandeau (rien à répéter). */
+        seen.complet++;
+        check(nom + ' : rang à l\'écran → cérémonie complète à sa place (le nœud du jeu arrive, animé), sans bandeau',
+          r.gameAnims > 0 && r.plates.length === 0 && (id !== 'result' || r.ladder === (full ? 5 : 0)), [r.gameAnims, r.plates, r.ladder, r.log]);
+        /* Plus rien à l'écran (la minuterie de fin de la cérémonie du QCM, T + 1,5 s, est retenue par ce fichier). */
+        check(nom + ' : cérémonie finie en ' + (full ? (id === 'result' ? '2,7' : '2,1') : '1,2') + ' s', r.lastDraw > 200 && r.lastDraw - r.lag <= (full ? (id === 'result' ? 2700 : 2100) : 1200), [r.lastDraw, r.lag]);
+      } else if (r.tier === 'hors champ') {
+        /* Hors champ : un seul moment, sur l'en-tête s'il est là ; aucun nœud du jeu retenu ni animé. */
+        check(nom + ' : rang hors champ → aucun nœud du jeu animé ni retenu par la couche, pas d\'échelle', r.gameAnims === 0 && r.ladder === 0, [r.gameAnims, r.ladder, r.log]);
+        if (r.header) {
+          seen.entete++;
+          const want = r.emoji + (r.title === 'vu' ? '' : r.titleText);
+          check(nom + ' : rang hors champ, en-tête à l\'écran → UN bandeau (le palier' + (r.title === 'vu' ? ' seul : son titre est à l\'écran' : ' et son titre') + '), étoiles parties de la ligne de l\'en-tête',
+            r.plates.length === 1 && (r.title === 'limite' ? r.plates[0].indexOf(r.emoji) === 0 : r.plates[0] === want) && r.stars === 1 && sticky, [r.plates, want, r.stars, r.title]);
+          check(nom + ' : moment d\'en-tête fini en ' + (full ? '1,2' : '0,6') + ' s (retard de la machine déduit)', r.last > 100 && r.last - r.lag <= (full ? 1200 : 600) + 60, [r.last, r.lag]);
+        } else {
+          seen.rien++;
+          check(nom + ' : rang hors champ et en-tête sorti → la couche ne pose rien', r.plates.length === 0 && r.stars === 0 && !sticky, [r.plates, r.stars, r.log]);
+        }
+      }
+    }
+    check('aucune erreur (résultats, ' + tag + ')', page.errors.length === 0 && (await leftovers(page)).errors.length === 0, [page.errors, await leftovers(page)]);
+    await page.context().close();
+    return seen;
+  }
+  async function scenarioResultats(browser) {
+    const sum = (l, k) => l.reduce((a, x) => a + x[k], 0);
+    /* Arrivée normale : la cérémonie complète partout (y compris sur les plus petites fenêtres). */
+    const normal = await Promise.all([[360, 640, 'complet'], [1280, 800, 'complet'], [640, 360, 'complet'], [360, 640, 'leger']].map(([w, h, l]) => resultats(browser, w, h, l, false)));
+    check('résultats, arrivée normale : la cérémonie complète joue sur les 7 écrans aux 4 réglages (28 cas)', sum(normal, 'complet') === 28, normal);
+    /* Page qui défile à l'arrivée : cinq tailles de fenêtre (les mesures de la revue), plus le niveau léger. */
+    const moving = await Promise.all([[360, 640, 'complet'], [412, 915, 'complet'], [640, 360, 'complet'], [1280, 800, 'complet'], [1366, 768, 'complet'], [360, 640, 'leger']].map(([w, h, l]) => resultats(browser, w, h, l, true)));
+    check('résultats, page qui défile : le moment d\'en-tête (≥ 12 cas) et le cas « en-tête sorti » (≥ 6 cas) ont bien été joués',
+      sum(moving, 'entete') >= 12 && sum(moving, 'rien') >= 6, moving);
+
+    /* Un seul effet focal : palier sur l'en-tête PUIS niveau gagné, jamais ensemble (Vrai/Faux, page qui défile). */
+    const page = await open(browser, { viewport: { width: 360, height: 640 }, colorScheme: 'light', watch: true });
+    await enter(page, 'tf-result');
+    const r = await ev(page, finish, { id: 'tf-result', node: 'tf-result-emoji', scrolled: true, level: true, ms: 3000 });
+    check('résultat hors champ + niveau gagné : le bandeau du palier d\'abord et jusqu\'au bout de son animation (le niveau ne le chasse pas), « NIVEAU n ! » ensuite, jamais ensemble, tous deux sur l\'en-tête',
+      r.tier === 'hors champ' && r.plates.length === 2 && r.plates[0].indexOf(r.emoji) === 0 && /^⭐NIVEAU \d+ !$/.test(r.plates[1]) && r.maxPlates === 1 && r.onHeader &&
+      r.plateCut[0] <= 150 && r.plateCut[1] <= 150 && Object.keys(r.over).length === 0, r);
+    check('aucune erreur (résultats, niveau gagné)', page.errors.length === 0 && (await leftovers(page)).errors.length === 0, [page.errors, await leftovers(page)]);
+    await page.context().close();
+  }
+
   /* ════════════ Tous les modules ensemble : inventaire, navigation rapide, chaos ════════════ */
   const MODULES = ['arrivee', 'arene', 'combat', 'verdict', 'accueil', 'textes', 'ateliers'];
   const SEQ = ['startTrueFalse', 'showHome', 'startStoryMode', 'showHome', 'startPythMode', 'showStatsScreen', 'startGame:boss', 'showHome', 'showAutoMenu',
@@ -339,6 +471,7 @@ module.exports = function (h) {
     ['ensemble-niveau', 'ensemble : niveau gagné (accent, épreuve, résultat, QCM, téléphone)', scenarioNiveau],
     ['ensemble-fin', 'ensemble : fin du Tracé sur l\'accueil (un seul effet focal)', scenarioFin],
     ['ensemble-repere', 'ensemble : repère d\'explication (défilement, question suivante)', scenarioRepere],
+    ['ensemble-resultats', 'ensemble : résultats (aucun effet sur un texte du résultat, moment d\'en-tête quand le rang est hors champ)', scenarioResultats],
     ['ensemble-parcours', 'ensemble : inventaire des crochets, navigation rapide, chaos', scenarioParcours]
   ];
 };
