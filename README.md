@@ -38,7 +38,7 @@ L'idée : transformer la révision en quête épique. Le contenu pédagogique re
 **QCM par niveau de difficulté (legacy)** :
 
 1. **🟢 Académie (6e)** — 30 questions de révision 6e
-2. **🔵 Genin (5e)** — 26 questions d'anticipation 5e
+2. **🔵 Genin (5e)** — 25 questions d'anticipation 5e
 3. **🔴 Chunin (Mix)** — 20 questions piégées 6e+5e
 4. **💀 Boss (Kage)** — 12 questions expertes chronométrées
 5. **🧘 Entraînement libre (Zen)** — 20 questions sans timer ni vies perdues
@@ -52,16 +52,16 @@ L'idée : transformer la révision en quête épique. Le contenu pédagogique re
 
 **Modes interactifs** :
 
-6. **✏️ Tracé géométrique** — 6 missions au doigt sur canvas (axes de symétrie, droites, angles)
+6. **✏️ Tracé géométrique** — 7 missions au doigt sur canvas (axes de symétrie, droites, angles)
 7. **🧩 Puzzle d'emboîtement** — 6 puzzles drag&drop (fractions, formes, équations)
 8. **⚡ Vrai/Faux Speed** — 50 affirmations math en 7 sec chacune, raccourcis V/F au clavier
-9. **📖 Histoire interactive** — 5 aventures narratives multi-étapes (Naruto/Sakura/Sasuke/Jiraiya/Orochimaru/Tanjiro)
+9. **📖 Histoire interactive** — 12 aventures narratives de 4 étapes
 
 **Modes interactifs Phase 4 (4e/3e + DNB)** :
 
 10. **🏆 DNB Blanc complet** — Épreuve simulée /40 (20 min auto + 4 exercices écrits = ~1h45)
 11. **🔺 Constructeur Pythagore/Thalès/Trigo** — Canvas tactile, 3 ateliers + défis aléatoires
-12. **🌳 Arbre de probabilités** — Drag&drop 6 branches × 3 scénarios + calcul composé
+12. **🌳 Arbre de probabilités** — Drag&drop 6 branches × 5 scénarios + calcul composé
 13. **📈 Lecteur de graphique** — 10 défis : image, antécédent, identification d'expression, coefficient directeur
 
 ### ⚡ Mode Automatismes — Format DNB 2027
@@ -181,11 +181,11 @@ Le même jeu avec une couche d'animation par-dessus : `https://acs-data.github.i
 ### Structure du fichier
 
 ```
-index.html  (≈ 475 KB, ≈ 10 200 lignes — mono-fichier volontaire)
-├── <head>          (lignes 1-50)    Meta, OG, favicon SVG inline, manifest, polices
-├── <style>         (lignes 50-1180) CSS complet : variables, layout, écrans, animations, a11y
-├── <body>          (lignes 1180-2300) 13 écrans + modals + footer
-└── <script>        (lignes 2300-10200) Logique de jeu, état, modes, rendu
+index.html  (≈ 560 Ko, ≈ 11 750 lignes — mono-fichier volontaire)
+├── <head>          (lignes 1-46)    Meta, OG, favicon SVG inline, manifest, polices
+├── <style>         (lignes 47-2246) CSS complet : variables, layout, écrans, animations, a11y
+├── <body>          (lignes 2248-3617) 13 écrans + modals + footer
+└── <script>        (lignes 3618-11750) Logique de jeu, état, modes, rendu
 ```
 
 ### Fichiers du projet
@@ -213,16 +213,16 @@ index.html  (≈ 475 KB, ≈ 10 200 lignes — mono-fichier volontaire)
 
 - **6 univers** × 6 personnages × 5 grades = **36 personnages**, **30 grades**
 - **167 questions QCM** réparties sur 4 modes legacy + 12 chapitres
-  - 88 QCM legacy (6e: 30, 5e: 26, mixte: 20, boss: 12)
-  - 39 QCM 4e par chapitre (6 chapitres)
+  - 87 QCM legacy (6e: 30, 5e: 25, mixte: 20, boss: 12)
+  - 40 QCM 4e par chapitre (6 chapitres)
   - 40 QCM 3e par chapitre (6 chapitres)
-- **6 missions de tracé géométrique**
+- **7 missions de tracé géométrique**
 - **6 puzzles d'emboîtement**
 - **39 générateurs d'automatismes** (10 par niveau en moyenne)
-- **9 aventures narratives** multi-étapes (32 sous-questions)
+- **12 aventures narratives** multi-étapes (48 sous-questions)
 - **4 exercices DNB Blanc** (16 sous-questions)
 - **50 affirmations Vrai/Faux Speed**
-- **3 scénarios d'arbres de probabilités** + 3 questions composées
+- **5 scénarios d'arbres de probabilités** + 5 questions composées
 - **3 ateliers Pythagore/Thalès/Trigo** + défis aléatoires illimités
 - **10 défis Lecteur de graphique** par session (générés aléatoirement)
 - **Dictionnaire d'adaptation** : ~25 termes traduits par univers
