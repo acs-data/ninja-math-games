@@ -7,7 +7,7 @@
 ## 0. TL;DR pour démarrer rapidement
 
 - **Stack** : un seul fichier HTML5 + CSS3 + JavaScript vanilla, aucune dépendance npm, aucun build.
-- **Localisation du code** : `index.html`, **≈ 10 200 lignes, ≈ 475 KB**.
+- **Localisation du code** : `index.html`, **≈ 11 750 lignes, ≈ 560 Ko**.
 - **PWA installable** + service worker (`sw.js`) avec cache versionné automatiquement par le SHA du commit.
 - **Aucun npm/yarn/pnpm**. Aucune compilation. **Recharge le fichier dans un navigateur** pour tester.
 - **Tests** : il n'y en a pas. Valide manuellement les flux après chaque changement.
@@ -44,10 +44,10 @@ Le fichier monolithique se décompose en 4 zones (les numéros de ligne sont des
 
 | Zone | Lignes (approx.) | Rôle |
 |---|---|---|
-| `<head>` | 1–50 | Meta, OG, favicon SVG inline, link manifest, polices Google |
-| `<style>` | 50–1180 | CSS complet : variables, layout, 13 écrans, animations, a11y |
-| HTML body | 1180–2300 | 13 écrans + 7 modals + footer |
-| `<script>` | 2300–10200 | Logique de jeu : data, état, modes, rendu, événements, PWA, analytics |
+| `<head>` | 1–46 | Meta, OG, favicon SVG inline, link manifest, polices Google |
+| `<style>` | 47–2246 | CSS complet : variables, layout, 13 écrans, animations, a11y |
+| HTML body | 2248–3617 | 13 écrans + 7 modals + footer |
+| `<script>` | 3618–11750 | Logique de jeu : data, état, modes, rendu, événements, PWA, analytics |
 
 ### 1.3 Pourquoi un seul fichier ?
 
@@ -58,7 +58,7 @@ Le fichier monolithique se décompose en 4 zones (les numéros de ligne sont des
 - Envoyé par email à un parent ou enseignant
 - Hébergé sur n'importe quel CDN statique sans build
 
-**Si tu envisages de découper le fichier**, demande confirmation explicite à l'utilisateur. C'est un changement architectural majeur. Limite douce actuelle : **500 KB**. À ~475 KB on s'approche du seuil.
+**Si tu envisages de découper le fichier**, demande confirmation explicite à l'utilisateur. C'est un changement architectural majeur. Limite douce : **500 Ko**. Le fichier fait ≈ 560 Ko : le seuil est **dépassé** (il l'était déjà avant l'audit des questions de novembre 2026). Tout ajout volumineux se discute avec l'utilisateur.
 
 -----
 
@@ -69,7 +69,7 @@ Le fichier monolithique se décompose en 4 zones (les numéros de ligne sont des
 | Mode | Écran | Fonction d'entrée | Banque | Caractéristiques |
 |---|---|---|---|---|
 | QCM Académie (6e) | `screen-game` | `startGame('6e_facile')` | `QUESTIONS['6e_facile']` (30 Q) | Timer 30s, vies, jutsus |
-| QCM Genin (5e) | `screen-game` | `startGame('5e_medium')` | `QUESTIONS['5e_medium']` (26 Q) | Idem |
+| QCM Genin (5e) | `screen-game` | `startGame('5e_medium')` | `QUESTIONS['5e_medium']` (25 Q) | Idem |
 | QCM Chunin Mix | `screen-game` | `startGame('mixte_difficile')` | `QUESTIONS['mixte_difficile']` (20 Q) | Idem |
 | QCM Boss (Kage) | `screen-game` | `startGame('boss')` | `QUESTIONS['boss']` (12 Q) | Timer 20s, **pas de répétition espacée** |
 | Entraînement libre (Zen) | `screen-game` | `startGame('libre')` | Pool 6e+5e+mixte (échantillon 20) | **Sans timer, sans HP** — `state.freeMode=true` |
@@ -79,7 +79,7 @@ Le fichier monolithique se décompose en 4 zones (les numéros de ligne sont des
 | Mode | Écran | Fonction d'entrée | Banque |
 |---|---|---|---|
 | Chapitre 6e ou 5e | `screen-game` | `startGame('6e:fractions_6e')` etc. | `QUESTIONS_BY_CHAPTER['6e']` ou `['5e']` (auto-bucketing depuis legacy via `TYPE_TO_CHAPTER_*`) |
-| Chapitre 4e | `screen-game` | `startGame('4e:pythagore')` etc. | `QUESTIONS_BY_CHAPTER['4e']` (6 chapitres × 6-8 Q) |
+| Chapitre 4e | `screen-game` | `startGame('4e:pythagore')` etc. | `QUESTIONS_BY_CHAPTER['4e']` (6 chapitres × 5-9 Q) |
 | Chapitre 3e | `screen-game` | `startGame('3e:thales')` etc. | `QUESTIONS_BY_CHAPTER['3e']` (6 chapitres × 5-8 Q) |
 
 Le sélecteur de chapitre est sur l'accueil (onglets 6e/5e/4e/3e). Helper : `getChapterQuestions(classe, chap)` retourne le pool adapté à l'univers actif.
@@ -88,13 +88,13 @@ Le sélecteur de chapitre est sur l'accueil (onglets 6e/5e/4e/3e). Helper : `get
 
 | Mode | Écran | Fonction d'entrée | Banque | Particularités |
 |---|---|---|---|---|
-| Tracé géométrique | `screen-draw` | `startDrawMode()` | `DRAW_MISSIONS` (6) | Canvas mouse+touch, validation auto |
+| Tracé géométrique | `screen-draw` | `startDrawMode()` | `DRAW_MISSIONS` (7) | Canvas mouse+touch, validation auto |
 | Puzzle emboîtement | `screen-puzzle` | `startPuzzleMode()` | `PUZZLES` (6) | Drag & drop type `match` ou `sort` |
 | Vrai/Faux Speed | `screen-tf` | `startTrueFalse()` | `TRUEFALSE_STATEMENTS` (50) | 7 s/affirmation, raccourcis V/F clavier |
-| Histoire interactive | `screen-story` | `startStoryMode()` | `STORY_MISSIONS` (9 aventures × ~4 étapes) | Récit narratif multi-étapes |
+| Histoire interactive | `screen-story` | `startStoryMode()` | `STORY_MISSIONS` (12 aventures × 4 étapes) | Récit narratif multi-étapes |
 | **DNB Blanc complet** | `screen-dnb-intro/transition/ex/result` | `startDnbBlanc()` | `DNB_EXERCISES` (4 × 4 sous-questions) + pool auto_dnb | Wrapper 2 phases, note /40 |
 | **Constructeur Pythagore/Thalès/Trigo** | `screen-pythagore` | `startPythMode()` | 3 ateliers en onglets, défis aléatoires | Canvas tactile, valeurs live |
-| **Arbre de probabilités** | `screen-proba-tree` | `startProbaTree()` | `PROBA_SCENARIOS` (3) | Drag&drop fractions → branches |
+| **Arbre de probabilités** | `screen-proba-tree` | `startProbaTree()` | `PROBA_SCENARIOS` (5) | Drag&drop fractions → branches |
 | **Lecteur de graphique** | `screen-graph-reader` | `startGraphReader()` | Fonctions affines générées aléatoirement | Canvas + clic-coord, 10 défis |
 
 ### 2.4 Mode Automatismes (DNB 2027)
@@ -205,15 +205,34 @@ Dictionnaires de **remplacement de texte/emoji** pour adapter les questions Naru
 
 ⚠️ Si tu ajoutes un mot Naruto dans une question (ex: "Akatsuki"), tu DOIS l'ajouter dans les 5 autres univers du `UNIVERSE_THEMES_MAP`. Sinon la traduction laissera le mot Naruto dans un univers One Piece.
 
+**Ce que fait (et ne fait pas) l'adaptation** :
+- Seuls `text`, `theme` et `feedback` sont adaptés. **Les réponses (`answers`) ne le sont pas** : un mot d'univers placé dans une réponse reste tel quel partout (cas connu : « ryos »).
+- L'article ou la préposition juste avant un mot remplacé est refait pour le mot d'arrivée : élision (`de`/`d'`), contraction (`de le` → `du`, `à le` → `au`), `du` → `de l'` devant une voyelle.
+- Seuls les QCM passent par `adaptQuestionToUniverse`. Histoire, Puzzle, Tracé et Arbre de probabilités affichent leurs textes tels quels (noms Naruto dans tous les univers) : point connu, en attente d'une décision.
+- Un nom absent de la carte reste dans tous les univers : préférer un personnage déjà présent dans `UNIVERSE_THEMES_MAP`.
+
 ### 3.5 `DRAW_MISSIONS`, `PUZZLES`
 
 Voir le code source pour le format détaillé. Types de guide tracé : `vertical`, `horizontal`, `diagonal45`, `hyp`, `angle_free`.
+
+- **7 missions de tracé.** La tolérance se lit sur la mission (`m.tolerance`), pas sur son guide. Pour les missions d'angle, c'est le **dernier** angle tracé qui est jugé.
+- **Puzzles `match`** : après un dépôt faux, la case reprend son étiquette (`slot.dataset.label`), jamais le nom de la bonne pièce.
+- **Puzzles `sort`** : `correctOrder` doit contenir exactement les chaînes de `items` (même signe moins Unicode `−`).
 
 ### 3.6 `AUTO_GENERATORS` et `AUTO_POOLS`
 
 Chaque générateur est une fonction qui retourne `{ q, a, theme, accept?, unit? }`.
 
-**Helpers fournis** : `frFr(n)`, `signedFr(n)`, `pgcd(a, b)`, `simpFrac(n, d)`, `normalizeAnswer(s)`.
+**Helpers fournis** : `frFr(n)`, `signedFr(n)`, `affineFr(k, m)` (écrit `kx + m` sans « 0x », « 1x » ni « + 0 », avec le signe moins Unicode), `pgcd(a, b)`, `simpFrac(n, d)`, `normalizeAnswer(s)`.
+
+**Règles d'acceptation (`submitAutoAnswer`)** :
+- La réponse tapée est normalisée (`normalizeAnswer`) : espaces retirés, `,` → `.`, `−` → `-`, `X` → `x`, `+` initial et zéros décimaux inutiles retirés.
+- Si le générateur a un `unit`, l'unité tapée par l'élève en fin de réponse est retirée (« 26 cm » vaut « 26 »).
+- Une réponse attendue **fractionnaire** accepte toute écriture de même valeur : `2/16` ou `0,125` pour `1/8`.
+- Une réponse attendue décimale n'accepte **pas** un arrondi : seule la valeur exacte (ou une forme listée dans `accept`) est juste.
+- Affichage de l'énoncé : « = ? » n'est ajouté que si l'énoncé ne contient ni « ? » ni « : » et que le générateur n'a pas de `unit`.
+
+**QCM générés par chapitre (`genToQcm`)** : 4 valeurs toutes différentes, bonne réponse à un rang tiré au hasard parmi les valeurs triées ; `null` si moins de 3 leurres distincts.
 
 **Pools** : `auto_6e`, `auto_5e`, `auto_4e`, `auto_3e`, `auto_mix` (tous niveaux), **`auto_dnb`** (4e + 3e, format brevet).
 
@@ -229,7 +248,7 @@ Chaque générateur est une fonction qui retourne `{ q, a, theme, accept?, unit?
 
 ### 3.8 `STORY_MISSIONS`
 
-9 aventures narratives multi-étapes. Chaque étape est un QCM enrobé dans un récit.
+12 aventures narratives de 4 étapes. Chaque étape est un QCM enrobé dans un récit. Les étapes d'une même aventure s'enchaînent : une valeur trouvée à une étape est réutilisée ensuite, donc toute correction d'une étape se vérifie sur les suivantes.
 
 ```js
 {
@@ -258,7 +277,7 @@ Chaque générateur est une fonction qui retourne `{ q, a, theme, accept?, unit?
 
 ### 3.10 `PROBA_SCENARIOS`
 
-3 scénarios pour le mode Arbre de probabilités.
+5 scénarios pour le mode Arbre de probabilités.
 
 ```js
 {
@@ -515,9 +534,16 @@ L'overlay des modals a `z-index: 1000`. Si tu ajoutes un nouvel élément flotta
 
 Voir 7.4. Toujours `stripHtml()` pour les annonces SR, jamais de regex.
 
-### 8.9 Pythagore "égaré" en 5e_medium
+### 8.9 Pythagore "égaré" en 5e_medium (résolu)
 
-Une question Pythagore traîne dans le legacy `5e_medium`. Selon le BO, Pythagore est en 4e. Mappée temporairement vers `geometrie_5e` dans `TYPE_TO_CHAPTER_5E` pour ne pas la perdre, mais à corriger dans une future PR de nettoyage : déplacer cette question vers `QUESTIONS_BY_CHAPTER['4e']['pythagore']`.
+Résolu lors de l'audit des questions de novembre 2026 : la question Pythagore du legacy `5e_medium` a été déplacée dans `QUESTIONS_BY_CHAPTER['4e']['pythagore']` (triangle 8-15-17, pour ne pas doubler le 3-4-5 déjà présent) et l'entrée `'Pythagore'` a été retirée de `TYPE_TO_CHAPTER_5E`. Ne pas remettre de Pythagore en 5e (§ 4.3).
+
+Le même audit a relu toutes les banques (QCM, Vrai/Faux, Histoire, DNB, puzzles, tracés, générateurs, ateliers, lecteur de graphique). Pièges retrouvés plusieurs fois, à éviter dans tout nouveau contenu :
+- deux réponses de même valeur dans un QCM (`6/20` et `3/10`, `√25` et `5`) ;
+- une clé `correct` qui ne désigne pas la réponse donnée par l'explication ;
+- une explication qui hésite (« Attends… recomptons ») ou qui garde une ancienne valeur ;
+- un énoncé de géométrie sans la donnée qui rend le calcul légitime (triangle rectangle, droites parallèles, points alignés) ;
+- des écritures non françaises (`2^3`, point décimal, tiret à la place du signe moins).
 
 ### 8.10 Légal — pas de visuel des œuvres
 
@@ -576,9 +602,9 @@ L'édition animée en dépend (arène du QCM visible au moment de la réponse, c
 ### 9.4 Ajouter un scénario aux modes Phase 4
 
 - **DNB Blanc** : ajouter dans `DNB_EXERCISES` (4 sous-questions par exercice)
-- **Pythagore atelier** : modifier `newPythChallenge()` pour ajouter de nouveaux types de défis
+- **Pythagore atelier** : modifier `newPythChallenge()` pour ajouter de nouveaux types de défis. Une cible doit rester atteignable à la souris sur tous les écrans : AB entre 1,5 et 8,3 cm, AC entre 1,1 et 4 cm (portée mesurée la plus courte : 4,0 cm sur une fenêtre de 768 px de large). Les longueurs s'affichent avec une virgule décimale
 - **Arbre proba** : ajouter dans `PROBA_SCENARIOS` (6 branches + question)
-- **Lecteur graphique** : modifier `loadGraphChallenge()` pour ajouter de nouveaux types ou supporter d'autres fonctions (paraboles, etc.)
+- **Lecteur graphique** : modifier `loadGraphChallenge()` pour ajouter de nouveaux types ou supporter d'autres fonctions (paraboles, etc.). Le point demandé (image ou antécédent) est toujours tiré **dans le repère affiché** (`graphState.yRange`) ; les expressions s'écrivent avec `affineFr` et les nombres avec `formatNum` (virgule, signe moins Unicode)
 
 ### 9.5 Ajouter un mode entier (impact élevé)
 

@@ -2721,7 +2721,7 @@
       <!-- Champ de réponse -->
       <div style="display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:14px">
         <label for="auto-input" class="sr-only">Entrez votre réponse mathématique</label>
-        <input type="text" id="auto-input" inputmode="text" autocomplete="off" placeholder="Ta réponse..." aria-label="Réponse mathématique" aria-describedby="auto-question" style="background:var(--dark3);border:2px solid var(--yellow);color:var(--white);font-family:'Bangers',Impact,'Arial Black',cursive;font-size:1.6rem;padding:12px 20px;border-radius:12px;width:160px;text-align:center;letter-spacing:1px;outline:none">
+        <input type="text" id="auto-input" inputmode="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Ta réponse..." aria-label="Réponse mathématique" aria-describedby="auto-question" style="background:var(--dark3);border:2px solid var(--yellow);color:var(--white);font-family:'Bangers',Impact,'Arial Black',cursive;font-size:1.6rem;padding:12px 20px;border-radius:12px;width:160px;text-align:center;letter-spacing:1px;outline:none">
         <button type="button" class="btn-main" style="font-size:1rem;padding:12px 22px" onclick="submitAutoAnswer()">✓ VALIDER</button>
       </div>
 
@@ -3632,8 +3632,8 @@ const QUESTIONS = {
       type: "Calcul mental", theme: "⚡ Entraînement de Sasuke",
       text: `<span class='highlight'>Sasuke</span> fait <span class='math'>12 × 15</span> pompes par jour. Combien en fait-il en une semaine ?`,
       answers: ["1260", "840", "1080", "980"],
-      correct: 1,
-      feedback: "12 × 15 = 180 pompes/jour. Puis 180 × 7 = <strong>1260</strong>. Attends... recomptons : 12 × 15 = 12 × 10 + 12 × 5 = 120 + 60 = 180. 180 × 7 = 1260. La bonne réponse est 1260 !"
+      correct: 0,
+      feedback: "12 × 15 = 12 × 10 + 12 × 5 = 120 + 60 = 180 pompes par jour. En une semaine (7 jours) : 180 × 7 = <strong>1260</strong> pompes."
     },
     {
       type: "Géométrie", theme: "🌸 Jardin de Sakura",
@@ -3665,10 +3665,10 @@ const QUESTIONS = {
     },
     {
       type: "Angles", theme: "🎯 Kunai de Hinata",
-      text: `Un angle droit mesure <span class='math'>90°</span>. Son angle complémentaire mesure <span class='math'>35°</span>. Que mesure l'angle restant ?`,
+      text: `Un angle droit de <span class='math'>90°</span> est partagé en deux angles. L'un des deux mesure <span class='math'>35°</span>. Que mesure l'autre ?`,
       answers: ["45°", "65°", "55°", "125°"],
       correct: 2,
-      feedback: "Deux angles complémentaires ont une somme de 90°. Donc 90° − 35° = <strong>55°</strong>. Attention à ne pas confondre avec les angles supplémentaires (somme = 180°) !"
+      feedback: "Les deux angles forment ensemble l'angle droit : leur somme vaut 90° (on dit qu'ils sont complémentaires). Donc 90° − 35° = <strong>55°</strong>. Attention à ne pas confondre avec les angles supplémentaires (somme = 180°) !"
     },
     {
       type: "Calcul posé", theme: "🌪️ Mission de Konoha",
@@ -3678,7 +3678,7 @@ const QUESTIONS = {
       feedback: "1248 ÷ 4 = <strong>312</strong>. Méthode : 1200 ÷ 4 = 300, et 48 ÷ 4 = 12. Donc 300 + 12 = 312. On peut aussi faire la division posée !"
     },
     {
-      type: "PGCD", theme: "🐸 Summons de Jiraiya",
+      type: "PGCD", theme: "🐸 Cordes de Jiraiya",
       text: `<span class='highlight'>Jiraiya</span> veut couper une corde de <span class='math'>24 m</span> et une autre de <span class='math'>36 m</span> en morceaux égaux les plus grands possibles. Quelle longueur ?`,
       answers: ["4 m", "12 m", "6 m", "8 m"],
       correct: 1,
@@ -3706,14 +3706,14 @@ const QUESTIONS = {
       feedback: "1 km = 1 000 m, donc 2,4 km = 2,4 × 1 000 = <strong>2 400 m</strong>. Astuce : multiplier par 1 000 revient à déplacer la virgule de 3 rangs vers la droite."
     },
     {
-      type: "Fractions ×", theme: "🌀 Jutsu Multiplicateur",
+      type: "Fractions ×", theme: "🌀 Jutsu des fractions",
       text: `Calcule : <span class='math'>3/4 × 2/5</span>`,
-      answers: ["5/9", "6/20", "3/10", "1/2"],
+      answers: ["5/9", "15/8", "3/10", "1/2"],
       correct: 2,
       feedback: "Pour multiplier des fractions : numérateur × numérateur, dénominateur × dénominateur. 3×2=6 et 4×5=20, ce qui donne 6/20. On simplifie ÷2 : <strong>3/10</strong>."
     },
     {
-      type: "Statistiques", theme: "🏆 Tournoi de Chunin",
+      type: "Statistiques", theme: "🏆 Grand tournoi",
       text: `Les scores de <span class='highlight'>Naruto</span> au tournoi : <span class='math'>12, 15, 8, 20, 15</span>. Quelle est la moyenne ?`,
       answers: ["14", "15", "13", "16"],
       correct: 0,
@@ -3749,7 +3749,7 @@ const QUESTIONS = {
     },
     {
       type: "PGCD", theme: "☁️ Stratégie de Shikamaru",
-      text: `<span class='highlight'>Shikamaru</span> doit ranger 18 kunais et 12 shurikens en piles identiques (même nombre dans chaque pile). Quelle est la plus grande pile possible ?`,
+      text: `<span class='highlight'>Shikamaru</span> doit ranger 18 kunais et 12 shurikens en piles qui contiennent toutes le même nombre d'objets, chaque pile ne contenant qu'une seule sorte d'objet. Combien d'objets au maximum peut-on mettre dans chaque pile ?`,
       answers: ["6", "4", "3", "2"],
       correct: 0,
       feedback: "On cherche le PGCD(18, 12). Diviseurs de 18 : 1, 2, 3, 6, 9, 18. De 12 : 1, 2, 3, 4, 6, 12. Le plus grand commun = <strong>6</strong>. Il y aura 3 piles de kunais et 2 piles de shurikens."
@@ -3808,7 +3808,7 @@ const QUESTIONS = {
       text: `<span class='highlight'>Rock Lee</span> dit : « Le double d'un nombre, augmenté de 3, donne 17. » Quel est ce nombre ?`,
       answers: ["7", "10", "8", "14"],
       correct: 0,
-      feedback: "Si on note ce nombre n, on cherche : 2n + 3 = 17. Donc 2n = 14, donc n = <strong>7</strong>. Vérification : 2 × 7 + 3 = 17 ✓. En 6e on raisonne avec des mots, pas encore avec des lettres."
+      feedback: "On remonte le calcul à l'envers. Le double du nombre, augmenté de 3, donne 17 : donc le double du nombre vaut 17 − 3 = 14. Le nombre vaut donc 14 ÷ 2 = <strong>7</strong>. Vérification : 2 × 7 + 3 = 17 ✓. En 6e on raisonne avec des mots, pas encore avec des lettres."
     },
     {
       type: "Calcul mental", theme: "🌪️ Vitesse de Minato",
@@ -3847,18 +3847,18 @@ const QUESTIONS = {
       text: `Pour <span class='math'>4 personnes</span>, il faut <span class='math'>320 g</span> de nouilles. Combien pour <span class='math'>7 personnes</span> ?`,
       answers: ["480 g", "560 g", "640 g", "420 g"],
       correct: 1,
-      feedback: "320 g ÷ 4 = 80 g par personne. Pour 7 : 80 × 7 = <strong>560 g</strong>. On peut aussi calculer le coefficient de proportionnalité : 7/4 × 320 = 560."
+      feedback: "320 g ÷ 4 = 80 g par personne (c'est le coefficient de proportionnalité). Pour 7 : 80 × 7 = <strong>560 g</strong>. On peut aussi utiliser le rapport entre les nombres de personnes : 320 × 7/4 = 560."
     },
     {
-      type: "Angles", theme: "⚡ Sharingan de Sasuke",
+      type: "Angles", theme: "⚡ Angles de Sasuke",
       text: `Deux angles sont supplémentaires. L'un mesure <span class='math'>112°</span>. Combien mesure l'autre ?`,
       answers: ["58°", "78°", "68°", "48°"],
       correct: 2,
       feedback: "Deux angles supplémentaires ont une somme de 180°. Donc 180° − 112° = <strong>68°</strong>. Rappel : complémentaires → somme = 90°, supplémentaires → somme = 180°."
     },
     {
-      type: "Puissances", theme: "🔥 Puissance du Rasengan",
-      text: `Le Rasengan de Naruto a une puissance de <span class='math'>2⁴</span> chakras. Combien cela fait-il ?`,
+      type: "Puissances", theme: "🔥 Puissance de Naruto",
+      text: `<span class='highlight'>Naruto</span> concentre une puissance de <span class='math'>2⁴</span> chakras. Combien cela fait-il ?`,
       answers: ["8", "14", "16", "12"],
       correct: 2,
       feedback: "2⁴ = 2 × 2 × 2 × 2 = <strong>16</strong>. Les puissances de 2 à retenir : 2¹=2, 2²=4, 2³=8, 2⁴=16, 2⁵=32..."
@@ -3879,7 +3879,7 @@ const QUESTIONS = {
     },
     {
       type: "Pourcentages", theme: "🛒 Boutique de Konoha",
-      text: `Une kunai vaut <span class='math'>40 €</span>. Elle est en promo à <span class='math'>−25%</span>. Quel est le nouveau prix ?`,
+      text: `En boutique, kunai à <span class='math'>40 €</span>, en promo à <span class='math'>−25%</span>. Quel est le nouveau prix ?`,
       answers: ["30 €", "25 €", "35 €", "10 €"],
       correct: 0,
       feedback: "25% de 40 = 40 × 25/100 = 40 × 0,25 = 10 €. Prix final = 40 − 10 = <strong>30 €</strong>. Ou directement : 40 × 0,75 = 30 €."
@@ -3906,13 +3906,6 @@ const QUESTIONS = {
       feedback: "Ordre : parenthèses d'abord → 12 − 8 = 4. Puis multiplication/division de gauche à droite : 3 × 4 = 12, puis 12 ÷ 2 = 6. Enfin : 5 + 6 = <strong>11</strong>."
     },
     {
-      type: "Pythagore", theme: "🔺 Triangle de Kakashi",
-      text: `Dans un triangle rectangle, les deux côtés de l'angle droit mesurent <span class='math'>3 cm</span> et <span class='math'>4 cm</span>. Quelle est la longueur de l'hypoténuse ?`,
-      answers: ["5 cm", "6 cm", "7 cm", "√7 cm"],
-      correct: 0,
-      feedback: "Théorème de Pythagore : hypoténuse² = 3² + 4² = 9 + 16 = 25. Donc hypoténuse = √25 = <strong>5 cm</strong>. Le triangle 3-4-5 est le plus célèbre triangle rectangle !"
-    },
-    {
       type: "Probabilités", theme: "🎲 Jeu de Konoha",
       text: `<span class='highlight'>Shikamaru</span> lance un dé à 6 faces. Quelle est la probabilité d'obtenir un nombre pair ?`,
       answers: ["1/3", "1/2", "2/3", "1/6"],
@@ -3929,13 +3922,13 @@ const QUESTIONS = {
     {
       type: "Fractions ÷", theme: "🍜 Partage de ramen",
       text: `Naruto partage <span class='math'>3/4</span> de bol entre <span class='math'>3</span> amis. Quelle part reçoit chacun ?`,
-      answers: ["9/4", "1/4", "3/12", "1/3"],
+      answers: ["9/4", "1/4", "1/12", "1/3"],
       correct: 1,
       feedback: "3/4 ÷ 3 = 3/4 × 1/3 = 3/12 = <strong>1/4</strong>. Diviser par 3 revient à multiplier par 1/3. Et 3/12 se simplifie en 1/4 (÷3). Chacun reçoit 1/4 de bol !"
     }    ,
     {
-      type: "Relatifs ×", theme: "❄️ Glace de Haku",
-      text: `<span class='highlight'>Haku</span> calcule : <span class='math'>(−3) × (−4)</span>. Quel est le résultat ?`,
+      type: "Relatifs ×", theme: "❄️ Glace de Kisame",
+      text: `<span class='highlight'>Kisame</span> calcule : <span class='math'>(−3) × (−4)</span>. Quel est le résultat ?`,
       answers: ["12", "−12", "−7", "7"],
       correct: 0,
       feedback: "Règle des signes : moins par moins = plus. Donc (−3) × (−4) = <strong>+12</strong>. Astuce mnémo : « L'ennemi de mon ennemi est mon ami »."
@@ -3943,7 +3936,7 @@ const QUESTIONS = {
     {
       type: "Fractions ×", theme: "🍜 Recette de Naruto",
       text: `<span class='highlight'>Naruto</span> mange les <span class='math'>2/3</span> de <span class='math'>3/5</span> de son bol. Quelle fraction mange-t-il ?`,
-      answers: ["2/5", "6/15", "5/8", "1/2"],
+      answers: ["2/5", "10/9", "5/8", "1/2"],
       correct: 0,
       feedback: "Pour multiplier des fractions : numérateur × numérateur, dénominateur × dénominateur. 2/3 × 3/5 = (2×3)/(3×5) = 6/15 = <strong>2/5</strong> (simplification par 3)."
     },
@@ -4005,7 +3998,7 @@ const QUESTIONS = {
     },
     {
       type: "Pourcentages", theme: "📊 Sondage de Tsunade",
-      text: `Quels est <span class='math'>20%</span> de <span class='math'>80</span> ?`,
+      text: `Quel est <span class='math'>20%</span> de <span class='math'>80</span> ?`,
       answers: ["16", "20", "4", "60"],
       correct: 0,
       feedback: "20% = 20/100 = 0,2. Donc 20% de 80 = 0,2 × 80 = <strong>16</strong>. Astuce mentale : 10% de 80 = 8, donc 20% = 2 × 8 = 16."
@@ -4024,7 +4017,7 @@ const QUESTIONS = {
     {
       type: "Fractions avancées", theme: "🌀 Portail de l'espace-temps",
       text: `<span class='highlight'>Obito</span> traverse <span class='math'>2/3</span> du portail, puis recule de <span class='math'>1/6</span>. Quelle fraction du portail a-t-il traversée ?`,
-      answers: ["1/2", "3/6", "1/3", "5/6"],
+      answers: ["1/2", "2/3", "1/3", "5/6"],
       correct: 0,
       feedback: "2/3 − 1/6 = 4/6 − 1/6 = 3/6 = <strong>1/2</strong>. On réduit au même dénominateur : 2/3 = 4/6, puis 4/6 − 1/6 = 3/6 = 1/2."
     },
@@ -4043,14 +4036,14 @@ const QUESTIONS = {
       feedback: "Aire = π × r² = 3,14 × 7² = 3,14 × 49 = <strong>153,86 cm²</strong>. Attention : l'aire utilise le rayon au carré, pas le diamètre !"
     },
     {
-      type: "Puissances + relatifs", theme: "⚡ Chidori augmenté",
+      type: "Puissances + relatifs", theme: "⚡ Attaque de Sasuke",
       text: `Calcule : <span class='math'>(−3)³</span>`,
       answers: ["27", "−27", "9", "−9"],
       correct: 1,
       feedback: "(−3)³ = (−3) × (−3) × (−3) = 9 × (−3) = <strong>−27</strong>. Un nombre négatif à une puissance impaire reste négatif !"
     },
     {
-      type: "Proportionnalité", theme: "🗺️ Carte du Pays du Feu",
+      type: "Proportionnalité", theme: "🗺️ Carte des deux villages",
       text: `Sur une carte à l'échelle <span class='math'>1/50 000</span>, la distance entre deux villages est <span class='math'>4 cm</span>. Quelle est la distance réelle ?`,
       answers: ["200 m", "2 km", "20 km", "200 km"],
       correct: 1,
@@ -4085,7 +4078,7 @@ const QUESTIONS = {
       feedback: "Augmentation = 2500 × 12/100 = 300 €. Nouvelle valeur = 2500 + 300 = <strong>2800 €</strong>. Ou : 2500 × 1,12 = 2800 €."
     },
     {
-      type: "Mix", theme: "🌪️ Jutsu final",
+      type: "Mix", theme: "🌪️ Jutsu ultime",
       text: `Si <span class='math'>a = −2</span> et <span class='math'>b = 3</span>, calcule <span class='math'>a² + 2b − a</span>`,
       answers: ["12", "10", "14", "8"],
       correct: 0,
@@ -4113,15 +4106,15 @@ const QUESTIONS = {
       feedback: "Dénominateur commun de 2 et 3 : 6. Donc 1/2 = 3/6 et 1/3 = 2/6. Somme = 3/6 + 2/6 = <strong>5/6</strong>. À retenir : on ne peut additionner que des fractions de même dénominateur."
     },
     {
-      type: "Puissances ×", theme: "💥 Énergie Chakra",
-      text: `Calcule : <span class='math'>2^3 × 2^2</span>.`,
-      answers: ["32 (= 2^5)", "16", "12", "64 (= 2^6)"],
+      type: "Puissances ×", theme: "💥 Énergie de Sasuke",
+      text: `Calcule : <span class='math'>2³ × 2²</span>.`,
+      answers: ["32 (= 2⁵)", "16", "12", "64 (= 2⁶)"],
       correct: 0,
       feedback: "Règle : aⁿ × aᵐ = aⁿ⁺ᵐ (on additionne les exposants). 2³ × 2² = 2⁵ = <strong>32</strong>. Vérification : 8 × 4 = 32 ✓."
     },
     {
       type: "Pourcentages", theme: "📊 Réduction au village",
-      text: `Un kunai coûte <span class='math'>20 ryos</span>. On fait une réduction de <span class='math'>15%</span>. Nouveau prix ?`,
+      text: `Au village, kunai à <span class='math'>20 ryos</span>. On fait une réduction de <span class='math'>15%</span>. Nouveau prix ?`,
       answers: ["17 ryos", "5 ryos", "15 ryos", "18 ryos"],
       correct: 0,
       feedback: "15% de 20 = 0,15 × 20 = 3 ryos de réduction. Nouveau prix = 20 − 3 = <strong>17 ryos</strong>. Astuce : payer 85% de 20 = 0,85 × 20 = 17."
@@ -4149,7 +4142,7 @@ const QUESTIONS = {
     },
     {
       type: "Fréquence", theme: "📈 Stats de Shikamaru",
-      text: `Sur 25 lancers d'un kunai, <span class='highlight'>Shikamaru</span> a réussi 8 fois. Quelle est la fréquence de réussite (en %) ?`,
+      text: `Sur 25 lancers (kunai en main), <span class='highlight'>Shikamaru</span> a réussi 8 fois. Quelle est la fréquence de réussite (en %) ?`,
       answers: ["32 %", "8 %", "25 %", "40 %"],
       correct: 0,
       feedback: "Fréquence = effectif ÷ total = 8 ÷ 25 = 0,32 = <strong>32 %</strong>. Pour convertir en % : multiplier par 100."
@@ -4170,7 +4163,7 @@ const QUESTIONS = {
       text: `<span class='highlight'>Orochimaru</span> défie Naruto avec ce calcul : <span class='math'>2⁵ − (3 + 7) × 2 + 4²</span>`,
       answers: ["28", "24", "32", "20"],
       correct: 0,
-      feedback: "2⁵ = 32. (3+7) = 10. 10×2 = 20. 4² = 16. Donc 32 − 20 + 16 = <strong>28</strong>. Bravo, Naruto tiendrait fier de toi !"
+      feedback: "2⁵ = 32. (3+7) = 10. 10×2 = 20. 4² = 16. Donc 32 − 20 + 16 = <strong>28</strong>. Bravo, Naruto serait fier de toi !"
     },
     {
       type: "BOSS", theme: "🐍 Venin de l'incertitude",
@@ -4196,13 +4189,13 @@ const QUESTIONS = {
     {
       type: "BOSS", theme: "💀 Ultime défi",
       text: `<span class='math'>(−2)⁴ + (−3)³ ÷ (−3)</span> = ?`,
-      answers: ["16 + 9 = 25", "16 − 9 = 7", "7", "25"],
-      correct: 2,
-      feedback: "(−2)⁴ = 16 (puissance paire, résultat positif). (−3)³ = −27. −27 ÷ (−3) = +9. Donc 16 + 9 = <strong>25</strong>. Attends... 16 + 9 = 25, pas 7. La réponse A est la bonne !"
+      answers: ["25", "7", "−7", "43"],
+      correct: 0,
+      feedback: "(−2)⁴ = 16 (puissance paire, résultat positif). (−3)³ = −27 (puissance impaire, résultat négatif). La division passe avant l'addition : −27 ÷ (−3) = +9. Donc 16 + 9 = <strong>25</strong>."
     },
     {
       type: "BOSS", theme: "🗡️ Lame de la vérité",
-      text: `Simplifie la fraction : <span class='math'>48/72</span>`,
+      text: `Écris la fraction <span class='math'>48/72</span> sous forme irréductible.`,
       answers: ["4/6", "2/3", "3/4", "8/12"],
       correct: 1,
       feedback: "PGCD(48, 72) = 24. 48÷24 = 2, 72÷24 = 3. Donc <strong>2/3</strong>. C'est la fraction irréductible !"
@@ -4286,13 +4279,13 @@ const QUESTIONS_BY_CHAPTER = {
       {
         type: "Pythagore appliqué", theme: "📦 Boîte de Naruto",
         text: `Une feuille rectangulaire mesure <span class='math'>9 cm × 12 cm</span>. Quelle est la longueur de sa diagonale ?`,
-        answers: ["15 cm", "21 cm", "10 cm", "√225 = pas le bon"],
+        answers: ["15 cm", "21 cm", "10 cm", "225 cm"],
         correct: 0,
         feedback: "La diagonale est l'hypoténuse du triangle rectangle formé par les deux côtés. d² = 9² + 12² = 81 + 144 = 225. d = √225 = <strong>15 cm</strong>."
       }      ,
       {
         type: "Pythagore", theme: "🏯 Tour de Konoha",
-        text: `Un mât de drapeau mesure <span class='math'>8 m</span>. Sa base est à <span class='math'>6 m</span> du mur. Quelle longueur de câble pour le maintenir au sommet ?`,
+        text: `Un mât de drapeau vertical mesure <span class='math'>8 m</span>. Un câble tendu relie son sommet à un point du sol situé à <span class='math'>6 m</span> du pied du mât. Quelle est la longueur du câble ?`,
         answers: ["10 m", "14 m", "100 m", "√14 m"],
         correct: 0,
         feedback: "Pythagore : câble² = 6² + 8² = 36 + 64 = 100. Câble = √100 = <strong>10 m</strong>. Encore le triangle 6-8-10 (proportionnel à 3-4-5)."
@@ -4300,7 +4293,7 @@ const QUESTIONS_BY_CHAPTER = {
       {
         type: "Pythagore", theme: "📐 Carré d'entraînement",
         text: `La diagonale d'un carré mesure <span class='math'>√50 cm</span>. Quelle est la longueur de son côté ?`,
-        answers: ["5 cm", "25 cm", "√25 cm = 5", "10 cm"],
+        answers: ["5 cm", "25 cm", "√5 cm", "10 cm"],
         correct: 0,
         feedback: "Diagonale² = côté² + côté² = 2 × côté². Donc 50 = 2 × côté², côté² = 25, côté = <strong>5 cm</strong>."
       },
@@ -4309,7 +4302,7 @@ const QUESTIONS_BY_CHAPTER = {
         text: `Triangle de côtés <span class='math'>5, 6, 7</span>. Est-il rectangle ?`,
         answers: ["Non, car 5² + 6² ≠ 7²", "Oui", "Oui, en l'angle opposé à 7", "On ne sait pas"],
         correct: 0,
-        feedback: "Test : 5² + 6² = 25 + 36 = 61. Et 7² = 49. <strong>61 ≠ 49</strong> donc la réciproque de Pythagore NE s'applique PAS : le triangle n'est pas rectangle."
+        feedback: "Test : le plus grand côté est 7. 7² = 49 et 5² + 6² = 25 + 36 = 61. <strong>61 ≠ 49</strong>. Si le triangle était rectangle, le théorème de Pythagore donnerait l'égalité : comme elle est fausse, le triangle <strong>n'est pas rectangle</strong> (c'est la contraposée du théorème de Pythagore)."
       },
       {
         type: "Pythagore appliqué", theme: "🪜 Échelle de Naruto",
@@ -4317,8 +4310,14 @@ const QUESTIONS_BY_CHAPTER = {
         answers: ["4 m", "2 m", "√34 m", "8 m"],
         correct: 0,
         feedback: "Pythagore : 5² = 3² + h². Donc h² = 25 − 9 = 16, h = <strong>4 m</strong>. Triangle 3-4-5 classique. L'échelle, le sol et le mur forment un triangle rectangle."
+      },
+      {
+        type: "Pythagore", theme: "🔺 Triangle de Kakashi",
+        text: `Dans un triangle rectangle, les deux côtés de l'angle droit mesurent <span class='math'>8 cm</span> et <span class='math'>15 cm</span>. Quelle est la longueur de l'hypoténuse ?`,
+        answers: ["17 cm", "23 cm", "13 cm", "√23 cm"],
+        correct: 0,
+        feedback: "Théorème de Pythagore : hypoténuse² = 8² + 15² = 64 + 225 = 289. Donc hypoténuse = √289 = <strong>17 cm</strong>. Attention : on n'additionne pas les longueurs (8 + 15 = 23 est faux)."
       }
-
     ],
     'puissances_scientifique': [
       {
@@ -4329,7 +4328,7 @@ const QUESTIONS_BY_CHAPTER = {
         feedback: "On déplace la virgule après le 1er chiffre non nul. 0,000003 → 3. La virgule a été décalée de 6 rangs vers la droite, donc exposant <strong>négatif</strong> : 3 × 10⁻⁶."
       },
       {
-        type: "Puissances", theme: "💥 Énergie de Goku",
+        type: "Puissances", theme: "💥 Énergie de Naruto",
         text: `Calcule : <span class='math'>10³ × 10⁵</span>.`,
         answers: ["10⁸", "10¹⁵", "10²", "100⁸"],
         correct: 0,
@@ -4338,7 +4337,7 @@ const QUESTIONS_BY_CHAPTER = {
       {
         type: "Puissances quotient", theme: "🔬 Division énergétique",
         text: `Calcule : <span class='math'>10⁹ ÷ 10⁴</span>.`,
-        answers: ["10⁵", "10¹³", "10⁻⁵", "1.000.000.000.000"],
+        answers: ["10⁵", "10¹³", "10⁻⁵", "1 000 000 000 000"],
         correct: 0,
         feedback: "Règle : aⁿ ÷ aᵐ = aⁿ⁻ᵐ. Donc 10⁹ ÷ 10⁴ = 10⁹⁻⁴ = <strong>10⁵</strong>. Quand on divise, on soustrait les exposants."
       },
@@ -4347,7 +4346,7 @@ const QUESTIONS_BY_CHAPTER = {
         text: `Une distance vaut <span class='math'>4,5 × 10⁸ km</span>. Combien de kilomètres exactement ?`,
         answers: ["450 000 000 km", "45 000 000 km", "4 500 000 km", "4,5 milliards de km"],
         correct: 0,
-        feedback: "4,5 × 10⁸ = 4,5 suivi de 8 - 1 = 7 zéros (on décale la virgule de 8 rangs) = <strong>450 000 000 km</strong>, soit 450 millions."
+        feedback: "4,5 × 10⁸ : on décale la virgule de 8 rangs vers la droite. 4,5 devient 45 suivi de 7 zéros = <strong>450 000 000 km</strong>, soit 450 millions de km."
       }      ,
       {
         type: "Notation scientifique", theme: "🌌 Distance Terre-Soleil",
@@ -4361,14 +4360,14 @@ const QUESTIONS_BY_CHAPTER = {
         text: `Lequel est le plus grand : <span class='math'>3⁴</span> ou <span class='math'>4³</span> ?`,
         answers: ["3⁴ = 81 > 4³ = 64", "Ils sont égaux", "4³ > 3⁴", "Impossible à comparer"],
         correct: 0,
-        feedback: "3⁴ = 3×3×3×3 = 81. 4³ = 4×4×4 = 64. Donc <strong>3⁴ > 4³</strong>. Astuce : pour de petites valeurs, exposant plus grand donne souvent un résultat plus grand."
+        feedback: "3⁴ = 3×3×3×3 = 81. 4³ = 4×4×4 = 64. Donc <strong>3⁴ > 4³</strong>. Attention : il n'y a pas de règle générale (par exemple 2³ = 8 est plus petit que 3² = 9) : pour comparer deux puissances, on les calcule."
       },
       {
         type: "Puissance de 10", theme: "🔬 Cellules",
         text: `Le corps humain contient environ <span class='math'>3,7 × 10¹³</span> cellules. Combien de zéros si on l'écrit en chiffres ?`,
-        answers: ["12 chiffres après le 3", "13 zéros", "10 zéros", "37 chiffres"],
+        answers: ["12 zéros", "13 zéros", "10 zéros", "37 chiffres"],
         correct: 0,
-        feedback: "3,7 × 10¹³ = 37 × 10¹² = 37 suivi de 12 zéros = 37 000 000 000 000 (37 mille milliards). Donc <strong>12 chiffres après le 7</strong>."
+        feedback: "3,7 × 10¹³ = 37 × 10¹² = 37 suivi de 12 zéros = 37 000 000 000 000 (37 mille milliards). Donc <strong>12 zéros</strong>. Attention : ce n'est pas 13 zéros, car le chiffre 7 occupe déjà un des 13 rangs."
       },
       {
         type: "Produit puissances", theme: "💥 Multiplier deux énergies",
@@ -4417,10 +4416,10 @@ const QUESTIONS_BY_CHAPTER = {
       },
       {
         type: "Factorisation", theme: "✂️ Mise en évidence",
-        text: `Factorise : <span class='math'>4x² + 12x</span>.`,
+        text: `Factorise le plus possible : <span class='math'>4x² + 12x</span>.`,
         answers: ["4x(x + 3)", "4x² + 12x", "4x(x² + 3)", "x(4x + 12)"],
         correct: 0,
-        feedback: "Facteur commun = 4x (PGCD(4,12)=4 et x est commun). Donc 4x² + 12x = 4x × x + 4x × 3 = <strong>4x(x + 3)</strong>."
+        feedback: "Facteur commun = 4x (PGCD(4,12)=4 et x est commun). Donc 4x² + 12x = 4x × x + 4x × 3 = <strong>4x(x + 3)</strong>. Remarque : x(4x + 12) est aussi égal à 4x² + 12x, mais on peut encore mettre 4 en facteur dans la parenthèse : la factorisation n'est pas terminée."
       }
 
     ],
@@ -4486,13 +4485,13 @@ const QUESTIONS_BY_CHAPTER = {
       },
       {
         type: "Moyenne pondérée", theme: "📊 Bulletin trimestriel",
-        text: `Maths : 14 (coef 4), Français : 12 (coef 3). Quelle est la moyenne pondérée ?`,
+        text: `Maths : 14 (coef 4), Français : 12 (coef 3). Quelle est la moyenne pondérée, arrondie au dixième ?`,
         answers: ["13,1", "13", "26", "13,5"],
         correct: 0,
         feedback: "Moyenne pondérée = (14×4 + 12×3) ÷ (4+3) = (56 + 36) ÷ 7 = 92 ÷ 7 ≈ <strong>13,1</strong>. On multiplie chaque note par son coefficient, on divise par la somme des coefficients."
       }      ,
       {
-        type: "Effectifs cumulés", theme: "📊 Sondage Konoha",
+        type: "Fréquence", theme: "📊 Sondage de Konoha",
         text: `Effectif : 5+8+12+9+6 = 40. Quelle est la fréquence (en %) de la 3ème catégorie ?`,
         answers: ["30 %", "12 %", "40 %", "25 %"],
         correct: 0,
@@ -4578,24 +4577,24 @@ const QUESTIONS_BY_CHAPTER = {
       }      ,
       {
         type: "Thalès configuration papillon", theme: "📐 Triangles opposés",
-        text: `Deux droites sécantes en O. Sur l'une, A et A'. Sur l'autre, B et B'. Si OA=3, OA'=6, OB=4, et (AB)∥(A'B'), combien vaut OB' ?`,
+        text: `Deux droites sécantes en O. Sur l'une, A et A' de part et d'autre de O. Sur l'autre, B et B' de part et d'autre de O. Si OA=3, OA'=6, OB=4, et (AB)∥(A'B'), combien vaut OB' ?`,
         answers: ["8", "12", "2", "10"],
         correct: 0,
         feedback: "Configuration papillon (Thalès). OA/OA' = OB/OB' donne 3/6 = 4/OB'. Donc OB' = (4 × 6) / 3 = <strong>8</strong>."
       },
       {
         type: "Application Thalès", theme: "🏔️ Largeur d'une rivière",
-        text: `Pour mesurer la largeur d'une rivière, on utilise Thalès. Schéma : un arbre A, repère B sur l'autre rive, repère C visible depuis P. PA=10, PB=15, PC=20. Largeur AB ?`,
-        answers: ["30", "5", "75", "6"],
+        text: `Pour mesurer la largeur AB d'une rivière, on utilise Thalès. L'arbre A est sur l'autre rive, le repère B au bord de notre rive. Les points P, B, A sont alignés dans cet ordre, ainsi que les points P, C, D, et (BC) ∥ (AD). On mesure PB = 15 m, BC = 10 m et AD = 30 m. Quelle est la largeur AB de la rivière ?`,
+        answers: ["30 m", "5 m", "75 m", "45 m"],
         correct: 0,
-        feedback: "Thalès : PA/PC × longueur réelle. Si la configuration est conforme : largeur = (PB × distance_repère) / PA = (15 × 20) / 10 = <strong>30 m</strong>."
+        feedback: "Thalès (car (BC) ∥ (AD)) : PB/PA = BC/AD, donc 15/PA = 10/30, donc PA = (15 × 30) ÷ 10 = 45 m. La largeur est AB = PA − PB = 45 − 15 = <strong>30 m</strong>. Attention : 45 m est la distance PA, pas la largeur."
       },
       {
         type: "Sens de Thalès", theme: "📐 Direction",
-        text: `Sur la figure, M est entre A et B (M ∈ [AB]) et N est entre A et C. Le rapport AM/AB se calcule en parcourant le segment dans quel sens ?`,
-        answers: ["Du sommet commun A vers les pieds B et C", "B vers A", "Peu importe le sens", "A vers M seulement"],
+        text: `Sur la figure, M ∈ [AB], N ∈ [AC] et (MN) ∥ (BC). Quelle est l'égalité de Thalès correctement écrite ?`,
+        answers: ["AM/AB = AN/AC = MN/BC", "AM/AB = AC/AN = MN/BC", "AB/AM = AN/AC = BC/MN", "AM/MB = AC/AN = MN/BC"],
         correct: 0,
-        feedback: "On part toujours du <strong>sommet commun (A)</strong> et on va vers les pieds. Égalité : AM/AB = AN/AC = MN/BC. Ordre crucial pour éviter les erreurs !"
+        feedback: "On part toujours du <strong>sommet commun A</strong> : les longueurs du petit triangle AMN au numérateur, celles du grand triangle ABC au dénominateur, dans le même ordre. Égalité : <strong>AM/AB = AN/AC = MN/BC</strong>. Ordre crucial pour éviter les erreurs !"
       },
       {
         type: "Réciproque Thalès strict", theme: "📐 Vérification",
@@ -4609,7 +4608,7 @@ const QUESTIONS_BY_CHAPTER = {
         text: `Triangle ABC, M ∈ [AB], N ∈ [AC]. AM=3, AB=8, AN=4, AC=12. (MN) et (BC) sont-elles parallèles ?`,
         answers: ["Non, car les rapports diffèrent", "Oui", "Oui par approximation", "Impossible à dire"],
         correct: 0,
-        feedback: "AM/AB = 3/8 = 0,375. AN/AC = 4/12 = 1/3 ≈ 0,333. <strong>Rapports différents</strong> → réciproque NE s'applique PAS, donc (MN) ∦ (BC)."
+        feedback: "AM/AB = 3/8 = 0,375. AN/AC = 4/12 = 1/3 ≈ 0,333. <strong>Rapports différents</strong> → d'après la <strong>contraposée du théorème de Thalès</strong>, les droites (MN) et (BC) ne sont pas parallèles."
       }
 
     ],
@@ -4629,7 +4628,7 @@ const QUESTIONS_BY_CHAPTER = {
         feedback: "tan(angle) = opposé / adjacent = 8 / 100 = 0,08. L'angle est tel que tan = 0,08, soit environ <strong>5°</strong> (touche tan⁻¹ de la calculatrice). Une pente de 8% correspond à un angle d'environ 4,6°."
       },
       {
-        type: "Sinus", theme: "📏 Hauteur d'une tour",
+        type: "Tangente", theme: "📏 Hauteur d'une tour",
         text: `On vise le sommet d'une tour à 50 m de distance avec un angle d'élévation de 30°. Quelle est la hauteur (en utilisant tan) ?`,
         answers: ["≈ 28,9 m", "≈ 25 m", "≈ 43,3 m", "≈ 100 m"],
         correct: 0,
@@ -4711,7 +4710,7 @@ const QUESTIONS_BY_CHAPTER = {
       {
         type: "Représentation graphique", theme: "📈 Lecture",
         text: `Sur un graphique, une droite passe par O(0;0) et A(2;6). Cette fonction est ?`,
-        answers: ["Linéaire de coefficient 3", "Affine de coefficient 3 et ordonnée 0", "Linéaire de coefficient 6", "Affine f(x)=2x+6"],
+        answers: ["Linéaire de coefficient 3", "Affine de coefficient 3 et ordonnée à l'origine 2", "Linéaire de coefficient 6", "Affine f(x)=2x+6"],
         correct: 0,
         feedback: "Passe par O → fonction <strong>linéaire</strong> (f(x) = ax). a = 6/2 = 3 → f(x) = 3x. Note : une fonction linéaire est un cas particulier de fonction affine (avec b=0)."
       },
@@ -4808,7 +4807,7 @@ const QUESTIONS_BY_CHAPTER = {
       {
         type: "Probabilités équiprobables", theme: "🌳 Boules colorées",
         text: `Sac : 5 rouges, 3 vertes, 2 bleues. Probabilité de tirer une non-rouge ?`,
-        answers: ["1/2", "5/10", "3/5", "2/10"],
+        answers: ["1/2", "3/10", "3/5", "2/10"],
         correct: 0,
         feedback: "Non-rouges = 3 + 2 = 5. Total = 10. P(non-rouge) = 5/10 = <strong>1/2</strong> = 50%. Ou P(non-rouge) = 1 − P(rouge) = 1 − 1/2 = 1/2."
       }
@@ -4838,7 +4837,7 @@ const QUESTIONS_BY_CHAPTER = {
       }      ,
       {
         type: "PGCD application", theme: "🔍 Cadeau de Tsunade",
-        text: `On veut faire des sachets identiques avec 48 kunais et 36 shurikens. Quel est le maximum de sachets ?`,
+        text: `On veut faire des sachets identiques en utilisant la totalité des 48 kunais et des 36 shurikens. Quel est le nombre maximum de sachets ?`,
         answers: ["12 sachets", "6 sachets", "4 sachets", "84 sachets"],
         correct: 0,
         feedback: "PGCD(48, 36). Euclide : 48 = 36×1+12 ; 36 = 12×3+0. Donc PGCD = <strong>12 sachets</strong> (chacun avec 4 kunais et 3 shurikens)."
@@ -4959,7 +4958,6 @@ const TYPE_TO_CHAPTER_5E = {
   'Angles': 'geometrie_5e',
   'Triangle': 'geometrie_5e',
   'Symétrie centrale': 'geometrie_5e',
-  'Pythagore': 'geometrie_5e',  // Présent dans le legacy 5e_medium (héritage). À déplacer en 4e éventuellement.
   // Applications
   'Pourcentages': 'applications_5e',
   'Proportionnalité': 'applications_5e',
@@ -5448,7 +5446,7 @@ const UNIVERSE_THEMES_MAP = {
     'Hokage': 'Hokage', 'Konoha': 'Konoha', 'ramen': 'ramen', 'kunai': 'kunai',
     'shuriken': 'shuriken', 'shurikens': 'shurikens', 'Orochimaru': 'Orochimaru',
     'jutsu': 'jutsu', 'chakra': 'chakra', 'ninja': 'ninja', 'Kisame': 'Kisame', 'Minato': 'Minato',
-    'Obito': 'Obito', 'Hinata': 'Hinata', 'Iruka': 'Iruka', 'Akatsuki': 'Akatsuki', 'Gato': 'Gato', 'Gaara': 'Gaara'
+    'Obito': 'Obito', 'Hinata': 'Hinata', 'Iruka': 'Iruka', 'Akatsuki': 'Akatsuki', 'Gato': 'Gato', 'Gaara': 'Gaara', 'Tsunade': 'Tsunade', 'Jutsu': 'Jutsu', 'Kunai': 'Kunai'
   },
   onepiece: {
     'Naruto': 'Luffy', 'Sasuke': 'Zoro', 'Sakura': 'Nami', 'Kakashi': 'Sanji',
@@ -5456,7 +5454,7 @@ const UNIVERSE_THEMES_MAP = {
     'Hokage': 'Capitaine', 'Konoha': 'le Sunny', 'ramen': 'viande', 'kunai': 'sabre',
     'shuriken': 'log pose', 'shurikens': 'logs pose', 'Orochimaru': 'Barbe Noire',
     'jutsu': 'pouvoir', 'chakra': 'haki', 'ninja': 'pirate', 'Ramen': 'Viande', 'Kisame': 'Crocodile', 'Minato': 'Roger',
-    'Obito': 'Doflamingo', 'Hinata': 'Vivi', 'Iruka': 'Garp', 'Akatsuki': 'Marine', 'Gato': 'Dorago', 'Gaara': 'Kid'
+    'Obito': 'Doflamingo', 'Hinata': 'Vivi', 'Iruka': 'Garp', 'Akatsuki': 'Marine', 'Gato': 'Dorago', 'Gaara': 'Kid', 'Tsunade': 'Vivi', 'Jutsu': 'Pouvoir', 'Kunai': 'Sabre'
   },
   dragonball: {
     'Naruto': 'Goku', 'Sasuke': 'Vegeta', 'Sakura': 'Bulma', 'Kakashi': 'Piccolo',
@@ -5464,7 +5462,7 @@ const UNIVERSE_THEMES_MAP = {
     'Hokage': 'Champion', 'Konoha': 'Capsule Corp', 'ramen': 'plat', 'kunai': 'épée',
     'shuriken': 'Dragon Ball', 'shurikens': 'Dragon Balls', 'Orochimaru': 'Cell',
     'jutsu': 'technique', 'chakra': 'ki', 'ninja': 'guerrier', 'Ramen': 'Bento', 'Kisame': 'Freezer', 'Minato': 'Bardock',
-    'Obito': 'Buu', 'Hinata': 'Chichi', 'Iruka': 'Krilin', 'Akatsuki': 'Red Ribbon', 'Gato': 'Pilaf', 'Gaara': 'Cell'
+    'Obito': 'Buu', 'Hinata': 'Chichi', 'Iruka': 'Krilin', 'Akatsuki': 'Red Ribbon', 'Gato': 'Pilaf', 'Gaara': 'Cell', 'Tsunade': 'Chichi', 'Jutsu': 'Technique', 'Kunai': 'Épée'
   },
   myhero: {
     'Naruto': 'Deku', 'Sasuke': 'Bakugo', 'Sakura': 'Uraraka', 'Kakashi': 'Aizawa',
@@ -5472,7 +5470,7 @@ const UNIVERSE_THEMES_MAP = {
     'Hokage': 'Pro Hero', 'Konoha': 'UA Academy', 'ramen': 'katsudon', 'kunai': 'gantelet',
     'shuriken': 'badge', 'shurikens': 'badges', 'Orochimaru': 'All For One',
     'jutsu': 'Alter', 'chakra': 'énergie', 'ninja': 'héros', 'Ramen': 'Katsudon', 'Kisame': 'Stain', 'Minato': 'Endeavor',
-    'Obito': 'Shigaraki', 'Hinata': 'Tsuyu', 'Iruka': 'Présent Mic', 'Akatsuki': 'League of Villains', 'Gato': 'Overhaul', 'Gaara': 'Mirio'
+    'Obito': 'Shigaraki', 'Hinata': 'Tsuyu', 'Iruka': 'Présent Mic', 'Akatsuki': 'League of Villains', 'Gato': 'Overhaul', 'Gaara': 'Mirio', 'Tsunade': 'Tsuyu', 'Jutsu': 'Alter', 'Kunai': 'Gantelet'
   },
   demonslayer: {
     'Naruto': 'Tanjiro', 'Sasuke': 'Inosuke', 'Sakura': 'Nezuko', 'Kakashi': 'Giyu',
@@ -5480,15 +5478,15 @@ const UNIVERSE_THEMES_MAP = {
     'Hokage': 'Pilier', 'Konoha': 'Mont Sagiri', 'ramen': 'soba', 'kunai': 'katana',
     'shuriken': 'lame Nichirin', 'shurikens': 'lames Nichirin', 'Orochimaru': 'Muzan',
     'jutsu': 'souffle', 'chakra': 'esprit', 'ninja': 'pourfendeur', 'Ramen': 'Soba', 'Kisame': 'Akaza', 'Minato': 'Yoriichi',
-    'Obito': 'Doma', 'Hinata': 'Kanao', 'Iruka': 'Sakonji', 'Akatsuki': 'Lune Supérieure', 'Gato': 'Enmu', 'Gaara': 'Rui'
+    'Obito': 'Doma', 'Hinata': 'Kanao', 'Iruka': 'Sakonji', 'Akatsuki': 'Lune Supérieure', 'Gato': 'Enmu', 'Gaara': 'Rui', 'Tsunade': 'Kanao', 'Jutsu': 'Souffle', 'Kunai': 'Katana'
   },
   pokemon: {
     'Naruto': 'Sacha', 'Sasuke': 'Régis', 'Sakura': 'Flora', 'Kakashi': 'Pierre',
     'Shikamaru': 'Aurore', 'Rock Lee': 'Ondine', 'Jiraiya': 'Prof. Chen',
     'Hokage': 'Maître Pokémon', 'Konoha': 'Bourg Palette', 'ramen': 'baie', 'kunai': 'Poké Ball',
-    'shuriken': 'Poké Ball', 'shurikens': 'Poké Balls', 'Orochimaru': 'Giovanni',
+    'shuriken': 'badge', 'shurikens': 'badges', 'Orochimaru': 'Giovanni',
     'jutsu': 'attaque', 'chakra': 'énergie', 'ninja': 'dresseur', 'Ramen': 'Pomme', 'Kisame': 'Léviator', 'Minato': 'Roucarnage',
-    'Obito': 'Mewtwo', 'Hinata': 'Lulu', 'Iruka': 'Pierre', 'Akatsuki': 'Team Rocket', 'Gato': 'Auguste', 'Gaara': 'Régis'
+    'Obito': 'Mewtwo', 'Hinata': 'Lulu', 'Iruka': 'Pierre', 'Akatsuki': 'Team Rocket', 'Gato': 'Auguste', 'Gaara': 'Régis', 'Tsunade': 'Lulu', 'Jutsu': 'Attaque', 'Kunai': 'Poké Ball'
   }
 };
 
@@ -5532,9 +5530,20 @@ function adaptQuestionToUniverse(q, universe) {
     // 1. Replace character names (sorted by length DESC pour éviter "Rock Lee" → "Lee" coupé)
     const keys = Object.keys(map).sort((a, b) => b.length - a.length);
     keys.forEach(k => {
-      // \b ne fonctionne pas avec accents, on fait du replace simple mais entouré de séparateurs si nécessaire
-      const re = new RegExp(k.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g');
-      s = s.replace(re, map[k]);
+      // Article/préposition juste avant le mot (balise HTML éventuelle entre les deux) :
+      // on refait l'élision et la contraction pour le mot de remplacement (de/d', du/de l', de le/du, à le/au)
+      const re = new RegExp("(?:(^|[^\\wÀ-ÿ])(de |De |du |Du |d'|D'|à |À ))?((?:<[^>]*>)?)" + k.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g');
+      s = s.replace(re, (m, b, pre, tag) => {
+        const v = map[k];
+        if (!pre) return (b || '') + tag + v;
+        const D = pre[0], voy = /^[aeiouéèêâîôûAEIOUÉÈÊÂÎÔÛ]/.test(v), le = v.indexOf('le ') === 0;
+        let p = pre, w = v;
+        if (D === 'à' || D === 'À') { if (le) { p = D === 'À' ? 'Au ' : 'au '; w = v.slice(3); } }
+        else if (pre[1] === 'u') { if (voy) p = D + "e l'"; }
+        else if (le) { p = D + 'u '; w = v.slice(3); }
+        else p = voy ? D + "'" : D + 'e ';
+        return b + p + tag + w;
+      });
     });
     // 2. Replace emojis dans le theme uniquement
     if (field === 'theme') {
@@ -6092,17 +6101,17 @@ const DRAW_MISSIONS = [
     instruction: "🥷 Trace l'axe de symétrie <strong>vertical</strong> du personnage ninja (droite verticale au centre)",
     guide: { type: 'vertical', x: 0.5 },
     tolerance: 0.07,
-    feedback_ok: "Parfait ! L'axe de symétrie vertical passe par le milieu. En symétrie axiale, chaque point est à égale distance de l'axe, de chaque côté.",
+    feedback_ok: "Parfait ! L'axe de symétrie vertical passe par le milieu. En symétrie axiale, un point et son symétrique sont à la même distance de l'axe, de part et d'autre.",
     feedback_bad: "Pas tout à fait... L'axe vertical doit passer exactement au centre horizontal du dessin. Réessaie !",
     xp: 80
   },
   {
     title: "Droite perpendiculaire",
-    instruction: "📐 Trace une droite <strong>horizontale</strong> (parallèle au sol, à n'importe quelle hauteur)",
+    instruction: "📐 Trace une droite <strong>horizontale</strong> (parallèle au sol) qui passe à mi-hauteur du dessin, sur la ligne pointillée",
     guide: { type: 'horizontal', y: 0.5 },
     tolerance: 0.08,
     feedback_ok: "Excellent ! Une droite horizontale est perpendiculaire à l'axe vertical. Deux droites perpendiculaires forment un angle de 90°.",
-    feedback_bad: "Ta droite n'est pas assez horizontale. Essaie de tracer de gauche à droite sans monter ni descendre.",
+    feedback_bad: "Ta droite doit être horizontale et passer à mi-hauteur du dessin. Trace de gauche à droite, sans monter ni descendre, sur la ligne pointillée.",
     xp: 70
   },
   {
@@ -6110,7 +6119,7 @@ const DRAW_MISSIONS = [
     instruction: "⚡ Trace la diagonale du carré de Sasuke — une droite à <strong>45°</strong> (d'un coin à l'autre)",
     guide: { type: 'diagonal45' },
     tolerance: 15,
-    feedback_ok: "Parfait ! La diagonale d'un carré forme un angle de 45° avec chaque côté. C'est aussi l'axe de symétrie du carré !",
+    feedback_ok: "Parfait ! La diagonale d'un carré forme un angle de 45° avec chaque côté. C'est aussi un des 4 axes de symétrie du carré !",
     feedback_bad: "L'angle n'est pas assez proche de 45°. Une diagonale à 45° monte autant qu'elle avance : si tu avances de 3 cm, tu montes de 3 cm.",
     xp: 90
   },
@@ -6134,7 +6143,7 @@ const DRAW_MISSIONS = [
   },
   {
     title: "Angle aigu — libre",
-    instruction: "🎯 Trace un <strong>angle aigu</strong> (moins de 90°) en cliquant le sommet, puis les deux côtés. Utilise l'outil 📐 Angle !",
+    instruction: "🎯 Trace un <strong>angle aigu</strong> (moins de 90°) en 3 clics : un point du premier côté, puis le sommet, puis un point du second côté. Utilise l'outil 📐 Angle !",
     guide: { type: 'angle_free', max: 89 },
     tolerance: 89,
     feedback_ok: "Excellent ! Un angle aigu mesure entre 0° et 90°. Contrairement à l'angle obtus (90°-180°) il est plus petit qu'un angle droit.",
@@ -6410,7 +6419,7 @@ function drawGuide(ctx, W, H, m) {
     ctx.font = `${Math.min(H * 0.28, 64)}px serif`;
     ctx.textAlign = 'center';
     ctx.fillText('🦋', W * 0.5, H * 0.42);
-    ctx.fillText('🦋', W * 0.5, H * 0.7);
+    ctx.save(); ctx.translate(0, H); ctx.scale(1, -1); ctx.fillText('🦋', W * 0.5, H * 0.42); ctx.restore();
   } else if (g.type === 'diagonal45') {
     ctx.strokeStyle = getThemeColor('--yellow') || '#FFD700';
     // Carré
@@ -6473,7 +6482,7 @@ function validateDraw() {
       const dx = Math.abs(lastLine.x2 - lastLine.x1);
       const dy = Math.abs(lastLine.y2 - lastLine.y1);
       const isVertical = dy > dx * 2;
-      const isCenter = Math.abs(midX - g.x) < g.tolerance * 2;
+      const isCenter = Math.abs(midX - g.x) < m.tolerance * 2;
       if (isVertical && isCenter) score = 100;
       else if (isVertical) score = 60;
       else score = 20;
@@ -6514,7 +6523,7 @@ function validateDraw() {
     }
   } else if (g.type === 'angle_free') {
     // Vérifie qu'un angle a été tracé et mesure < 90
-    const angleLine = drawState.lines.find(l => l.type === 'angle');
+    const angleLine = [...drawState.lines].reverse().find(l => l.type === 'angle');
     if (angleLine && angleLine.pts) {
       const p = angleLine.pts;
       const a1 = Math.atan2(p[0].y - p[1].y, p[0].x - p[1].x);
@@ -6588,9 +6597,9 @@ const PUZZLES = [
     type: "match",
     pairs: [
       { piece: "Carré",           slot: "4 côtés égaux + 4 angles droits", explanation: "Le carré a 4 côtés égaux ET 4 angles droits de 90°." },
-      { piece: "Rectangle",       slot: "2 paires de côtés parallèles",    explanation: "Le rectangle a 2 paires de côtés égaux et 4 angles droits." },
-      { piece: "Triangle isocèle",slot: "2 côtés égaux",                   explanation: "Le triangle isocèle a exactement 2 côtés égaux et 2 angles égaux." },
-      { piece: "Losange",         slot: "4 côtés égaux, diagonales ⊥",     explanation: "Le losange a 4 côtés égaux mais ses angles ne sont pas forcément droits." },
+      { piece: "Rectangle",       slot: "4 angles droits, côtés pas tous égaux", explanation: "Le rectangle a 4 angles droits ; ses côtés opposés sont parallèles et de même longueur." },
+      { piece: "Triangle isocèle",slot: "3 côtés, dont 2 égaux",           explanation: "Le triangle isocèle a (au moins) 2 côtés égaux et 2 angles égaux." },
+      { piece: "Losange",         slot: "4 côtés égaux, sans angle droit", explanation: "Le losange a 4 côtés égaux et des diagonales perpendiculaires ; s'il avait un angle droit, ce serait un carré." },
     ],
     xp: 130
   },
@@ -6598,8 +6607,8 @@ const PUZZLES = [
     title: "Nombres relatifs : classement",
     instruction: "❄️ Place ces températures de la plus froide à la plus chaude (de gauche à droite) !",
     type: "sort",
-    items: ["-12°C", "-3°C", "0°C", "+5°C", "+18°C"],
-    correctOrder: ["-12°C", "-3°C", "0°C", "+5°C", "+18°C"],
+    items: ["−12°C", "−3°C", "0°C", "+5°C", "+18°C"],
+    correctOrder: ["−12°C", "−3°C", "0°C", "+5°C", "+18°C"],
     explanation: "Sur la droite numérique, plus on va à gauche, plus c'est froid. −12 < −3 < 0 < +5 < +18.",
     xp: 100
   },
@@ -6620,8 +6629,8 @@ const PUZZLES = [
     instruction: "🧮 Ces calculs ont été mélangés ! Glisse chaque étape dans le bon ordre pour résoudre 3 + 4 × (2 + 1).",
     type: "sort",
     items: ["Résultat : 15", "3 + 4 × 3", "2 + 1 = 3", "3 + 12 = 15", "4 × 3 = 12"],
-    correctOrder: ["2 + 1 = 3", "4 × 3 = 12", "3 + 4 × 3", "3 + 12 = 15", "Résultat : 15"],
-    explanation: "Règle : parenthèses d'abord → 2+1=3. Puis multiplication → 4×3=12. Enfin addition → 3+12=15.",
+    correctOrder: ["2 + 1 = 3", "3 + 4 × 3", "4 × 3 = 12", "3 + 12 = 15", "Résultat : 15"],
+    explanation: "Règle : parenthèses d'abord → 2 + 1 = 3, le calcul devient 3 + 4 × 3. Puis multiplication → 4 × 3 = 12. Enfin addition → 3 + 12 = 15.",
     xp: 110
   },
   {
@@ -6720,6 +6729,7 @@ function renderPuzzle(p) {
       slot.id = 'slot-' + i;
       slot.dataset.correct = pair.piece;
       slot.dataset.explanation = pair.explanation;
+      slot.dataset.label = pair.slot;
       slot.innerHTML = `<span class="slot-label">${pair.slot}</span>`;
       setupSlotDrop(slot);
       grid.appendChild(slot);
@@ -6841,7 +6851,7 @@ function dropOnSlot(piece, slot) {
   slot.dataset.filled = '1';
   slot.innerHTML = `<span class="placed-piece">${piece.innerHTML}</span>`;
   slot.classList.add(isCorrect ? 'correct' : 'wrong');
-  if (!isCorrect) setTimeout(() => { slot.classList.remove('wrong'); slot.removeAttribute('data-filled'); slot.innerHTML = `<span class="slot-label">${slot.dataset.correct || ''}</span>`; }, 900);
+  if (!isCorrect) setTimeout(() => { slot.classList.remove('wrong'); slot.removeAttribute('data-filled'); slot.innerHTML = `<span class="slot-label">${slot.dataset.label || ''}</span>`; }, 900);
   else piece.classList.add('placed');
 
   if (!isCorrect) {
@@ -7057,8 +7067,8 @@ const AUTO_GENERATORS = {
   },
   '6e_perim_rect': () => {
     const L = Math.floor(Math.random()*15+3);
-    const l = Math.floor(Math.random()*L);
-    return { q: `Périmètre rectangle ${L} × ${l} cm`, a: String(2*(L+l)), theme: 'Périmètres', unit: 'cm' };
+    const l = Math.floor(Math.random()*(L-1)) + 1;
+    return { q: `Périmètre d'un rectangle de ${L} cm sur ${l} cm (en cm) ?`, a: String(2*(L+l)), theme: 'Périmètres', unit: 'cm' };
   },
   '6e_complement_100': () => {
     const n = Math.floor(Math.random()*89+10);
@@ -7084,7 +7094,7 @@ const AUTO_GENERATORS = {
   '5e_powers': () => {
     const base = Math.floor(Math.random()*4+2);
     const exp = Math.floor(Math.random()*3+2);
-    return { q: `${base}^${exp}`, a: String(Math.pow(base,exp)), theme: 'Puissances' };
+    return { q: `${base}${({2:'²',3:'³',4:'⁴'})[exp]}`, a: String(Math.pow(base,exp)), theme: 'Puissances' };
   },
   '5e_priorities': () => {
     const a = Math.floor(Math.random()*8+2);
@@ -7102,7 +7112,7 @@ const AUTO_GENERATORS = {
     const a = Math.floor(Math.random()*8+2);
     const x = Math.floor(Math.random()*9-4);
     const b = Math.floor(Math.random()*8+2);
-    return { q: `Si x = ${signedFr(x)}, ${a}x + ${b} = ?`, a: String(a*x+b), theme: 'Calcul littéral' };
+    return { q: `Si x = ${signedFr(x)}, ${a}x + ${b} = ?`, a: String(a*x+b).replace('-', '−'), theme: 'Calcul littéral' };
   },
   '5e_frac_mult': () => {
     const a = Math.floor(Math.random()*4+1);
@@ -7116,7 +7126,7 @@ const AUTO_GENERATORS = {
     const pcts = [5, 15, 20, 30];
     const p = pcts[Math.floor(Math.random()*4)];
     const n = (Math.floor(Math.random()*15+5)) * 10;
-    return { q: `${p}% de ${n}`, a: String(Math.round(n*p/100*100)/100), theme: 'Pourcentages' };
+    return { q: `${p}% de ${n}`, a: frFr(Math.round(n*p/100*100)/100), theme: 'Pourcentages' };
   },
   '5e_propor': () => {
     // produit en croix simple
@@ -7147,13 +7157,13 @@ const AUTO_GENERATORS = {
     const m = Math.floor(Math.random()*9 + 1);
     const dec = Math.floor(Math.random()*900 + 100);
     const exp = Math.floor(Math.random()*5 + 3);
-    const num = m + dec/1000;
+    const num = (m*1000 + dec) / 1000;
     // num × 10^exp, ex: 3.456 × 10^5 = 345600
     const big = num * Math.pow(10, exp);
     // Affichage du grand nombre avec espaces
-    const bigStr = Math.round(big).toString();
-    return { q: `${bigStr} en notation scientifique (a × 10^n)`, a: `${frFr(num)} × 10^${exp}`,
-             accept: [`${frFr(num)}×10^${exp}`, `${frFr(num)} x 10^${exp}`, `${frFr(num)}x10^${exp}`],
+    const bigStr = Math.round(big).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    return { q: `Écris ${bigStr} en notation scientifique (a × 10ⁿ) :`, a: `${frFr(num)} × 10^${exp}`,
+             accept: [`${frFr(num)}×10^${exp}`, `${frFr(num)} x 10^${exp}`, `${frFr(num)}x10^${exp}`, `${frFr(num)}*10^${exp}`],
              theme: 'Notation scientifique' };
   },
   '4e_powers_mult': () => {
@@ -7171,24 +7181,24 @@ const AUTO_GENERATORS = {
   '4e_developpe': () => {
     const a = Math.floor(Math.random()*7+2);
     const b = Math.floor(Math.random()*9+2);
-    const c = Math.floor(Math.random()*9-4);
+    const c = [-4,-3,-2,-1,1,2,3,4][Math.floor(Math.random()*8)];
     // a(bx + c) = ab·x + ac
     const ab = a*b, ac = a*c;
     const sign = ac >= 0 ? '+' : '−';
     return { q: `Développe : ${a}(${b}x ${c >= 0 ? '+' : '−'} ${Math.abs(c)})`,
              a: `${ab}x${sign}${Math.abs(ac)}`,
-             accept: [`${ab}x ${sign} ${Math.abs(ac)}`, `${ab}x${ac>=0?'+':''}${ac}`, `${ab}*x${sign}${Math.abs(ac)}`],
+             accept: [`${ab}x ${sign} ${Math.abs(ac)}`, `${ab}x${ac>=0?'+':''}${ac}`, `${ab}*x${sign}${Math.abs(ac)}`, `${ac > 0 ? ac : '−' + Math.abs(ac)}+${ab}x`],
              theme: 'Développement' };
   },
   '4e_eq_membres': () => {
     // ax + b = cx + d, isole x = (d-b)/(a-c)
     let a = Math.floor(Math.random()*5+2);
-    let c = Math.floor(Math.random()*5);
-    while (a === c) c = Math.floor(Math.random()*5);
+    let c = Math.floor(Math.random()*4+1);
+    while (a === c) c = Math.floor(Math.random()*4+1);
     const x = Math.floor(Math.random()*9-4);
     const b = Math.floor(Math.random()*9-4);
     const d = (a-c)*x + b;
-    return { q: `Résous : ${a}x ${b>=0?'+':'−'} ${Math.abs(b)} = ${c}x ${d>=0?'+':'−'} ${Math.abs(d)}`,
+    return { q: `Résous : ${affineFr(a, b)} = ${affineFr(c, d)}`,
              a: signedFr(x), accept: [String(x)], theme: 'Équations' };
   },
   '4e_mediane': () => {
@@ -7209,7 +7219,7 @@ const AUTO_GENERATORS = {
     const AC = AB * k;
     const AN = AM * k;
     // On affiche 3 valeurs et demande la 4e (AN)
-    return { q: `Thalès : AM=${AM}, AB=${AB}, AC=${AC}, AN=?`, a: String(AN), theme: 'Thalès' };
+    return { q: `Thalès : M sur [AB], N sur [AC], (MN) // (BC). AM=${AM}, AB=${AB}, AC=${AC}, AN=?`, a: String(AN), theme: 'Thalès' };
   },
   '3e_pythagore_pyth': () => {
     // Rappel Pythagore en 3e (souvent revu dans contexte trigo)
@@ -7232,15 +7242,16 @@ const AUTO_GENERATORS = {
     const ang = [30, 45, 60][Math.floor(Math.random()*3)];
     const cosVal = { 30: 0.866, 45: 0.707, 60: 0.5 }[ang];
     const adj = Math.round(h * cosVal * 10) / 10;
-    return { q: `Triangle rectangle : hypoténuse=${h}, angle=${ang}°. Côté adjacent ?`,
+    return { q: `Triangle rectangle : hypoténuse=${h}, angle=${ang}°. Côté adjacent (arrondi au dixième) ?`,
              a: frFr(adj), theme: 'Trigonométrie' };
   },
   '3e_image_affine': () => {
-    const a = Math.floor(Math.random()*8-3);
+    let a = 0;
+    while (a === 0) a = Math.floor(Math.random()*8-3);
     const b = Math.floor(Math.random()*10-5);
     const x = Math.floor(Math.random()*10-5);
     const ans = a * x + b;
-    return { q: `f(x) = ${a}x ${b>=0?'+ ':'− '}${Math.abs(b)}, f(${signedFr(x)}) = ?`,
+    return { q: `f(x) = ${affineFr(a, b)}, f(${signedFr(x)}) = ?`,
              a: signedFr(ans), accept: [String(ans)], theme: 'Fonctions' };
   },
   '3e_antecedent': () => {
@@ -7248,7 +7259,7 @@ const AUTO_GENERATORS = {
     const b = Math.floor(Math.random()*10-5);
     const x = Math.floor(Math.random()*7-3);
     const y = a * x + b;
-    return { q: `f(x) = ${a}x ${b>=0?'+ ':'− '}${Math.abs(b)}. Antécédent de ${signedFr(y)} ?`,
+    return { q: `f(x) = ${affineFr(a, b)}. Antécédent de ${signedFr(y)} ?`,
              a: signedFr(x), accept: [String(x)], theme: 'Fonctions' };
   },
   '3e_developpe_carre': () => {
@@ -7266,7 +7277,7 @@ const AUTO_GENERATORS = {
     const a = Math.floor(Math.random()*9+2);
     return { q: `Factorise : x² − ${a*a}`,
              a: `(x−${a})(x+${a})`,
-             accept: [`(x-${a})(x+${a})`, `(x+${a})(x−${a})`, `(x+${a})(x-${a})`],
+             accept: [`(x-${a})(x+${a})`, `(x+${a})(x−${a})`, `(x+${a})(x-${a})`, `(x-${a})×(x+${a})`, `(x+${a})×(x-${a})`, `(x-${a})*(x+${a})`, `(x+${a})*(x-${a})`],
              theme: 'Factorisation' };
   },
   '3e_pgcd': () => {
@@ -7299,6 +7310,12 @@ function frFr(n) {
 function signedFr(n) {
   if (n === 0) return '0';
   return n < 0 ? `−${Math.abs(n)}` : `+${n}`;
+}
+function affineFr(k, m) {
+  // Écrit kx + m à la française : ni « 0x », ni « 1x », ni « + 0 », signe moins Unicode
+  if (k === 0) return m < 0 ? `−${-m}` : String(m);
+  const kx = (k === 1 ? '' : k === -1 ? '−' : k < 0 ? `−${-k}` : String(k)) + 'x';
+  return m === 0 ? kx : `${kx} ${m > 0 ? '+' : '−'} ${Math.abs(m)}`;
 }
 function pgcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a || 1; }
 function simpFrac(n, d) {
@@ -7371,18 +7388,18 @@ function _genDistractors(ansStr) {
   const fm = ansStr.match(/^(−?-?\d+)\/(\d+)$/);
   if (fm) {
     const n = parseInt(fm[1].replace('−', '-'), 10), d = parseInt(fm[2], 10);
-    const set = new Set();
-    [[n+1, d], [n-1, d], [n, d+1], [n, d-1], [d, n], [n+1, d+1]].forEach(([nn, dd]) => {
-      if (dd > 0 && nn !== 0 && !(nn === n && dd === d)) set.add(nn + '/' + dd);
+    const set = new Set(), seen = new Set([simpFrac(n, d)]);
+    [[n+1, d], [n-1, d], [n, d+1], [n, d-1], [n+1, d+1], [n-1, d+1], [n, d+2], [d, n]].forEach(([nn, dd]) => {
+      if (dd > 0 && nn !== 0 && !seen.has(simpFrac(nn, dd))) { seen.add(simpFrac(nn, dd)); set.add(nn + '/' + dd); }
     });
     set.delete(ansStr);
-    return Array.from(set).slice(0, 6);
+    return Array.from(set).slice(0, 8);
   }
   // Puissance de 10 : 10^n
   const pm = ansStr.match(/^10\^(−?-?\d+)$/);
   if (pm) {
     const e = parseInt(pm[1].replace('−', '-'), 10);
-    return [e+1, e-1, e+2, e-2].filter(x => x !== e).map(x => '10^' + x);
+    return [e+1, e-1, e+2, e-2, e+3, e-3].filter(x => x !== e).map(x => '10^' + String(x).replace('-', '−'));
   }
   // Numérique (signé +/−, virgule décimale)
   const norm = ansStr.replace('−', '-').replace('+', '').replace(',', '.').replace(/\s/g, '');
@@ -7416,19 +7433,33 @@ function genToQcm(g) {
   if (/[a-z×()]/i.test(ansStr) && !/^10\^/.test(ansStr)) return null;
   const distractors = _genDistractors(ansStr);
   if (!distractors || distractors.length < 3) return null;
-  const opts = [ansStr, distractors[0], distractors[1], distractors[2]];
+  // Rang aléatoire de la bonne réponse parmi les 4 valeurs (sinon elle est
+  // toujours la 2e plus petite : n−1 < n < n+1 < n+2).
+  const val = (s) => {
+    const m = s.match(/^10\^(−?-?\d+)$/);
+    if (m) return parseInt(m[1].replace('−', '-'), 10);
+    const f = s.replace('−', '-').replace('+', '').replace(',', '.').split('/');
+    return f.length === 2 ? f[0] / f[1] : parseFloat(f[0]);
+  };
+  const v0 = val(ansStr);
+  const below = distractors.filter(x => val(x) < v0), above = distractors.filter(x => val(x) > v0);
+  if (below.length + above.length < 3) return null;
+  let k = Math.floor(Math.random() * 4);
+  k = Math.max(3 - above.length, Math.min(k, below.length));
+  const opts = [ansStr, ...below.slice(0, k), ...above.slice(0, 3 - k)];
   for (let i = opts.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [opts[i], opts[j]] = [opts[j], opts[i]];
   }
-  const unit = g.unit ? (' ' + g.unit) : '';
+  const unit = g.unit ? ((g.unit === '°' ? '' : ' ') + g.unit) : '';
+  const sup = (s) => String(s).replace(/\^(−?\d+)/g, '<sup>$1</sup>');
   return {
     type: g.theme || 'Calcul',
     theme: '⚡ ' + (g.theme || 'Calcul rapide'),
-    text: `Calcule : <span class='math'>${g.q}</span>`,
-    answers: opts.map(o => o + unit),
+    text: /[?:]/.test(g.q) ? `<span class='math'>${sup(g.q)}</span>` : `Calcule : <span class='math'>${sup(g.q)}</span>`,
+    answers: opts.map(o => sup(o) + unit),
     correct: opts.indexOf(ansStr),
-    feedback: `La bonne réponse est <strong>${ansStr}${unit}</strong>. Question générée pour t'entraîner — relance pour de nouvelles valeurs !`,
+    feedback: `La bonne réponse est <strong>${sup(ansStr)}${unit}</strong>. Question générée pour t'entraîner — relance pour de nouvelles valeurs !`,
     _generated: true
   };
 }
@@ -7529,7 +7560,7 @@ function loadAutoQuestion() {
   document.getElementById('auto-title').textContent = `Question ${autoState.qIdx + 1} / 20`;
   document.getElementById('auto-q-type').textContent = q.theme;
   document.getElementById('auto-q-num').textContent = `${autoState.qIdx + 1} / 20`;
-  document.getElementById('auto-question').textContent = q.q + (q.unit ? '' : ' = ?');
+  document.getElementById('auto-question').textContent = q.q + (q.unit || /[?:]/.test(q.q) ? '' : ' = ?');
   document.getElementById('auto-input').value = '';
   document.getElementById('auto-input').disabled = false;
   document.getElementById('auto-feedback').style.display = 'none';
@@ -7554,6 +7585,7 @@ function normalizeAnswer(s) {
   if (s == null) return '';
   let r = String(s).trim()
     .replace(/\s+/g, '')
+    .replace(/X/g, 'x')
     .replace(/,/g, '.')
     .replace(/[−–—]/g, '-')
     .replace(/\u00A0/g, '');
@@ -7574,18 +7606,21 @@ function submitAutoAnswer(timedOut) {
   const q = autoState.questions[autoState.qIdx];
   const input = document.getElementById('auto-input');
   const userRaw = input.value;
-  const user = normalizeAnswer(userRaw);
+  let user = normalizeAnswer(userRaw);
+  if (q.unit) { const u = normalizeAnswer(q.unit); if (user.endsWith(u) && user.length > u.length) user = normalizeAnswer(user.slice(0, -u.length)); }
   const correct = normalizeAnswer(q.a);
   // Liste des réponses acceptées (équivalences)
   const accepted = [correct];
   if (q.accept) q.accept.forEach(x => accepted.push(normalizeAnswer(x)));
   // Si format est un nombre, accepter 0.5 et 0,5 et /1
-  if (!isNaN(parseFloat(correct))) {
+  if (/^-?\d+(\.\d+)?$/.test(correct)) {
     const num = parseFloat(correct);
-    accepted.push(String(num), String(Math.round(num*100)/100));
+    accepted.push(String(num));
   }
-
-  const ok = !timedOut && user !== '' && accepted.includes(user);
+  // Réponse fractionnaire : toute écriture de même valeur est acceptée (2/16 ou 0,125 pour 1/8)
+  const _v = s => { const m = s.match(/^(-?\d+(?:\.\d+)?)(?:\/(\d+))?$/); return m && (!m[2] || +m[2] !== 0) ? (m[2] ? m[1] / m[2] : +m[1]) : NaN; };
+  const isFrac = accepted.some(x => x.includes('/'));
+  const ok = !timedOut && user !== '' && (accepted.includes(user) || (isFrac && Math.abs(_v(user) - _v(correct)) < 1e-12));
   input.disabled = true;
 
   // Tracking par thème
@@ -7615,15 +7650,16 @@ function submitAutoAnswer(timedOut) {
   // Feedback minimal et rapide
   const fb = document.getElementById('auto-feedback');
   fb.style.display = 'block';
+  const shownA = q.a + (q.unit ? (q.unit === '°' ? '°' : ' ' + q.unit) : '');
   if (ok) {
     fb.innerHTML = `<span style="color:var(--green);font-weight:800">✅ Correct ! +${50 + Math.floor(autoState.qTimeLeft * 2)} pts</span>`;
     announceToScreenReader(`Correct. Question suivante.`);
   } else if (timedOut) {
-    fb.innerHTML = `<span style="color:var(--red);font-weight:800">⏰ Temps écoulé !</span> Réponse : <strong style="color:var(--yellow)">${q.a}</strong>`;
-    announceToScreenReader(`Temps écoulé. La bonne réponse était ${q.a}.`);
+    fb.innerHTML = `<span style="color:var(--red);font-weight:800">⏰ Temps écoulé !</span> Réponse : <strong style="color:var(--yellow)">${shownA}</strong>`;
+    announceToScreenReader(`Temps écoulé. La bonne réponse était ${shownA}.`);
   } else {
-    fb.innerHTML = `<span style="color:var(--red);font-weight:800">❌ Incorrect.</span> Réponse : <strong style="color:var(--yellow)">${q.a}</strong>`;
-    announceToScreenReader(`Faux. La bonne réponse était ${q.a}.`);
+    fb.innerHTML = `<span style="color:var(--red);font-weight:800">❌ Incorrect.</span> Réponse : <strong style="color:var(--yellow)">${shownA}</strong>`;
+    announceToScreenReader(`Faux. La bonne réponse était ${shownA}.`);
   }
 
   // Passe automatiquement à la suivante après un délai suffisant
@@ -8258,12 +8294,12 @@ addXP = function(amount) {
 const TRUEFALSE_STATEMENTS = [
   // 6e — Décimaux, fractions, calcul
   { text: "5 + 3 = 8", isTrue: true, explain: "Évidemment : 5 + 3 = 8." },
-  { text: "0,3 > 0,29", isTrue: true, explain: "0,3 = 0,30 et 0,30 > 0,29. Astuce : ajouter des zéros à droite ne change rien." },
+  { text: "0,3 > 0,29", isTrue: true, explain: "0,3 = 0,30 et 0,30 > 0,29. Astuce : ajouter des zéros à droite de la partie décimale ne change pas le nombre." },
   { text: "1/2 = 0,2", isTrue: false, explain: "Faux ! 1/2 = 0,5. 0,2 = 1/5 ou 2/10." },
   { text: "3/4 + 1/4 = 1", isTrue: true, explain: "Même dénominateur : on additionne les numérateurs : 3+1=4, 4/4=1." },
-  { text: "2/5 = 4/10", isTrue: true, explain: "On multiplie haut et bas par 2 : 2×2/5×2 = 4/10. Fractions équivalentes." },
+  { text: "2/5 = 4/10", isTrue: true, explain: "On multiplie haut et bas par 2 : (2×2)/(5×2) = 4/10. Fractions équivalentes." },
   { text: "Le périmètre d'un carré de côté 5 cm est 20 cm", isTrue: true, explain: "P = 4 × côté = 4 × 5 = 20 cm." },
-  { text: "L'aire d'un rectangle 4×6 est 10 cm²", isTrue: false, explain: "Faux : aire = longueur × largeur = 4 × 6 = 24 cm². 4+6=10 c'est le demi-périmètre." },
+  { text: "L'aire d'un rectangle de 4 cm sur 6 cm est 10 cm²", isTrue: false, explain: "Faux : aire = longueur × largeur = 4 × 6 = 24 cm². 4+6=10 c'est le demi-périmètre." },
   { text: "Un cube de côté 2 cm a un volume de 8 cm³", isTrue: true, explain: "V = côté³ = 2 × 2 × 2 = 8 cm³." },
   { text: "180° est un angle plat", isTrue: true, explain: "180° = demi-tour = angle plat. 90° = droit, 360° = tour complet." },
   { text: "Un triangle équilatéral a 3 axes de symétrie", isTrue: true, explain: "Oui : un axe par sommet, passant par le milieu du côté opposé." },
@@ -8273,9 +8309,9 @@ const TRUEFALSE_STATEMENTS = [
   { text: "47 est un nombre premier", isTrue: true, explain: "47 n'est divisible que par 1 et lui-même. C'est un nombre premier." },
   { text: "12 est un multiple de 5", isTrue: false, explain: "Faux : 12 = 2 × 6 = 3 × 4. Les multiples de 5 finissent par 0 ou 5." },
   // 5e — relatifs, fractions, équations
-  { text: "(−3) + (−5) = −8", isTrue: true, explain: "Même signe : on additionne et on garde le signe. −3 + −5 = −8." },
+  { text: "(−3) + (−5) = −8", isTrue: true, explain: "Même signe : on additionne les distances à zéro et on garde le signe. (−3) + (−5) = −8." },
   { text: "(−4) × (−2) = −8", isTrue: false, explain: "Faux : moins par moins = plus. (−4) × (−2) = +8." },
-  { text: "1/2 × 1/2 = 1/4", isTrue: true, explain: "Numérateurs × numérateurs, dénominateurs × dénominateurs : 1×1/2×2 = 1/4." },
+  { text: "1/2 × 1/2 = 1/4", isTrue: true, explain: "Numérateurs × numérateurs, dénominateurs × dénominateurs : (1×1)/(2×2) = 1/4." },
   { text: "1/2 + 1/3 = 2/5", isTrue: false, explain: "Piège ! On NE peut PAS additionner numérateur et dénominateur séparément. 1/2 + 1/3 = 3/6 + 2/6 = 5/6." },
   { text: "2³ = 6", isTrue: false, explain: "Faux : 2³ = 2 × 2 × 2 = 8. C'est 2 × 3 qui vaut 6." },
   { text: "10⁵ = 100 000", isTrue: true, explain: "10ⁿ = 1 suivi de n zéros. 10⁵ = 100 000." },
@@ -8285,7 +8321,7 @@ const TRUEFALSE_STATEMENTS = [
   { text: "La somme des angles d'un triangle est 180°", isTrue: true, explain: "Toujours, pour tout triangle. Propriété fondamentale." },
   { text: "50% de 60 vaut 30", isTrue: true, explain: "50% = la moitié. Moitié de 60 = 30." },
   { text: "10% de 200 vaut 25", isTrue: false, explain: "Faux : 10% de 200 = 0,1 × 200 = 20 (et non 25)." },
-  { text: "Une vitesse de 60 km/h, c'est 1 km par minute", isTrue: true, explain: "60 km/h ÷ 60 min = 1 km/min. Conversion utile." },
+  { text: "Une vitesse de 60 km/h, c'est 1 km par minute", isTrue: true, explain: "60 km/h, c'est 60 km parcourus en 60 min, soit 60 ÷ 60 = 1 km par minute. Conversion utile." },
   { text: "Si on lance un dé à 6 faces, P(obtenir 7) = 0", isTrue: true, explain: "Aucune face ne porte le chiffre 7 : événement impossible, probabilité = 0." },
   { text: "Un carré est un rectangle", isTrue: true, explain: "Oui ! Un carré est un cas particulier de rectangle (avec L = ℓ). Vocabulaire géométrique de 6e." },
   // 4e — Pythagore, scientifique, calcul littéral, équations, stats
@@ -8302,11 +8338,11 @@ const TRUEFALSE_STATEMENTS = [
   // 3e — Thalès, trigo, fonctions, factorisation, probas
   { text: "Thalès s'applique seulement aux triangles rectangles", isTrue: false, explain: "Faux ! Thalès s'applique à TOUS les triangles (avec parallèles découpant les côtés). Pythagore, lui, est réservé aux triangles rectangles." },
   { text: "cos(60°) = 0,5", isTrue: true, explain: "Vrai. Angles remarquables : cos(60°)=0,5, sin(60°)=√3/2≈0,866, tan(60°)=√3≈1,732." },
-  { text: "Dans un triangle rectangle, sin² + cos² = 1", isTrue: true, explain: "Vrai. Relation fondamentale de la trigonométrie qui découle de Pythagore." },
+  { text: "Dans un triangle rectangle, pour un angle aigu x : (sin x)² + (cos x)² = 1", isTrue: true, explain: "Vrai. Relation fondamentale de la trigonométrie : pour un angle aigu x, (cos x)² + (sin x)² = 1. Elle découle de Pythagore." },
   { text: "Une fonction affine f(x) = 3x + 5 a pour ordonnée à l'origine 3", isTrue: false, explain: "Faux ! L'ordonnée à l'origine est b = 5 (f(0) = 5). Le coefficient directeur est a = 3." },
   { text: "Une fonction linéaire passe forcément par l'origine", isTrue: true, explain: "Vrai. Linéaire : f(x) = ax, donc f(0) = 0. Toute droite linéaire passe par l'origine (0;0). L'affine ax+b ne passe par O que si b=0." },
   { text: "(a + b)² = a² + b²", isTrue: false, explain: "FAUX, le piège classique ! (a + b)² = a² + 2ab + b² (n'oublie pas le double produit 2ab). À distinguer de Pythagore qui parle de longueurs au carré." },
-  { text: "a² − b² = (a − b)(a + b)", isTrue: true, explain: "Vrai. Identité remarquable très utile pour factoriser et faire des calculs astucieux (102 × 98 = (100+2)(100-2) = 9996)." },
+  { text: "a² − b² = (a − b)(a + b)", isTrue: true, explain: "Vrai. Identité remarquable très utile pour factoriser et faire des calculs astucieux : 102 × 98 = (100 + 2)(100 − 2) = 100² − 2² = 10 000 − 4 = 9 996." },
   { text: "Si (x − 3)(x + 5) = 0, alors x = 3 ou x = −5", isTrue: true, explain: "Vrai. Règle du produit nul : un produit est nul si ET SEULEMENT SI l'un de ses facteurs est nul. Donc x − 3 = 0 OU x + 5 = 0." },
   { text: "Quand on tire 2 boules sans remise, les tirages sont indépendants", isTrue: false, explain: "Faux ! SANS remise, la 2e probabilité change car la composition de l'urne a changé. Les tirages sont DÉPENDANTS." },
   { text: "PGCD(15, 20) = 5", isTrue: true, explain: "Vrai. Diviseurs communs : 1 et 5. Le plus grand = 5. Vérif via Euclide : 20 = 15×1 + 5 ; 15 = 5×3 + 0." }
@@ -8689,7 +8725,7 @@ const STORY_MISSIONS = [
         narrative: "<em>Iruka</em> se place à 12 m de la base de la tour. Il observe le sommet sous un certain angle. Il mesure une distance directe (sol → sommet) de 15 m.",
         question: "Quelle est la hauteur de la tour ?",
         type: "Pythagore",
-        answers: ["9 m", "27 m", "3 m", "√81 m"],
+        answers: ["9 m", "27 m", "3 m", "81 m"],
         correct: 0,
         feedback: "Triangle rectangle : hauteur² + 12² = 15². Donc h² = 225 − 144 = 81. h = √81 = <strong>9 m</strong>."
       },
@@ -8705,7 +8741,7 @@ const STORY_MISSIONS = [
         narrative: "Il consigne ses mesures et écrit : « La tour fait 9 × 10⁰ m. »",
         question: "Comment s'écrit 9 × 10⁰ ?",
         type: "Puissances",
-        answers: ["9", "90", "9,0", "0"],
+        answers: ["9", "90", "0,9", "0"],
         correct: 0,
         feedback: "Convention : <strong>10⁰ = 1</strong> (pour tout nombre non nul, exposant 0 → 1). Donc 9 × 10⁰ = 9 × 1 = <strong>9</strong>."
       },
@@ -8715,7 +8751,7 @@ const STORY_MISSIONS = [
         type: "Notation scientifique",
         answers: ["9 × 10³ mm", "9 × 10² mm", "9 × 10⁶ mm", "0,9 × 10⁴ mm"],
         correct: 0,
-        feedback: "1 m = 1000 mm = 10³ mm. Donc 9 m = 9 × 10³ mm = <strong>9000 mm</strong>. Notation scientifique : un chiffre avant la virgule."
+        feedback: "1 m = 1000 mm = 10³ mm. Donc 9 m = 9 × 10³ mm = <strong>9000 mm</strong>. Notation scientifique : a × 10ⁿ avec 1 ≤ a < 10 (un seul chiffre non nul avant la virgule). Attention : 0,9 × 10⁴ vaut bien 9000 mm, mais ce n'est pas une notation scientifique car 0,9 < 1."
       }
     ]
   },
@@ -8765,11 +8801,11 @@ const STORY_MISSIONS = [
     steps: [
       {
         narrative: "Au pied de la montagne, <em>Tanjiro</em> voit son sommet sous un angle de 30°. Il est à 200 m horizontalement du pied.",
-        question: "Quelle est la hauteur de la montagne (tan(30°) ≈ 0,577) ?",
+        question: "Quelle est la hauteur de la montagne (tan(30°) ≈ 0,5774) ?",
         type: "Trigonométrie",
         answers: ["≈ 115,5 m", "≈ 346 m", "≈ 100 m", "≈ 60 m"],
         correct: 0,
-        feedback: "tan(30°) = hauteur / 200. Donc hauteur = 200 × tan(30°) ≈ 200 × 0,577 = <strong>115,5 m</strong>. La tangente relie l'opposé (hauteur) et l'adjacent (distance horizontale)."
+        feedback: "tan(30°) = hauteur / 200. Donc hauteur = 200 × tan(30°) ≈ 200 × 0,5774 ≈ <strong>115,5 m</strong>. La tangente relie l'opposé (hauteur) et l'adjacent (distance horizontale)."
       },
       {
         narrative: "Il marche en diagonale vers le sommet. Sa trajectoire forme un triangle rectangle.",
@@ -8777,15 +8813,15 @@ const STORY_MISSIONS = [
         type: "Pythagore",
         answers: ["≈ 230,9 m", "≈ 315,5 m", "≈ 84,5 m", "Pas calculable"],
         correct: 0,
-        feedback: "Distance² = 200² + 115,5² = 40 000 + 13 340 ≈ 53 340. Distance = √53 340 ≈ <strong>230,9 m</strong>. C'est l'hypoténuse du triangle rectangle."
+        feedback: "Distance² = 200² + 115,47² ≈ 40 000 + 13 333 ≈ 53 333 (on garde la hauteur non arrondie, 115,47 m). Distance ≈ √53 333 ≈ <strong>230,9 m</strong>. C'est l'hypoténuse du triangle rectangle."
       },
       {
-        narrative: "À mi-chemin, <em>Tanjiro</em> rencontre un pont délabré formant un triangle parallèle à la pente principale.",
-        question: "Si la grande pente fait 230 m et la mini-pente du pont 50 m, le pont est à quel rapport ?",
+        narrative: "À mi-chemin, <em>Tanjiro</em> rencontre un pont délabré qui découpe avec la pente un petit triangle, réduction du grand triangle (configuration de Thalès).",
+        question: "Si la grande pente fait 230 m et la mini-pente du pont 50 m, quel est le coefficient de réduction du petit triangle par rapport au grand ?",
         type: "Thalès",
         answers: ["50/230 ≈ 0,217", "230/50 = 4,6", "Pas de rapport", "1/2"],
         correct: 0,
-        feedback: "Avec Thalès, les segments parallèles forment des triangles proportionnels. Rapport = 50/230 ≈ <strong>0,217</strong> ou ≈ 21,7 %. Le petit triangle est environ 5x plus petit."
+        feedback: "Avec Thalès, les deux triangles ont des côtés proportionnels. Coefficient de réduction = petite longueur ÷ grande longueur = 50/230 ≈ <strong>0,217</strong>, soit ≈ 21,7 %. Le petit triangle est environ 4,6 fois plus petit (230 ÷ 50 = 4,6)."
       },
       {
         narrative: "Au sommet, <em>Tanjiro</em> trouve un coffre verrouillé par un mot de passe : « x est l'antécédent de 5 par la fonction f(x) = 2x − 3 ».",
@@ -8842,11 +8878,11 @@ const STORY_MISSIONS = [
     intro: "<em>Konoha</em> organise un grand tournoi annuel. <em>Iruka</em> est nommé arbitre et doit organiser les résultats des 6ème années. Aide-le à gérer les statistiques de manière équitable.",
     steps: [
       {
-        narrative: "Sur 24 candidats inscrits, on doit former des équipes de taille identique. <em>Iruka</em> veut le plus grand nombre d'équipiers possible.",
-        question: "Combien d'élèves dans chaque équipe (en utilisant tous les candidats) ?",
+        narrative: "Sur 24 candidats inscrits, on doit former des équipes de taille identique. <em>Iruka</em> veut connaître toutes les tailles d'équipe possibles.",
+        question: "Quelle est la liste complète des tailles d'équipe possibles (en utilisant tous les candidats) ?",
         type: "Multiples",
-        answers: ["Toutes les divisions de 24", "1, 2, 3, 4, 6, 8, 12, 24", "12", "24"],
-        correct: 1,
+        answers: ["1, 2, 3, 4, 6, 8, 12, 24", "2, 4, 6, 8, 10, 12", "12", "24"],
+        correct: 0,
         feedback: "On cherche les <strong>diviseurs de 24</strong> : 1, 2, 3, 4, 6, 8, 12, 24. Chaque diviseur est une taille d'équipe possible. Pour des équipes nombreuses : 8 équipes de 3, 6 équipes de 4, 4 équipes de 6, 3 équipes de 8, 2 équipes de 12, 1 équipe de 24."
       },
       {
@@ -8889,12 +8925,12 @@ const STORY_MISSIONS = [
         feedback: "Triangle rectangle : câble² = 20² + 15² = 400 + 225 = 625. Câble = √625 = <strong>25 m</strong>. Triangle 15-20-25 (5 × (3-4-5))."
       },
       {
-        narrative: "Le coût du câble est de <span class='math'>8 ryos/mètre</span>. <em>Iruka</em> dispose d'un budget x.",
-        question: "Si 8x − 60 = 140, quel est le budget x ?",
+        narrative: "Le coût du câble est de <span class='math'>8 ryos/mètre</span>. Pour x mètres de câble, <em>Iruka</em> obtient une remise de 60 ryos et paie 140 ryos.",
+        question: "Si 8x − 60 = 140, combien de mètres de câble x achète-t-il ?",
         type: "Équations",
-        answers: ["25 ryos", "20 ryos", "10 ryos", "100 ryos"],
+        answers: ["25 m", "20 m", "10 m", "100 m"],
         correct: 0,
-        feedback: "8x − 60 = 140, donc 8x = 200, donc x = <strong>25 ryos</strong>. Vérif : 8 × 25 − 60 = 200 − 60 = 140 ✓."
+        feedback: "8x − 60 = 140, donc 8x = 200, donc x = <strong>25 m</strong>. Vérif : 8 × 25 − 60 = 200 − 60 = 140 ✓. C'est bien la longueur du câble trouvée à l'étape 1."
       },
       {
         narrative: "<em>Iruka</em> dispose le pont sur le plan : il translate l'image initiale du pont par un vecteur (3 ; −2) pour le placer correctement.",
@@ -9687,12 +9723,12 @@ const DNB_EXERCISES = [
     intro: "On souhaite construire un pont suspendu entre deux falaises. Le pont aura la forme d'un triangle. Utilise tes connaissances en géométrie pour vérifier les mesures de l'architecte.",
     steps: [
       {
-        narrative: "Le pylône principal a une hauteur inconnue h. Sa base est à 12 m du bord d'une falaise haute de 9 m. Un câble droit relie le sommet du pylône au pied de la falaise et mesure 15 m.",
+        narrative: "Le pylône principal a une hauteur inconnue h. Sa base est au sol, à 12 m du pied d'une falaise. Un câble droit relie le sommet du pylône au pied de la falaise et mesure 15 m.",
         question: "Quelle est la hauteur h du pylône ?",
         type: "Pythagore",
         answers: ["12 m", "9 m", "15 m", "Pas calculable"],
-        correct: 0,
-        feedback: "Le triangle formé par le pylône, le sol et le câble est rectangle. Pythagore : h² + (12 − 0)² = 15² ... attention, si l'écart horizontal au pied du pylône = 12 m alors h² = 15² − 12² = 225 − 144 = 81 → h = <strong>9 m</strong>. Énoncé alternatif accepté : h = 12 m si on considère un autre angle. Triangle 9-12-15 = 3×(3-4-5)."
+        correct: 1,
+        feedback: "Le pylône est vertical : le triangle formé par le pylône, le sol et le câble est rectangle au pied du pylône. Pythagore : h² + 12² = 15², donc h² = 225 − 144 = 81 → h = <strong>9 m</strong>. Triangle 9-12-15 = 3×(3-4-5)."
       },
       {
         narrative: "Sur la maquette à l'échelle, on retrouve le même triangle réduit. Sa hauteur sur la maquette est de 3 cm, l'écart horizontal est de 4 cm.",
@@ -9700,7 +9736,7 @@ const DNB_EXERCISES = [
         type: "Thalès / proportionnalité",
         answers: ["5 cm", "12 cm", "7 cm", "15 cm"],
         correct: 0,
-        feedback: "Triangle similaire au pont réel : Pythagore donne câble² = 3² + 4² = 9 + 16 = 25 → câble = <strong>5 cm</strong>. Ratio 1/3 (maquette/réel). Triangle 3-4-5 classique."
+        feedback: "Triangle semblable au pont réel : Pythagore donne câble² = 3² + 4² = 9 + 16 = 25 → câble = <strong>5 cm</strong>. Échelle 1/300 (3 cm sur la maquette pour 9 m en réalité). Triangle 3-4-5 classique."
       },
       {
         narrative: "L'architecte veut connaître l'angle d'inclinaison du câble par rapport au sol horizontal.",
@@ -9711,12 +9747,12 @@ const DNB_EXERCISES = [
         feedback: "tan(angle) = opposé / adjacent = 9/12 = 0,75. L'angle dont la tangente vaut 0,75 ≈ <strong>37°</strong>. Astuce : dans le triangle 3-4-5, les angles aigus sont environ 37° et 53°."
       },
       {
-        narrative: "Vérifions : si l'angle est 37°, et l'adjacent 12 m, on retrouve la hauteur via cos.",
-        question: "cos(37°) ≈ 0,8. Quelle hauteur retrouve-t-on alors via le cosinus avec hypoténuse 15 ?",
+        narrative: "Vérifions : si l'angle est 37° et le câble mesure 15 m, on retrouve l'écart horizontal grâce au cosinus.",
+        question: "cos(37°) ≈ 0,8. Quelle longueur de l'écart horizontal (côté adjacent) retrouve-t-on via le cosinus avec hypoténuse 15 ?",
         type: "Trigonométrie",
         answers: ["12 m", "9 m", "15 m", "8 m"],
         correct: 0,
-        feedback: "cos(37°) = adjacent / hypoténuse = adj / 15. Donc adj = 0,8 × 15 = <strong>12 m</strong>. Cohérent avec l'énoncé initial. Pour la hauteur, on utilise plutôt sin : sin(37°) ≈ 0,6 × 15 = 9 m ✓."
+        feedback: "cos(37°) = adjacent / hypoténuse = adj / 15. Donc adj ≈ 0,8 × 15 = <strong>12 m</strong>. Cohérent avec l'énoncé initial. Pour la hauteur, on utilise plutôt le sinus : sin(37°) ≈ 0,6, donc h ≈ 0,6 × 15 = 9 m ✓."
       }
     ]
   },
@@ -9788,7 +9824,7 @@ const DNB_EXERCISES = [
         type: "Équation / inéquation",
         answers: ["x > 10", "x > 5", "x > 16", "x > 25"],
         correct: 0,
-        feedback: "On résout 3x + 50 < 8x : −50 < 5x − ... attention, 50 < 5x → x > 10. À partir de <strong>11 séances</strong>, Confort est moins cher. (Égalité à 10 : 50 + 30 = 80 = 8×10.)"
+        feedback: "On résout 3x + 50 < 8x : 50 < 8x − 3x, soit 50 < 5x, donc x > 10. À partir de <strong>11 séances</strong>, Confort est moins cher. (Pour 10 séances, les deux coûtent 80 € : 3 × 10 + 50 = 80 = 8 × 10.)"
       },
       {
         narrative: "Quel est l'antécédent de 74 par la fonction C ?",
@@ -10121,7 +10157,7 @@ let pythState = {
 };
 
 const PYTH_ATELIER_LABELS = {
-  pythagore: { title: 'Constructeur Pythagore', instruction: 'Glisse les sommets <span style="color:var(--orange)">A</span> et <span style="color:var(--blue)">C</span> du triangle rectangle. Observe l\'égalité des carrés.' },
+  pythagore: { title: 'Constructeur Pythagore', instruction: 'Glisse les sommets <span style="color:var(--orange)">B</span> et <span style="color:var(--blue)">C</span> du triangle rectangle. Observe l\'égalité des carrés.' },
   thales:    { title: 'Constructeur Thalès',    instruction: 'Glisse le point <span style="color:var(--orange)">M</span> sur le segment [AB]. Le point N se positionne automatiquement pour que (MN) // (BC).' },
   trigo:     { title: 'Constructeur Trigonométrie', instruction: 'Ajuste l\'angle θ avec le curseur. Observe l\'évolution de cosinus, sinus et tangente.' }
 };
@@ -10348,32 +10384,33 @@ function renderPythPythagore() {
   ctx.fillText('B', B.x + 6, B.y + 16);
   ctx.fillText('C', C.x - 16, C.y - 4);
   // Labels longueurs
-  const ac = pythPxToCm(pythDist(A, C)).toFixed(1);
-  const bc = pythPxToCm(pythDist(A, B)).toFixed(1);  // côté horizontal (= AB)
-  const cb = pythPxToCm(pythDist(B, C)).toFixed(1);  // hypoténuse
+  const fr = s => String(s).replace('.', ',');
+  const ac = pythPxToCm(pythDist(A, C)).toFixed(2);
+  const bc = pythPxToCm(pythDist(A, B)).toFixed(2);  // côté horizontal (= AB)
+  const cb = pythPxToCm(pythDist(B, C)).toFixed(2);  // hypoténuse
   ctx.fillStyle = getThemeColor('--yellow') || '#FFD700';
   ctx.font = 'bold 13px Nunito, sans-serif';
-  ctx.fillText(ac + ' cm', A.x - 60, (A.y + C.y) / 2);  // côté AC (vertical)
-  ctx.fillText(bc + ' cm', (A.x + B.x) / 2 - 10, A.y + 24);  // côté AB (horizontal)
-  ctx.fillText(cb + ' cm', (B.x + C.x) / 2 + 6, (B.y + C.y) / 2);  // hypoténuse BC
+  ctx.fillText(fr(ac) + ' cm', A.x - 60, (A.y + C.y) / 2);  // côté AC (vertical)
+  ctx.fillText(fr(bc) + ' cm', (A.x + B.x) / 2 - 10, A.y + 24);  // côté AB (horizontal)
+  ctx.fillText(fr(cb) + ' cm', (B.x + C.x) / 2 + 6, (B.y + C.y) / 2);  // hypoténuse BC
   // Points draggables
   drawPythHandle(B, pythState.pyth.drag === 'B');
   drawPythHandle(C, pythState.pyth.drag === 'C');
   // Maj panneau
-  const ac2 = (parseFloat(ac) ** 2).toFixed(2);
-  const bc2 = (parseFloat(bc) ** 2).toFixed(2);
-  const cb2 = (parseFloat(cb) ** 2).toFixed(2);
+  const ac2 = (pythPxToCm(pythDist(A, C)) ** 2).toFixed(2);  // carrés des longueurs exactes (pas des arrondis)
+  const bc2 = (pythPxToCm(pythDist(A, B)) ** 2).toFixed(2);
+  const cb2 = (pythPxToCm(pythDist(B, C)) ** 2).toFixed(2);
   const sum = (parseFloat(ac2) + parseFloat(bc2)).toFixed(2);
   document.getElementById('pyth-values').innerHTML = `
-    <div class="pyth-val-row"><span class="name">AC (côté vert.)</span><span class="val">${ac} cm</span></div>
-    <div class="pyth-val-row"><span class="name">AB (côté hor.)</span><span class="val">${bc} cm</span></div>
-    <div class="pyth-val-row"><span class="name">BC (hypoténuse)</span><span class="val">${cb} cm</span></div>
+    <div class="pyth-val-row"><span class="name">AC (côté vert.)</span><span class="val">${fr(ac)} cm</span></div>
+    <div class="pyth-val-row"><span class="name">AB (côté hor.)</span><span class="val">${fr(bc)} cm</span></div>
+    <div class="pyth-val-row"><span class="name">BC (hypoténuse)</span><span class="val">${fr(cb)} cm</span></div>
   `;
   const isClose = Math.abs(parseFloat(sum) - parseFloat(cb2)) < 0.1;
   document.getElementById('pyth-equation').innerHTML = `
-    <div class="pyth-eq"><small>AC² + AB²</small><br>${ac2} + ${bc2} = ${sum}</div>
-    <div class="pyth-eq"><small>BC² (hypoténuse au carré)</small><br>${cb2}</div>
-    <div class="pyth-eq ${isClose ? 'success' : ''}">${isClose ? '✓ Égalité ! AC² + AB² = BC²' : '≈ ' + sum + ' ≈ ' + cb2}<br><small>Théorème de Pythagore confirmé</small></div>
+    <div class="pyth-eq"><small>AC² + AB²</small><br>${fr(ac2)} + ${fr(bc2)} = ${fr(sum)}</div>
+    <div class="pyth-eq"><small>BC² (hypoténuse au carré)</small><br>${fr(cb2)}</div>
+    <div class="pyth-eq ${isClose ? 'success' : ''}">${isClose ? '✓ Égalité ! AC² + AB² = BC²' : '≈ ' + fr(sum) + ' ≈ ' + fr(cb2)}<br><small>Théorème de Pythagore confirmé</small></div>
   `;
 }
 
@@ -10478,25 +10515,26 @@ function renderPythTrigo() {
   // Longueurs
   ctx.fillStyle = getThemeColor('--yellow') || '#FFD700';
   ctx.font = 'bold 12px Nunito, sans-serif';
-  const hypCm = pythPxToCm(hyp).toFixed(1);
-  const adjCm = pythPxToCm(adj).toFixed(1);
-  const oppCm = pythPxToCm(opp).toFixed(1);
-  ctx.fillText('hyp = ' + hypCm + ' cm', (A.x + C.x)/2 - 60, (A.y + C.y)/2);
-  ctx.fillText('adj = ' + adjCm + ' cm', (A.x + B.x)/2 - 20, A.y + 22);
-  ctx.fillText('opp = ' + oppCm + ' cm', B.x + 8, (B.y + C.y)/2);
+  const fr = s => String(s).replace('.', ',');
+  const hypCm = pythPxToCm(hyp).toFixed(2);
+  const adjCm = pythPxToCm(adj).toFixed(2);
+  const oppCm = pythPxToCm(opp).toFixed(2);
+  ctx.fillText('hyp = ' + fr(hypCm) + ' cm', (A.x + C.x)/2 - 60, (A.y + C.y)/2);
+  ctx.fillText('adj = ' + fr(adjCm) + ' cm', (A.x + B.x)/2 - 20, A.y + 22);
+  ctx.fillText('opp = ' + fr(oppCm) + ' cm', B.x + 8, (B.y + C.y)/2);
   // Maj panneau
   const cosV = Math.cos(ang).toFixed(3);
   const sinV = Math.sin(ang).toFixed(3);
   const tanV = Math.tan(ang).toFixed(3);
   document.getElementById('pyth-values').innerHTML = `
-    <div class="pyth-val-row"><span class="name">cos(${pythState.trigo.angle}°)</span><span class="val">${cosV}</span></div>
-    <div class="pyth-val-row"><span class="name">sin(${pythState.trigo.angle}°)</span><span class="val">${sinV}</span></div>
-    <div class="pyth-val-row"><span class="name">tan(${pythState.trigo.angle}°)</span><span class="val">${tanV}</span></div>
+    <div class="pyth-val-row"><span class="name">cos(${pythState.trigo.angle}°)</span><span class="val">${fr(cosV)}</span></div>
+    <div class="pyth-val-row"><span class="name">sin(${pythState.trigo.angle}°)</span><span class="val">${fr(sinV)}</span></div>
+    <div class="pyth-val-row"><span class="name">tan(${pythState.trigo.angle}°)</span><span class="val">${fr(tanV)}</span></div>
   `;
   document.getElementById('pyth-equation').innerHTML = `
-    <div class="pyth-eq"><small>cos = adj/hyp</small><br>${adjCm}/${hypCm} = ${(parseFloat(adjCm)/parseFloat(hypCm)).toFixed(3)}</div>
-    <div class="pyth-eq"><small>sin = opp/hyp</small><br>${oppCm}/${hypCm} = ${(parseFloat(oppCm)/parseFloat(hypCm)).toFixed(3)}</div>
-    <div class="pyth-eq"><small>tan = opp/adj</small><br>${oppCm}/${adjCm} = ${(parseFloat(oppCm)/parseFloat(adjCm)).toFixed(3)}</div>
+    <div class="pyth-eq"><small>cos = adj/hyp</small><br>${fr(adjCm)}/${fr(hypCm)} ≈ ${fr(cosV)}</div>
+    <div class="pyth-eq"><small>sin = opp/hyp</small><br>${fr(oppCm)}/${fr(hypCm)} ≈ ${fr(sinV)}</div>
+    <div class="pyth-eq"><small>tan = opp/adj</small><br>${fr(oppCm)}/${fr(adjCm)} ≈ ${fr(tanV)}</div>
   `;
 }
 
@@ -10521,19 +10559,20 @@ function newPythChallenge() {
   pythState.challengeAnswered = false;
   if (a === 'pythagore') {
     // Demande de construire un triangle 3-4-5 ou 6-8-10
+    const fr = v => String(v).replace('.', ',');
     const target = [
       { ac: 3, ab: 4, bc: 5, name: '3-4-5' },
-      { ac: 5, ab: 12, bc: 13, name: '5-12-13' },
-      { ac: 6, ab: 8, bc: 10, name: '6-8-10' },
-      { ac: 8, ab: 15, bc: 17, name: '8-15-17' }
+      { ac: 2.5, ab: 6, bc: 6.5, name: '2,5-6-6,5' },
+      { ac: 4, ab: 3, bc: 5, name: '4-3-5' },
+      { ac: 4, ab: 7.5, bc: 8.5, name: '4-7,5-8,5' }
     ][Math.floor(Math.random() * 4)];
     pythState.challenge = { type: 'pyth', target };
-    document.getElementById('pyth-challenge-text').innerHTML = `Construis un triangle rectangle avec <strong>AC = ${target.ac} cm</strong> et <strong>AB = ${target.ab} cm</strong>. Quelle sera l'hypoténuse BC ?`;
+    document.getElementById('pyth-challenge-text').innerHTML = `Construis un triangle rectangle avec <strong>AC = ${fr(target.ac)} cm</strong> et <strong>AB = ${fr(target.ab)} cm</strong>, puis lis la longueur de l'hypoténuse BC.`;
   } else if (a === 'thales') {
     const ratios = [0.25, 0.33, 0.4, 0.5, 0.6, 0.67, 0.75];
     const r = ratios[Math.floor(Math.random() * ratios.length)];
     pythState.challenge = { type: 'thales', targetRatio: r };
-    document.getElementById('pyth-challenge-text').innerHTML = `Place le point M sur [AB] de telle sorte que <strong>AM/AB ≈ ${r.toFixed(2)}</strong>.`;
+    document.getElementById('pyth-challenge-text').innerHTML = `Place le point M sur [AB] de telle sorte que <strong>AM/AB ≈ ${r.toFixed(2).replace('.', ',')}</strong>.`;
   } else if (a === 'trigo') {
     const targets = [
       { angle: 30, cosVal: 0.866 },
@@ -10542,7 +10581,7 @@ function newPythChallenge() {
     ];
     const t = targets[Math.floor(Math.random() * 3)];
     pythState.challenge = { type: 'trigo', target: t };
-    document.getElementById('pyth-challenge-text').innerHTML = `Trouve l'angle θ pour lequel <strong>cos(θ) ≈ ${t.cosVal.toFixed(3)}</strong>. Indice : c'est un angle remarquable.`;
+    document.getElementById('pyth-challenge-text').innerHTML = `Trouve l'angle θ pour lequel <strong>cos(θ) ≈ ${t.cosVal.toFixed(3).replace('.', ',')}</strong>. Indice : c'est un angle remarquable.`;
   }
 }
 
@@ -10554,6 +10593,7 @@ function validatePythChallenge() {
   fb.style.display = 'block';
   let ok = false, msg = '';
   if (c.type === 'pyth') {
+    const fr = v => String(v).replace('.', ',');
     // Vérifie les longueurs AC et AB
     const ac = pythPxToCm(pythDist(pythToCanvas(pythState.pyth.A), pythToCanvas(pythState.pyth.C)));
     const ab = pythPxToCm(pythDist(pythToCanvas(pythState.pyth.A), pythToCanvas(pythState.pyth.B)));
@@ -10561,20 +10601,20 @@ function validatePythChallenge() {
     const errAb = Math.abs(ab - c.target.ab);
     ok = errAc < 0.6 && errAb < 0.6;
     msg = ok
-      ? `✅ Bravo ! Triangle ${c.target.name} construit. Hypoténuse BC = ${c.target.bc} cm (vérifie via Pythagore : ${c.target.ac}² + ${c.target.ab}² = ${c.target.ac*c.target.ac + c.target.ab*c.target.ab} = ${c.target.bc}²).`
-      : `❌ Pas encore. AC = ${ac.toFixed(1)} (objectif ${c.target.ac}), AB = ${ab.toFixed(1)} (objectif ${c.target.ab}). Glisse les points roses pour ajuster.`;
+      ? `✅ Bravo ! Triangle ${c.target.name} construit. Hypoténuse BC = ${fr(c.target.bc)} cm (vérifie via Pythagore : ${fr(c.target.ac)}² + ${fr(c.target.ab)}² = ${fr(c.target.ac*c.target.ac + c.target.ab*c.target.ab)} = ${fr(c.target.bc)}²).`
+      : `❌ Pas encore. AC = ${fr(ac.toFixed(1))} cm (objectif ${fr(c.target.ac)} cm), AB = ${fr(ab.toFixed(1))} cm (objectif ${fr(c.target.ab)} cm). Glisse les points roses pour ajuster.`;
   } else if (c.type === 'thales') {
     const r = pythState.thales.t;
     const err = Math.abs(r - c.targetRatio);
     ok = err < 0.03;
     msg = ok
-      ? `✅ Excellent ! AM/AB ≈ ${r.toFixed(3)} ≈ ${c.targetRatio.toFixed(2)} ✓. Et le rapport est conservé sur les 3 segments grâce à Thalès.`
-      : `❌ Rapport actuel : ${r.toFixed(3)}. Objectif : ${c.targetRatio.toFixed(2)}. ${r < c.targetRatio ? 'Déplace M vers B' : 'Déplace M vers A'}.`;
+      ? `✅ Excellent ! AM/AB ≈ ${r.toFixed(3).replace('.', ',')} ≈ ${c.targetRatio.toFixed(2).replace('.', ',')} ✓. Et le rapport est conservé sur les 3 segments grâce à Thalès.`
+      : `❌ Rapport actuel : ${r.toFixed(3).replace('.', ',')}. Objectif : ${c.targetRatio.toFixed(2).replace('.', ',')}. ${r < c.targetRatio ? 'Déplace M vers B' : 'Déplace M vers A'}.`;
   } else if (c.type === 'trigo') {
     const err = Math.abs(pythState.trigo.angle - c.target.angle);
     ok = err <= 1;
     msg = ok
-      ? `✅ Bien joué ! L'angle est ${c.target.angle}° (à mémoriser : c'est un angle remarquable). cos(${c.target.angle}°) = ${c.target.cosVal.toFixed(3)}.`
+      ? `✅ Bien joué ! L'angle est ${c.target.angle}° (à mémoriser : c'est un angle remarquable). cos(${c.target.angle}°) ≈ ${c.target.cosVal.toFixed(3).replace('.', ',')}.`
       : `❌ Angle actuel : ${pythState.trigo.angle}°. Objectif : ${c.target.angle}°. ${pythState.trigo.angle < c.target.angle ? 'Augmente l\'angle' : 'Diminue l\'angle'}.`;
   }
   fb.classList.add(ok ? 'success' : 'error');
@@ -10677,7 +10717,7 @@ const PROBA_SCENARIOS = [
     pool: ['3/6', '3/6', '3/6', '3/6', '3/6', '3/6'],
     question: {
       text: "Quelle est la probabilité d'obtenir <strong>2 rouges d'affilée</strong> ?",
-      answers: ["9/36 = 1/4", "3/6 + 3/6", "6/12 = 1/2", "3/12"],
+      answers: ["9/36 = 1/4", "3/6 + 3/6", "6/12 = 1/2", "6/36 = 1/6"],
       correct: 0,
       feedback: "Tirages indépendants → multiplication : P(RR) = 3/6 × 3/6 = 9/36 = <strong>1/4</strong>. Note : 3/6 = 1/2, donc on a aussi 1/2 × 1/2 = 1/4."
     }
@@ -11167,7 +11207,7 @@ function setupGraphCanvasEvents(canvas) {
       if (handled) {
         const y = evalGraphFn(fn, x);
         graphState.clickedPoint = { x, y, fromKeyboard: true };
-        document.getElementById('graph-clicked-point').textContent = '(' + x + ' ; ' + formatNum(y) + ')';
+        document.getElementById('graph-clicked-point').textContent = '(' + formatNum(x) + ' ; ' + formatNum(y) + ')';
         document.getElementById('graph-validate-btn').disabled = false;
         if (typeof announceToScreenReader === 'function') {
           announceToScreenReader('Curseur à x égale ' + x + ', image y égale ' + formatNum(y));
@@ -11182,7 +11222,7 @@ function setupGraphCanvasEvents(canvas) {
       if (handled) {
         const x = Math.abs(fn.a) < 0.001 ? 0 : (y - fn.b) / fn.a;
         graphState.clickedPoint = { x, y, fromKeyboard: true };
-        document.getElementById('graph-clicked-point').textContent = '(' + formatNum(x) + ' ; ' + y + ')';
+        document.getElementById('graph-clicked-point').textContent = '(' + formatNum(x) + ' ; ' + formatNum(y) + ')';
         document.getElementById('graph-validate-btn').disabled = false;
         if (typeof announceToScreenReader === 'function') {
           announceToScreenReader('Curseur à y égale ' + y + ', antécédent x égale ' + formatNum(x));
@@ -11208,8 +11248,8 @@ function setupGraphCanvasEvents(canvas) {
 }
 
 function formatNum(n) {
-  if (Number.isInteger(n)) return String(n);
-  return n.toFixed(2).replace(/\.?0+$/, '');
+  const s = Number.isInteger(n) ? String(Math.abs(n)) : Math.abs(n).toFixed(2).replace(/\.?0+$/, '').replace('.', ',');
+  return (n < 0 ? '−' : '') + s;
 }
 
 // ─── Conversion coordonnées ───
@@ -11261,31 +11301,31 @@ function loadGraphChallenge() {
 
   if (type === 'image') {
     // Choisis un x entier dans [-4, 4]
-    let x = Math.floor(Math.random() * 7) - 3;
-    if (x === 0) x = 1;  // pour éviter f(0)=b trivial
+    const xOk = [-3, -2, -1, 1, 2, 3].filter(v => Math.abs(evalGraphFn(fn, v)) <= graphState.yRange[1]);
+    const x = xOk.length ? xOk[Math.floor(Math.random() * xOk.length)] : 1;  // point visible, f(0)=b évité
     challenge.target = { x, y: evalGraphFn(fn, x) };
-    challenge.question = `Quelle est l'<strong>image de ${x}</strong> par cette fonction ?<br><span style="font-size:.85rem;color:var(--gray);font-weight:600">💡 Trouve le point de la droite dont l'<strong>abscisse</strong> (axe horizontal) vaut <strong>${x}</strong>, puis clique dessus pour révéler sa hauteur.</span>`;
-    challenge.hint = 'Monte/descends verticalement depuis l\'abscisse ' + x + ' jusqu\'à la droite (souris/doigt) — ou utilise ←→ au clavier puis Entrée.';
+    challenge.question = `Quelle est l'<strong>image de ${formatNum(x)}</strong> par cette fonction ?<br><span style="font-size:.85rem;color:var(--gray);font-weight:600">💡 Trouve le point de la droite dont l'<strong>abscisse</strong> (axe horizontal) vaut <strong>${formatNum(x)}</strong>, puis clique dessus pour révéler sa hauteur.</span>`;
+    challenge.hint = 'Monte/descends verticalement depuis l\'abscisse ' + formatNum(x) + ' jusqu\'à la droite (souris/doigt) — ou utilise ←→ au clavier puis Entrée.';
   } else if (type === 'antecedent') {
     // Choisis un y entier dans la portée verticale
     // Pour que ce soit faisable, y doit être atteint par f sur entier
-    let xTarget = Math.floor(Math.random() * 7) - 3;
-    if (xTarget === 0) xTarget = 1;
+    const xOk = [-3, -2, -1, 1, 2, 3].filter(v => Math.abs(evalGraphFn(fn, v)) <= graphState.yRange[1]);
+    const xTarget = xOk.length ? xOk[Math.floor(Math.random() * xOk.length)] : 1;
     const y = evalGraphFn(fn, xTarget);
     challenge.target = { x: xTarget, y };
-    challenge.question = `Quel est l'<strong>antécédent de ${y}</strong> par cette fonction ?<br><span style="font-size:.85rem;color:var(--gray);font-weight:600">💡 Trouve le point de la droite dont l'<strong>ordonnée</strong> (axe vertical) vaut <strong>${y}</strong>, puis clique dessus pour révéler son abscisse.</span>`;
-    challenge.hint = 'Avance horizontalement depuis l\'ordonnée ' + y + ' jusqu\'à la droite (souris/doigt) — ou utilise ↑↓ au clavier puis Entrée.';
+    challenge.question = `Quel est l'<strong>antécédent de ${formatNum(y)}</strong> par cette fonction ?<br><span style="font-size:.85rem;color:var(--gray);font-weight:600">💡 Trouve le point de la droite dont l'<strong>ordonnée</strong> (axe vertical) vaut <strong>${formatNum(y)}</strong>, puis clique dessus pour révéler son abscisse.</span>`;
+    challenge.hint = 'Avance horizontalement depuis l\'ordonnée ' + formatNum(y) + ' jusqu\'à la droite (souris/doigt) — ou utilise ↑↓ au clavier puis Entrée.';
   } else if (type === 'identif_expr') {
     challenge.mode = 'qcm';
     // Génère 4 expressions, la bonne + 3 leurres
-    const correct = `f(x) = ${a >= 0 ? '' : '−'}${Math.abs(a) === 1 ? '' : Math.abs(a)}x ${b >= 0 ? '+ ' : '− '}${Math.abs(b)}`;
+    const correct = `f(x) = ${affineFr(a, b)}`;
     const variants = new Set([correct]);
     // Leurres : changer le signe de a, b, ou les valeurs
     while (variants.size < 4) {
       const aMod = aChoices[Math.floor(Math.random() * aChoices.length)];
       const bMod = bChoices[Math.floor(Math.random() * bChoices.length)];
       if (aMod === a && bMod === b) continue;
-      const candidate = `f(x) = ${aMod >= 0 ? '' : '−'}${Math.abs(aMod) === 1 ? '' : Math.abs(aMod)}x ${bMod >= 0 ? '+ ' : '− '}${Math.abs(bMod)}`;
+      const candidate = `f(x) = ${affineFr(aMod, bMod)}`;
       variants.add(candidate);
     }
     const variantList = Array.from(variants);
@@ -11300,7 +11340,9 @@ function loadGraphChallenge() {
     challenge.hint = 'Choisis l\'expression dont les valeurs collent au graphique en 2 points.';
   } else if (type === 'coeff_directeur') {
     challenge.mode = 'qcm';
-    const distractors = aChoices.filter(x => x !== a).slice(0, 3);
+    const same = aChoices.filter(x => x !== a && Math.sign(x) === Math.sign(a));
+    const opp = aChoices.filter(x => x !== -a && Math.sign(x) !== Math.sign(a));
+    const distractors = [-a, same[Math.floor(Math.random() * same.length)], opp[Math.floor(Math.random() * opp.length)]];
     const opts = [a, ...distractors];
     // Mélange
     for (let i = opts.length - 1; i > 0; i--) {
@@ -11486,15 +11528,15 @@ function validateGraphAnswer() {
     const cy = graphState.clickedPoint.y;
     ok = Math.abs(cx - c.target.x) < 0.5 && Math.abs(cy - c.target.y) < 0.5;
     msg = ok
-      ? `✅ <strong>Correct !</strong> L'image de ${c.target.x} par f(x) = ${c.fn.a}x ${c.fn.b >= 0 ? '+ ' : '− '}${Math.abs(c.fn.b)} est <strong>${c.target.y}</strong>.`
-      : `❌ Pas tout à fait. Tu as cliqué (${formatNum(cx)} ; ${formatNum(cy)}). La bonne réponse était (${c.target.x} ; ${c.target.y}). Astuce : pour trouver l'image de ${c.target.x}, monte verticalement depuis l'axe des x jusqu'à la droite.`;
+      ? `✅ <strong>Correct !</strong> L'image de ${formatNum(c.target.x)} par f(x) = ${affineFr(c.fn.a, c.fn.b)} est <strong>${formatNum(c.target.y)}</strong>.`
+      : `❌ Pas tout à fait. Tu as cliqué (${formatNum(cx)} ; ${formatNum(cy)}). La bonne réponse était (${formatNum(c.target.x)} ; ${formatNum(c.target.y)}). Astuce : pour trouver l'image de ${formatNum(c.target.x)}, monte verticalement depuis l'axe des x jusqu'à la droite.`;
   } else if (c.type === 'antecedent') {
     const cx = graphState.clickedPoint.x;
     const cy = graphState.clickedPoint.y;
     ok = Math.abs(cx - c.target.x) < 0.5 && Math.abs(cy - c.target.y) < 0.5;
     msg = ok
-      ? `✅ <strong>Correct !</strong> L'antécédent de ${c.target.y} est <strong>${c.target.x}</strong> (vérif : ${c.fn.a}×${c.target.x} ${c.fn.b >= 0 ? '+ ' : '− '}${Math.abs(c.fn.b)} = ${c.target.y}).`
-      : `❌ Pas tout à fait. La bonne réponse était (${c.target.x} ; ${c.target.y}). Astuce : pour trouver l'antécédent de ${c.target.y}, va horizontalement depuis l'axe des y jusqu'à la droite, puis lis l'abscisse.`;
+      ? `✅ <strong>Correct !</strong> L'antécédent de ${formatNum(c.target.y)} est <strong>${formatNum(c.target.x)}</strong> (vérif : ${formatNum(c.fn.a)} × ${c.target.x < 0 ? '(' + formatNum(c.target.x) + ')' : formatNum(c.target.x)} ${c.fn.b >= 0 ? '+ ' : '− '}${Math.abs(c.fn.b)} = ${formatNum(c.target.y)}).`
+      : `❌ Pas tout à fait. La bonne réponse était (${formatNum(c.target.x)} ; ${formatNum(c.target.y)}). Astuce : pour trouver l'antécédent de ${formatNum(c.target.y)}, va horizontalement depuis l'axe des y jusqu'à la droite, puis lis l'abscisse.`;
   }
   finalizeGraphAnswer(ok, msg);
 }
@@ -11511,11 +11553,11 @@ function answerGraphQcm(idx) {
   let msg = '';
   if (c.type === 'identif_expr') {
     msg = ok
-      ? `✅ <strong>Correct !</strong> Cette droite passe par les points qui correspondent à f(x) = ${c.fn.a}x ${c.fn.b >= 0 ? '+ ' : '− '}${Math.abs(c.fn.b)}.`
+      ? `✅ <strong>Correct !</strong> Cette droite passe par les points qui correspondent à f(x) = ${affineFr(c.fn.a, c.fn.b)}.`
       : `❌ La bonne expression était : ${c.answers[c.correctIdx]}. Repère le coefficient directeur (pente) et l'ordonnée à l'origine (intersection avec l'axe y).`;
   } else if (c.type === 'coeff_directeur') {
     msg = ok
-      ? `✅ <strong>Correct !</strong> La pente est <strong>a = ${signedFr(c.fn.a)}</strong>. Quand on avance d'1 sur x, on monte (ou descend) de ${c.fn.a} sur y.`
+      ? `✅ <strong>Correct !</strong> La pente est <strong>a = ${signedFr(c.fn.a)}</strong>. Quand on avance de 1 sur x, y ${c.fn.a > 0 ? 'monte' : 'descend'} de ${Math.abs(c.fn.a)}.`
       : `❌ Le bon coefficient était a = ${signedFr(c.fn.a)}. Méthode : choisis 2 points connus et calcule (y₂ − y₁) / (x₂ − x₁).`;
   }
   finalizeGraphAnswer(ok, msg);

@@ -205,14 +205,14 @@ module.exports = function (h) {
   }
 
   /* ════════════ Sessions scriptées (identiques pour toutes les pages) ════════════ */
-  /* Tracé : 7 missions. La mission 1 ne peut pas réussir dans le jeu (g.tolerance indéfini : un axe
-     parfaitement centré obtient 60) — défaut hérité : on teste donc son front d'échec. */
+  /* Tracé : 7 missions. La mission 1 est tracée décentrée (axe vertical hors du milieu : 60),
+     pour tester son front d'échec. */
   async function drawSession(page, shot) {
     await ev(page, () => { window.scrollTo(0, 0); startDrawMode(); });
     await shot('tracé : mission 1');                          // canvas préparé 50 ms après
     await ev(page, () => validateDraw()); await shot('tracé : valider sans tracé (toast, rien de validé)');
-    await stroke(page, frac(0.5, 0.1, 0.5, 0.9));
-    await click(page, '#screen-draw .btn-main'); await shot('tracé : mission 1, axe centré → 60');
+    await stroke(page, frac(0.25, 0.1, 0.25, 0.9));
+    await click(page, '#screen-draw .btn-main'); await shot('tracé : mission 1, axe décentré → 60');
     await ev(page, () => validateDraw()); await shot('tracé : valider une seconde fois (ignoré)');
     await click(page, '#draw-feedback .btn-next'); await shot('tracé : mission 2');
     await stroke(page, frac(0.1, 0.5, 0.9, 0.5));
@@ -406,8 +406,8 @@ module.exports = function (h) {
       }
     }
     /* La session exerce bien les deux issues de chaque mode (sinon le différentiel ne prouverait rien). */
-    const m1 = at('tracé', 'tracé : mission 1, axe centré');
-    check('tracé : la mission 1 parfaitement centrée obtient 60 dans le jeu d\'origine (défaut hérité, front d\'échec)',
+    const m1 = at('tracé', 'tracé : mission 1, axe décentré');
+    check('tracé : la mission 1 tracée décentrée obtient 60 dans le jeu d\'origine (front d\'échec)',
       m1.draw[4] === 60 && m1.draw[5] === true && /Presque/.test(String(m1.text)), [m1.draw, m1.text]);
     check('tracé : réussites, échecs, puis fin sur l\'accueil', at('tracé', 'tracé : mission 2 réussie').draw[4] === 160 && at('tracé', 'tracé : mission 7').draw[5] === true &&
       last('tracé').screens.join() === 'screen-home' && /missions de tracé terminées/.test(last('tracé').toast), [at('tracé', 'tracé : mission 2 réussie').draw, last('tracé').toast]);
@@ -497,11 +497,11 @@ module.exports = function (h) {
     await ev(page, () => { FX.seed(5); window.scrollTo(0, 0); startDrawMode(); }); await wait(page, 500); await quiet(page);
     log = await during(page, () => ev(page, () => validateDraw()), 150);
     check('tracé : valider sans rien tracer (sortie anticipée du jeu) → aucun effet', log.length === 0, log);
-    log = await during(page, () => stroke(page, frac(0.5, 0.1, 0.5, 0.9)), 80);
+    log = await during(page, () => stroke(page, frac(0.25, 0.1, 0.25, 0.9)), 80);
     check('tracé : rien ne joue pendant le tracé', log.length === 0, log);
     await center(page, '#screen-draw .btn-main');
     log = await during(page, () => ev(page, () => validateDraw()), 160);
-    check('tracé : mission 1 (60, défaut hérité) → repère calme seul le long de l\'explication',
+    check('tracé : mission 1 décentrée (60) → repère calme seul le long de l\'explication',
       has(log, 'trace-erreur[60]') && count(log, 'slash') === 1 && log.length === 2 && calm(log), log);
     await settle(page, 420, 'tracé : repère calme fini 600 ms après la validation');
     log = await during(page, () => ev(page, () => validateDraw()), 150);
@@ -623,7 +623,7 @@ module.exports = function (h) {
     }, 80);
     check('atelier : rien ne joue pendant le survol ni pendant qu\'on glisse une poignée',
       log.length === 0 && (await ev(page, () => Math.abs(pythState.pyth.B.x - 0.52) < 0.01 && Math.abs(pythState.pyth.C.y - 0.3714) < 0.01)) === true, log);
-    await ev(page, () => { let g = 0; while (pythState.challenge.target.name !== '5-12-13' && g++ < 80) newPythChallenge(); });
+    await ev(page, () => { let g = 0; while (pythState.challenge.target.name !== '4-7,5-8,5' && g++ < 80) newPythChallenge(); });
     await center(page, '#pyth-validate-btn');
     log = await during(page, () => ev(page, () => validatePythChallenge()), 160);
     check('atelier : essai manqué → repère calme seul', has(log, 'defi-erreur') && count(log, 'slash') === 1 && log.length === 2, log);
@@ -736,6 +736,13 @@ module.exports = function (h) {
     /* Tire des défis jusqu'à en trouver un du genre voulu (le jeu fait de même à chaque redimensionnement). */
     const until = (kind) => ev(page, (kind) => {
       let g = 0;
+      if (kind === 'dehors') {                                  // le jeu ne tire plus de point hors du repère : on en fabrique un
+        while (graphState.current.mode !== 'click' && g++ < 300) loadGraphChallenge();
+        const fn = { type: 'affine', a: 3, b: 3 }, x = 3;
+        graphState.current = Object.assign({}, graphState.current, { fn, type: 'image', target: { x, y: evalGraphFn(fn, x) } });
+        renderGraph();
+        return Math.abs(graphState.current.target.y) > graphState.yRange[1] + 2;
+      }
       const ok = () => {
         const c = graphState.current, y = c.target ? Math.abs(c.target.y) : 0;
         return kind === 'qcm' ? c.mode === 'qcm' : c.mode === 'click' && (kind === 'dedans' ? y < graphState.yRange[1] : y > graphState.yRange[1] + 2);
@@ -886,7 +893,7 @@ module.exports = function (h) {
     let log, f, k, c;
     /* Tracé : l'explication s'ouvre sous le bas de l'écran. */
     await ev(page, () => { FX.seed(4); window.scrollTo(0, 0); startDrawMode(); }); await wait(page, 500); await quiet(page);
-    await stroke(page, frac(0.5, 0.1, 0.5, 0.9));
+    await stroke(page, frac(0.25, 0.1, 0.25, 0.9));
     await ev(page, () => window.scrollTo(0, 0));
     log = await during(page, () => ev(page, () => validateDraw()), 200);
     f = await floats(page);
