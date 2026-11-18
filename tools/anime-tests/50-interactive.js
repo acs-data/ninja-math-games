@@ -205,8 +205,9 @@ module.exports = function (h) {
   }
 
   /* ════════════ Sessions scriptées (identiques pour toutes les pages) ════════════ */
-  /* Tracé : 7 missions. La mission 1 est tracée décentrée (axe vertical hors du milieu : 60),
-     pour tester son front d'échec. */
+  /* Tracé : 6 missions. La mission 1 est tracée décentrée (axe vertical hors du milieu : 60),
+     pour tester son front d'échec. La mission 6 (angle) est jugée deux fois : réussie, puis — le
+     redimensionnement de la fenêtre remettant sa validation à zéro — manquée avec un angle obtus. */
   async function drawSession(page, shot) {
     await ev(page, () => { window.scrollTo(0, 0); startDrawMode(); });
     await shot('tracé : mission 1');                          // canvas préparé 50 ms après
@@ -233,9 +234,8 @@ module.exports = function (h) {
     await ev(page, () => validateDraw()); await shot('tracé : mission 6, angle aigu → 100');
     await resize(page, 600, 800); await shot('tracé : fenêtre redimensionnée (canvas relancé, tracés effacés)');
     await resize(page, 412, 800); await quiesce(page);
-    await ev(page, () => nextDrawMission());
     await angle(page, [[0.8, 0.6], [0.5, 0.6], [0.3, 0.3]]);
-    await ev(page, () => validateDraw()); await shot('tracé : mission 7, angle obtus → 20');
+    await ev(page, () => validateDraw()); await shot('tracé : mission 6 rejouée, angle obtus → 20');
     await ev(page, () => nextDrawMission()); await shot('tracé : fin (toast + accueil)');
   }
 
@@ -409,7 +409,7 @@ module.exports = function (h) {
     const m1 = at('tracé', 'tracé : mission 1, axe décentré');
     check('tracé : la mission 1 tracée décentrée obtient 60 dans le jeu d\'origine (front d\'échec)',
       m1.draw[4] === 60 && m1.draw[5] === true && /Presque/.test(String(m1.text)), [m1.draw, m1.text]);
-    check('tracé : réussites, échecs, puis fin sur l\'accueil', at('tracé', 'tracé : mission 2 réussie').draw[4] === 160 && at('tracé', 'tracé : mission 7').draw[5] === true &&
+    check('tracé : réussites, échecs, puis fin sur l\'accueil', at('tracé', 'tracé : mission 2 réussie').draw[4] === 160 && at('tracé', 'tracé : mission 6 rejouée').draw[5] === true && at('tracé', 'tracé : mission 6 rejouée').draw[0] === 5 && /Presque/.test(String(at('tracé', 'tracé : mission 6 rejouée').text)) &&
       last('tracé').screens.join() === 'screen-home' && /missions de tracé terminées/.test(last('tracé').toast), [at('tracé', 'tracé : mission 2 réussie').draw, last('tracé').toast]);
     check('tracé : la fenêtre redimensionnée relance le canvas (tracés effacés, validation remise à zéro)',
       at('tracé', 'tracé : fenêtre redimensionnée').draw[5] === false && at('tracé', 'tracé : fenêtre redimensionnée').draw[7] === '[]', at('tracé', 'tracé : fenêtre redimensionnée').draw);
