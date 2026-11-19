@@ -52,7 +52,7 @@ L'idée : transformer la révision en quête épique. Le contenu pédagogique re
 
 **Modes interactifs** :
 
-6. **✏️ Tracé géométrique** — 6 missions au doigt sur canvas (axes de symétrie, droites, angles)
+6. **✏️ Tracé géométrique** — 7 missions au doigt sur canvas (axes de symétrie, droites, angles, et la bissectrice d'un angle de 60° dessiné à l'écran, vérifiée par sa direction et son passage par le sommet)
 7. **🧩 Puzzle d'emboîtement** — 6 puzzles drag&drop (fractions, formes, équations)
 8. **⚡ Vrai/Faux Speed** — 50 affirmations math en 7 sec chacune, raccourcis V/F au clavier
 9. **📖 Histoire interactive** — 12 aventures narratives de 4 étapes
@@ -222,7 +222,7 @@ classique.html  (≈ 560 Ko, ≈ 11 750 lignes — mono-fichier volontaire ; ind
   - 87 QCM legacy (6e: 30, 5e: 25, mixte: 20, boss: 12)
   - 40 QCM 4e par chapitre (6 chapitres)
   - 40 QCM 3e par chapitre (6 chapitres)
-- **6 missions de tracé géométrique**
+- **7 missions de tracé géométrique**
 - **6 puzzles d'emboîtement**
 - **39 générateurs d'automatismes** (10 par niveau en moyenne)
 - **12 aventures narratives** multi-étapes (48 sous-questions)
