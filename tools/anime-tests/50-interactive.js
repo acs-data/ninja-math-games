@@ -121,6 +121,16 @@ module.exports = function (h) {
     await page.mouse.move(b.x + p[2], b.y + p[3]); await page.mouse.up();
   }
   const frac = (x1, y1, x2, y2) => (b) => [b.w * x1, b.h * y1, b.w * x2, b.h * y2];
+  /* Mission bissectrice : la figure lue dans le jeu lui-même (bisectorGeometry, px du canvas). */
+  const bisGeo = (page) => ev(page, () => {
+    const c = document.getElementById('draw-canvas'), G = bisectorGeometry(c.width, c.height, DRAW_MISSIONS[6].guide);
+    return { W: c.width, H: c.height, O: G.O, L: G.L, r: G.r, u1: G.u1, u2: G.u2, ub: G.ub };
+  });
+  /* Trait le long de la vraie bissectrice, de t1·L à t2·L depuis O (G mis à l'échelle de la boîte b). */
+  const alongBisector = (G, t1, t2) => (b) => {
+    const k = b.w / G.W, at = (t) => [(G.O.x + G.ub.x * G.L * t) * k, (G.O.y + G.ub.y * G.L * t) * k];
+    return at(t1).concat(at(t2));
+  };
   /* Trois clics de l'outil Angle : côté 1, sommet, côté 2 (fractions du canvas). */
   async function angle(page, pts) {
     await center(page, '#draw-canvas');
@@ -205,9 +215,11 @@ module.exports = function (h) {
   }
 
   /* ════════════ Sessions scriptées (identiques pour toutes les pages) ════════════ */
-  /* Tracé : 6 missions. La mission 1 est tracée décentrée (axe vertical hors du milieu : 60),
+  /* Tracé : 7 missions. La mission 1 est tracée décentrée (axe vertical hors du milieu : 60),
      pour tester son front d'échec. La mission 6 (angle) est jugée deux fois : réussie, puis — le
-     redimensionnement de la fenêtre remettant sa validation à zéro — manquée avec un angle obtus. */
+     redimensionnement de la fenêtre remettant sa validation à zéro — manquée avec un angle obtus.
+     La mission 7 (bissectrice) arrive avec l'outil Angle encore choisi : un angle est refusé (toast),
+     puis la vraie bissectrice, tracée à la souris avec l'outil Droite, obtient 100. */
   async function drawSession(page, shot) {
     await ev(page, () => { window.scrollTo(0, 0); startDrawMode(); });
     await shot('tracé : mission 1');                          // canvas préparé 50 ms après
@@ -236,6 +248,13 @@ module.exports = function (h) {
     await resize(page, 412, 800); await quiesce(page);
     await angle(page, [[0.8, 0.6], [0.5, 0.6], [0.3, 0.3]]);
     await ev(page, () => validateDraw()); await shot('tracé : mission 6 rejouée, angle obtus → 20');
+    await ev(page, () => nextDrawMission()); await shot('tracé : mission 7 (bissectrice)');
+    await angle(page, [[0.7, 0.5], [0.3, 0.5], [0.6, 0.25]]);
+    await ev(page, () => validateDraw()); await shot('tracé : mission 7 avec un angle (toast, rien de validé)');
+    await click(page, '#draw-tool-line');
+    const G = await bisGeo(page);
+    await stroke(page, alongBisector(G, 0.15, 0.95));
+    await ev(page, () => validateDraw()); await shot('tracé : mission 7, bissectrice tracée → 100');
     await ev(page, () => nextDrawMission()); await shot('tracé : fin (toast + accueil)');
   }
 
@@ -411,6 +430,11 @@ module.exports = function (h) {
       m1.draw[4] === 60 && m1.draw[5] === true && /Presque/.test(String(m1.text)), [m1.draw, m1.text]);
     check('tracé : réussites, échecs, puis fin sur l\'accueil', at('tracé', 'tracé : mission 2 réussie').draw[4] === 160 && at('tracé', 'tracé : mission 6 rejouée').draw[5] === true && at('tracé', 'tracé : mission 6 rejouée').draw[0] === 5 && /Presque/.test(String(at('tracé', 'tracé : mission 6 rejouée').text)) &&
       last('tracé').screens.join() === 'screen-home' && /missions de tracé terminées/.test(last('tracé').toast), [at('tracé', 'tracé : mission 2 réussie').draw, last('tracé').toast]);
+    const m7a = at('tracé', 'tracé : mission 7 avec un angle'), m7 = at('tracé', 'tracé : mission 7, bissectrice');
+    check('tracé : mission 7 (bissectrice) — un angle est refusé (toast Droite, rien de validé), la vraie bissectrice à la souris → 100',
+      at('tracé', 'tracé : mission 7 (bissectrice)').draw[0] === 6 && m7a.draw[0] === 6 && m7a.draw[5] === false && /📏 Droite/.test(m7a.toast) &&
+      m7.draw[5] === true && m7.draw[1] === 'line' && m7.draw[4] - m7a.draw[4] === 100 && /Précision parfaite/.test(String(m7.text)) &&
+      /Ta droite partage l'angle en 30° et 30°\./.test(String(m7.text)) && !/la bissectrice le partage|presque égaux/.test(String(m7.text)), [m7a.draw, m7a.toast, m7.draw, m7.text]);
     check('tracé : la fenêtre redimensionnée relance le canvas (tracés effacés, validation remise à zéro)',
       at('tracé', 'tracé : fenêtre redimensionnée').draw[5] === false && at('tracé', 'tracé : fenêtre redimensionnée').draw[7] === '[]', at('tracé', 'tracé : fenêtre redimensionnée').draw);
     check('puzzle : vrais glisser-déposer, tri réussi, temps écoulé, tri à revoir, chrono fantôme',
@@ -444,6 +468,231 @@ module.exports = function (h) {
     check('ateliers : la session classique annonce (suite des messages de #sr-live non vide)',
       SESSIONS.every(([name]) => name === 'stats' || classic.shots[name].some((s) => s.srLog.length > 0)), SESSIONS.map(([name]) => [name, classic.shots[name].map((s) => s.srLog.length).join('')]));
     await domChecks('ateliers', [['classique', classic], ['off', off], ['complet', full], ['chaos', chaos]]);
+    await bisectorChecks(browser);
+  }
+
+  /* ── Mission bissectrice, sur le jeu classique : la validation elle-même, épinglée par des droites
+        calculées depuis la figure du jeu (bisectorGeometry) et injectées avant validateDraw ; la mission
+        est rechargée entre deux cas. Les attendus (notes, textes, tolérance au sommet) sont écrits ici en
+        littéraux tirés de la spécification de la mission, jamais recalculés par le code de validation du jeu.
+        Puis la figure et ses deux étiquettes tiennent dans le canvas à quatre tailles. ── */
+  /* Textes de la mission 7, au caractère près. */
+  const BIS = {
+    instruction: "✂️ Trace la <strong>bissectrice</strong> de l'angle de 60° : elle passe par le sommet <strong>O</strong> et partage l'angle en <strong>deux angles égaux</strong>. Avec l'outil 📏 Droite, trace un long trait qui passe par O et par le milieu de l'arc !",
+    ok: "Bravo ! La bissectrice passe par le sommet et partage l'angle en deux angles égaux : 30° + 30° = 60°. Chaque point de la bissectrice est à la même distance des deux côtés de l'angle.",
+    bad: "Pas tout à fait. La bissectrice passe par le sommet O <strong>et</strong> partage l'angle en deux angles égaux : ici, deux angles de 30°. Astuce : sur papier, au compas, on trace un arc de centre O qui coupe chaque côté en un point ; puis, avec un même écartement assez grand, deux arcs, l'un centré sur le premier point, l'autre sur le second, qui se coupent à l'intérieur de l'angle ; la bissectrice passe par O et par ce point d'intersection.",
+    toast: "Utilise l'outil 📏 Droite et trace une droite qui passe par le sommet O !",
+    /* Phrases ajoutées : a (par O, partage à 1° près du milieu), b (par O, partage inégal, note < 100),
+       c (près de O : entre near et 2 near, bonne direction), d (bonne direction, loin de O). */
+    a: (p, q) => "Ta droite partage l'angle en <strong>" + p + "°</strong> et <strong>" + q + "°</strong>.",
+    b: (p, q) => "Ta droite partage l'angle en <strong>" + p + "°</strong> et <strong>" + q + "°</strong> ; la bissectrice le partage en <strong>30°</strong> et <strong>30°</strong>.",
+    c: "Ta droite passe près du sommet O, mais pas exactement par lui.",
+    d: "Ta droite a la bonne direction, mais elle ne passe pas par le sommet O."
+  };
+  /* Texte complet attendu de l'explication pour une note et une phrase (ou aucune). */
+  const bisText = (score, sentence) => (score >= 70 ? BIS.ok : BIS.bad) + (sentence ? '<br><br>' + sentence : '') +
+    (score >= 70 ? '' : '<br><br><em>Score obtenu : ' + score + '/100. Clique "Mission suivante" pour continuer.</em>');
+  async function bisectorChecks(browser) {
+    const page = await open(browser, CLASSIC);
+    await ev(page, () => { window.scrollTo(0, 0); startDrawMode(); }); await wait(page, 300);
+    /* Figure seule (drawGuide sur un canvas vide, sans grille ni tracé) : nombre de points encrés parmi
+       les points pris sur la direction de la bissectrice, de 0,06 L à 0,97 L depuis O (≥ 10 px de O : au-delà
+       du point O de rayon 4 px ; la lettre O est sous le sommet), sauf à moins de 5 px de l'arc (r = 0,75 L),
+       qui croise forcément cette direction. Près du sommet, là où irait un indice, les points sont serrés. */
+    const bisInk = (pg) => ev(pg, () => {
+      const c = document.getElementById('draw-canvas'), W = c.width, H = c.height, m = DRAW_MISSIONS[6], G = bisectorGeometry(W, H, m.guide);
+      const o = document.createElement('canvas'); o.width = W; o.height = H;
+      const cx = o.getContext('2d'); drawGuide(cx, W, H, m);
+      let n = 0, tried = 0;
+      for (let i = 0; i < 40; i++) {
+        const t = 0.06 + 0.91 * i / 39;
+        if (Math.abs(t * G.L - G.r) < 5) continue;
+        tried++;
+        const x = Math.round(G.O.x + G.ub.x * G.L * t), y = Math.round(G.O.y + G.ub.y * G.L * t);
+        const d = cx.getImageData(x - 1, y - 1, 3, 3).data;
+        let a = 0; for (let k = 3; k < d.length; k += 4) a = Math.max(a, d[k]);
+        if (a > 20) n++;
+      }
+      return { n: n, tried: tried, validated: drawState.validated };
+    });
+    /* rot : écart en degrés ajouté à la direction de la bissectrice ; shift : décalage perpendiculaire en
+       multiples de near (la tolérance au sommet de la spécification : max(12 ; 0,07 L), L = côté de la
+       figure) ; shiftL : décalage en multiples de L ; t1, t2 : extrémités en fractions de L depuis le point
+       de base ; swap : points inversés ; none : aucune droite ; angleOnly : seulement un angle de l'outil Angle ;
+       canvas : [W, H] imposés par script après le chargement de la mission ; shiftPx : décalage en pixels. */
+    const judgeOn = (pg, s) => ev(pg, (s) => {
+      drawState.missionIdx = 6; loadDrawMission();
+      const c = document.getElementById('draw-canvas');
+      if (s.canvas) { c.width = s.canvas[0]; c.height = s.canvas[1]; }
+      const W = c.width, H = c.height, m = DRAW_MISSIONS[6], G = bisectorGeometry(W, H, m.guide);
+      const near = Math.max(12, 0.07 * G.L), phi = (30 + (s.rot || 0)) * Math.PI / 180;
+      const d = { x: Math.cos(phi), y: -Math.sin(phi) }, n = { x: Math.sin(phi), y: Math.cos(phi) };
+      const sh = (s.shift || 0) * near + (s.shiftL || 0) * G.L + (s.shiftPx || 0);
+      const P = { x: G.O.x + n.x * sh, y: G.O.y + n.y * sh };
+      const t1 = s.t1 === undefined ? 0.1 : s.t1, t2 = s.t2 === undefined ? 0.9 : s.t2;
+      let a = { x: P.x + d.x * G.L * t1, y: P.y + d.y * G.L * t1 }, b = { x: P.x + d.x * G.L * t2, y: P.y + d.y * G.L * t2 };
+      if (s.swap) { const t = a; a = b; b = t; }
+      document.getElementById('toast').textContent = '';
+      if (s.angleOnly) drawState.lines = [{ type: 'angle', pts: [{ x: W * 0.7, y: H * 0.5 }, { x: W * 0.3, y: H * 0.5 }, { x: W * 0.6, y: H * 0.25 }], color: '#00E676' }];
+      else if (!s.none) drawState.lines = [{ type: 'line', x1: a.x, y1: a.y, x2: b.x, y2: b.y, color: '#00E676' }];
+      const before = drawState.score;
+      validateDraw();
+      return { validated: drawState.validated, score: drawState.score - before, bar: document.getElementById('draw-score-txt').textContent,
+        text: document.getElementById('draw-fb-text').innerHTML, title: document.getElementById('draw-fb-title').textContent,
+        toast: document.getElementById('toast').textContent, segmentTouchesO: Math.min(Math.hypot(a.x - G.O.x, a.y - G.O.y), Math.hypot(b.x - G.O.x, b.y - G.O.y)),
+        W: W, H: H, L: G.L, near: near, dist: Math.abs((b.x - a.x) * (G.O.y - a.y) - (b.y - a.y) * (G.O.x - a.x)) / Math.hypot(b.x - a.x, b.y - a.y) };
+    }, s);
+    const judge = (s) => judgeOn(page, s);
+    const texts = [];                                       // toutes les explications vues : « presque égaux » n'y est jamais
+    const seen = (r) => { texts.push(r.text); return r; };
+    await ev(page, () => { drawState.missionIdx = 6; loadDrawMission(); });
+    const shown = await ev(page, () => ({ instr: document.getElementById('draw-instruction').innerHTML, m: DRAW_MISSIONS[6], title: document.getElementById('draw-title').textContent }));
+    check('bissectrice : consigne, explications et toast au caractère près ; titre, guide, tolérance et XP inchangés',
+      shown.instr === BIS.instruction && shown.m.instruction === BIS.instruction && shown.m.feedback_ok === BIS.ok && shown.m.feedback_bad === BIS.bad &&
+      shown.m.title === "Bissectrice d'un angle" && JSON.stringify(shown.m.guide) === '{"type":"bisector","angle":60}' && shown.m.tolerance === 4 && shown.m.xp === 90 && shown.title === 'Mission 7 / 7', shown);
+    const inkBefore = await bisInk(page);
+    const exact = seen(await judge({}));
+    check('bissectrice : la droite exacte (par O, à 30° de chaque côté) → 100, « Précision parfaite », phrase a « 30° et 30°. »',
+      exact.validated && exact.score === 100 && exact.bar === '100%' && /Précision parfaite/.test(exact.title) && exact.text === bisText(100, BIS.a(30, 30)), exact);
+    /* La correction : rien sur la direction de la bissectrice avant la validation, les pointillés après. */
+    const inkAfter = await bisInk(page);
+    check('bissectrice : rien n\'est dessiné sur la direction de la bissectrice avant la validation, la correction en pointillés après',
+      inkBefore.tried >= 34 && !inkBefore.validated && inkBefore.n === 0 && inkAfter.validated && inkAfter.n >= 8, [inkBefore, inkAfter]);
+    const r3 = seen(await judge({ rot: 3 })), r5 = seen(await judge({ rot: -5 }));
+    check('bissectrice : 3° d\'écart, par O → 100 et AUCUNE phrase (pas de partage inégal à côté de « Précision parfaite ») ; 5° d\'écart → 70 (seuil de 4° épinglé), phrase b 25° et 35°',
+      r3.score === 100 && /Précision parfaite/.test(r3.title) && r3.text === bisText(100, '') &&
+      r5.score === 70 && /Bien tracé/.test(r5.title) && r5.text === bisText(70, BIS.b(25, 35)), [r3, r5]);
+    const r1 = seen(await judge({ rot: 1 })), rm1 = seen(await judge({ rot: -1 })), r16 = seen(await judge({ rot: 1.6 }));
+    check('bissectrice : 1° d\'écart, par O → 100, phrase a « 31° et 29°. » (et « 29° et 31°. » de l\'autre côté) ; 1,6° → 100, partage 32°/28° : AUCUNE phrase (règle des ±1° épinglée)',
+      r1.score === 100 && r1.text === bisText(100, BIS.a(31, 29)) && rm1.score === 100 && rm1.text === bisText(100, BIS.a(29, 31)) &&
+      r16.score === 100 && /Précision parfaite/.test(r16.title) && r16.text === bisText(100, ''), [r1, rm1, r16]);
+    const r6 = seen(await judge({ rot: 6 })), r6s = seen(await judge({ rot: 6, swap: true }));
+    check('bissectrice : 6° d\'écart, par O → 70 (Bien tracé), phrase b « 36° et 24° ; la bissectrice le partage en 30° et 30°. »',
+      r6.validated && r6.score === 70 && /Bien tracé/.test(r6.title) && r6.text === bisText(70, BIS.b(36, 24)), r6);
+    check('bissectrice : les deux points dans l\'ordre inverse donnent la même note et le même texte', r6s.score === r6.score && r6s.text === r6.text, [r6, r6s]);
+    const r12 = seen(await judge({ rot: -12 }));
+    check('bissectrice : 12° d\'écart, par O → 20 (Presque), phrase b 18° et 42°, score affiché',
+      r12.validated && r12.score === 20 && /Presque/.test(r12.title) && r12.text === bisText(20, BIS.b(18, 42)), r12);
+    /* Le seuil de 2 × tolérance = 8°, des deux côtés de la bissectrice et pour les paliers 70 et 40. */
+    const r76 = seen(await judge({ rot: 7.6 })), r86 = seen(await judge({ rot: 8.6 })), rm9 = seen(await judge({ rot: -9 }));
+    const r86f = seen(await judge({ rot: 8.6, shift: 3 })), r76f = seen(await judge({ rot: -7.6, shift: 3 }));
+    check('bissectrice : seuil de 8° épinglé — 7,6°, par O → 70, phrase b 38° et 22° ; 8,6° → 20, phrase b 39° et 21° ; −9° → 20, phrase b 21° et 39° ; décalé de 3 near : −7,6° → 40 (phrase d), 8,6° → 20 sans phrase',
+      r76.score === 70 && /Bien tracé/.test(r76.title) && r76.text === bisText(70, BIS.b(38, 22)) &&
+      r86.score === 20 && /Presque/.test(r86.title) && r86.text === bisText(20, BIS.b(39, 21)) &&
+      rm9.score === 20 && rm9.text === bisText(20, BIS.b(21, 39)) &&
+      r76f.score === 40 && r76f.text === bisText(40, BIS.d) &&
+      r86f.score === 20 && r86f.text === bisText(20, ''), [r76, r86, rm9, r76f, r86f]);
+    const in1 = seen(await judge({ rot: -29 })), in59 = seen(await judge({ rot: 29 }));
+    check('bissectrice : limites du partage affiché — droite par O à 1° du premier côté → 20, phrase b 1° et 59° ; à 1° du second côté → 20, phrase b 59° et 1°',
+      in1.score === 20 && in1.text === bisText(20, BIS.b(1, 59)) && in59.score === 20 && in59.text === bisText(20, BIS.b(59, 1)), [in1, in59]);
+    /* Le passage par O, à ses seuils : near puis 2 × near (bonne direction, droite décalée). Canvas étroit (fenêtre 412×800). */
+    const s08 = seen(await judge({ shift: 0.8 })), s12 = seen(await judge({ shift: 1.2 })), s15 = seen(await judge({ shift: -1.5 })), s3 = seen(await judge({ shift: 3 }));
+    const s19 = seen(await judge({ shift: 1.9 })), s21 = seen(await judge({ shift: -2.1 })), s22 = seen(await judge({ shift: 2.2 }));
+    /* 1,2 near (≈ 18 px ici) : sous l'ancienne tolérance max(16 ; 0,05 W) ≈ 19 px, ce trait valait 100.
+       near est calculé ici par le test depuis L (lu dans le jeu) : ses bornes ne contrôlent que L ; ce sont les
+       notes obtenues aux décalages 0,8 / 1,2 / 1,5 / 1,9 / 2,1 / 2,2 / 3 near qui épinglent near et 2 near dans le jeu. */
+    check('bissectrice : canvas étroit (' + s08.W + ' px), near = max(12 ; 0,07 L) = ' + s08.near.toFixed(1) + ' px (contrôle de L : 12 < near < 16) : bonne direction décalée de 0,8 near → 100 (phrase a), de 1,2, 1,5 et 1,9 near → 70 (phrase c), de 2,1, 2,2 et 3 near → 40 (phrase d)',
+      s08.W < 400 && s08.near > 12 && s08.near < 16 &&
+      s19.score === 70 && /Bien tracé/.test(s19.title) && s19.text === bisText(70, BIS.c) &&
+      s21.score === 40 && /Presque/.test(s21.title) && s21.text === bisText(40, BIS.d) &&
+      s22.score === 40 && s22.text === bisText(40, BIS.d) &&
+      s08.score === 100 && s08.text === bisText(100, BIS.a(30, 30)) &&
+      s12.score === 70 && s12.text === bisText(70, BIS.c) &&
+      s15.score === 70 && /Bien tracé/.test(s15.title) && s15.text === bisText(70, BIS.c) &&
+      s3.validated && s3.score === 40 && /Presque/.test(s3.title) && s3.text === bisText(40, BIS.d), [s08, s12, s15, s19, s21, s22, s3]);
+    const far = seen(await judge({ t1: 0.55, t2: 0.95 }));
+    check('bissectrice : un trait qui ne touche pas O mais dont la droite passe par O, bonne direction → 100',
+      far.segmentTouchesO > 50 && far.validated && far.score === 100 && far.text === bisText(100, BIS.a(30, 30)), far);
+    const side = seen(await judge({ rot: -29.7 }));
+    check('bissectrice : une droite par O presque confondue avec un côté (0,3°) → 20, aucune phrase ajoutée',
+      side.validated && side.score === 20 && side.text === bisText(20, ''), side);
+    const out = seen(await judge({ rot: 40 }));
+    check('bissectrice : une droite par O hors de l\'angle (70°) → 20, aucune phrase ajoutée',
+      out.validated && out.score === 20 && out.text === bisText(20, ''), out);
+    const none = await judge({ none: true });
+    check('bissectrice : aucun tracé → toast, rien de validé', !none.validated && none.score === 0 && /Trace quelque chose/.test(none.toast), none);
+    const ang = await judge({ angleOnly: true });
+    check('bissectrice : seulement un angle (outil Angle) → toast « 📏 Droite … sommet O », rien de validé',
+      !ang.validated && ang.score === 0 && ang.toast === BIS.toast, ang);
+    /* Les autres missions gardent leur texte au caractère près (textes de 0c5c3c8). */
+    const other = await ev(page, () => {
+      const res = [];
+      for (const [i, line] of [[0, [0.25, 0.1, 0.25, 0.9]], [1, [0.1, 0.5, 0.9, 0.5]]]) {
+        drawState.missionIdx = i; loadDrawMission();
+        const c = document.getElementById('draw-canvas'), W = c.width, H = c.height;
+        drawState.lines = [{ type: 'line', x1: W * line[0], y1: H * line[1], x2: W * line[2], y2: H * line[3], color: '#00E676' }];
+        validateDraw();
+        res.push(document.getElementById('draw-fb-text').innerHTML);
+      }
+      return res;
+    });
+    check('tracé : le texte de la mission 1 (60) et de la mission 2 (100) est inchangé',
+      other[0] === 'Pas tout à fait... L\'axe vertical doit passer exactement au centre horizontal du dessin. Réessaie !<br><br><em>Score obtenu : 60/100. Clique "Mission suivante" pour continuer.</em>' &&
+      other[1] === 'Excellent ! Une droite horizontale est perpendiculaire à l\'axe vertical. Deux droites perpendiculaires forment un angle de 90°.', other);
+    /* Plancher de near = 12 px : jamais atteint aux tailles du jeu (canvas minimal 324×210 : 0,07 L ≈ 12,8 px),
+       donc vérifié sur un canvas de 150×98 imposé par script (L = 85,26 px, 0,07 L ≈ 6 px). En dernier : le
+       canvas reste à cette taille jusqu'au prochain initDrawCanvas. */
+    const p11 = seen(await judge({ canvas: [150, 98], shiftPx: 11 })), p13 = seen(await judge({ canvas: [150, 98], shiftPx: -13 }));
+    check('bissectrice : plancher de 12 px de near (canvas 150×98 imposé par script) — bonne direction décalée de 11 px → 100 (phrase a), de 13 px → 70 (phrase c)',
+      p11.W === 150 && p11.score === 100 && p11.text === bisText(100, BIS.a(30, 30)) && p13.score === 70 && p13.text === bisText(70, BIS.c), [p11, p13]);
+    check('aucune erreur (bissectrice, jeu classique)', page.errors.length === 0, page.errors);
+    await page.context().close();
+    /* near suit la figure, pas la largeur du canvas : sur un canvas large (fenêtre 1280×800), mêmes seuils
+       en multiples de near, et un décalage de 0,25 L (bien au-delà de 2 near) ne vaut plus 70. */
+    const wd = await open(browser, CLASSIC, { viewport: { width: 1280, height: 800 } });
+    await ev(wd, () => { window.scrollTo(0, 0); startDrawMode(); }); await wait(wd, 300);
+    const w08 = seen(await judgeOn(wd, { shift: 0.8 })), w15 = seen(await judgeOn(wd, { shift: 1.5 })), w3 = seen(await judgeOn(wd, { shift: -3 }));
+    const wq = seen(await judgeOn(wd, { shiftL: 0.25 }));
+    const w19 = seen(await judgeOn(wd, { shift: -1.9 })), w21 = seen(await judgeOn(wd, { shift: 2.1 }));
+    check('bissectrice : canvas large (' + w08.W + '×' + w08.H + ', fenêtre 1280×800), near = 0,07 L = ' + w08.near.toFixed(1) + ' px (contrôle de L : 19 < near < 23) : 0,8 near → 100 (a), 1,5 et 1,9 near → 70 (c), 2,1 et 3 near → 40 (d) ; décalage de 0,25 L → moins de 70 (40, phrase d)',
+      w08.W >= 700 && w08.near > 19 && w08.near < 23 &&
+      w19.score === 70 && w19.text === bisText(70, BIS.c) && w21.score === 40 && w21.text === bisText(40, BIS.d) &&
+      w08.score === 100 && w08.text === bisText(100, BIS.a(30, 30)) &&
+      w15.score === 70 && w15.text === bisText(70, BIS.c) &&
+      w3.score === 40 && w3.text === bisText(40, BIS.d) &&
+      wq.score < 70 && wq.score === 40 && wq.text === bisText(40, BIS.d) && Math.abs(wq.dist - 0.25 * wq.L) < 0.5 && wd.errors.length === 0, [w08, w15, w19, w21, w3, wq, wd.errors]);
+    await wd.context().close();
+    check('bissectrice : les mots « presque égaux » n\'apparaissent dans aucune explication (' + texts.length + ' cas)',
+      texts.length >= 15 && texts.every((t) => typeof t === 'string' && t.length > 0 && t.indexOf('presque égaux') < 0), texts);
+    /* La figure tient dans le canvas : O, extrémités des côtés, arc (r = 0,75 L) et étiquettes à 8 px au
+       moins des bords ; l'étiquette « 60° » ne touche ni les côtés, ni l'arc, ni le sommet, ni la lettre O,
+       et reste hors de ±8° de la direction de la bissectrice vue de O. */
+    for (const [w, hh] of [[360, 640], [412, 800], [768, 1024], [1280, 800]]) {
+      const pg = await open(browser, CLASSIC, { viewport: { width: w, height: hh } });
+      await ev(pg, () => { window.scrollTo(0, 0); startDrawMode(); }); await wait(pg, 300);
+      await ev(pg, () => { drawState.missionIdx = 6; loadDrawMission(); });
+      const G = await bisGeo(pg);
+      /* Boîtes des deux étiquettes, mesurées avec leurs propres police, alignement et ligne de base (lus dans bisectorGeometry, comme drawGuide). */
+      const boxes = await ev(pg, () => {
+        const c = document.getElementById('draw-canvas'), G = bisectorGeometry(c.width, c.height, DRAW_MISSIONS[6].guide), cx = c.getContext('2d'), out = [];
+        cx.save();
+        for (const t of [G.labels.vertex, G.labels.angle]) {
+          cx.font = t.font; cx.textAlign = t.align; cx.textBaseline = t.baseline;
+          const mm = cx.measureText(t.text);
+          out.push({ text: t.text, x1: t.x - mm.actualBoundingBoxLeft, y1: t.y - mm.actualBoundingBoxAscent, x2: t.x + mm.actualBoundingBoxRight, y2: t.y + mm.actualBoundingBoxDescent });
+        }
+        cx.restore();
+        return out;
+      });
+      const [bO, b60] = boxes;
+      const corners = (q) => [{ x: q.x1, y: q.y1 }, { x: q.x2, y: q.y1 }, { x: q.x1, y: q.y2 }, { x: q.x2, y: q.y2 }];
+      const pts = [G.O, { x: G.O.x + G.u1.x * G.L, y: G.O.y + G.u1.y * G.L }, { x: G.O.x + G.u2.x * G.L, y: G.O.y + G.u2.y * G.L }].concat(corners(bO), corners(b60));
+      for (let a = 0; a <= 60; a += 5) pts.push({ x: G.O.x + G.r * Math.cos(a * Math.PI / 180), y: G.O.y - G.r * Math.sin(a * Math.PI / 180) });
+      const margin = Math.min.apply(null, pts.map((p) => Math.min(p.x, p.y, G.W - p.x, G.H - p.y)));
+      const c60 = corners(b60).map((p) => ({ dx: p.x - G.O.x, dy: G.O.y - p.y }));           // repère de O, y vers le haut
+      const angs = c60.map((p) => Math.atan2(p.dy, p.dx) * 180 / Math.PI), dists = c60.map((p) => Math.hypot(p.dx, p.dy));
+      const gapSide1 = Math.min.apply(null, c60.map((p) => p.dy));                           // au-dessus du premier côté
+      const gapSide2 = Math.min.apply(null, c60.map((p) => p.dx * Math.sin(Math.PI / 3) - p.dy * Math.cos(Math.PI / 3)));  // sous le second côté
+      const gapArc = G.r - Math.max.apply(null, dists);                                      // à l'intérieur de l'arc
+      const apart = b60.x1 > bO.x2 + 4 || b60.x2 < bO.x1 - 4 || b60.y1 > bO.y2 + 4 || b60.y2 < bO.y1 - 4;
+      const away = Math.max.apply(null, angs) < 22 || Math.min.apply(null, angs) > 38;
+      const geo = { margin: Math.round(margin * 10) / 10, gapSide1: Math.round(gapSide1 * 10) / 10, gapSide2: Math.round(gapSide2 * 10) / 10, gapArc: Math.round(gapArc * 10) / 10,
+        angs: angs.map((a) => Math.round(a * 10) / 10), minDistO: Math.round(Math.min.apply(null, dists)), boxes: boxes, G: G };
+      check('bissectrice : la figure tient dans le canvas ' + G.W + '×' + G.H + ' (fenêtre ' + w + '×' + hh + '), arc de rayon 0,75 L, marge ≥ 8 px ; « 60° » hors des côtés, de l\'arc, de O et à plus de 8° de la bissectrice',
+        Math.abs(G.r - 0.75 * G.L) < 1e-9 && margin >= 8 && bO.text === 'O' && b60.text === '60°' &&
+        gapSide1 >= 4 && gapSide2 >= 4 && gapArc >= 4 && Math.min.apply(null, dists) >= 10 && apart && away && pg.errors.length === 0, [geo, pg.errors]);
+      await pg.context().close();
+    }
   }
 
   /* ════════════ Scénario 2 : les moments (journal FX, fronts d'état, coupures) ════════════ */

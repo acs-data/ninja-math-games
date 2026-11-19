@@ -7,7 +7,7 @@
 ## 0. TL;DR pour démarrer rapidement
 
 - **Stack** : HTML5 + CSS3 + JavaScript vanilla, aucune dépendance npm. Le jeu s'écrit dans un seul fichier, `classique.html` ; la page principale `index.html` en est **générée** par un script Python (bibliothèque standard seulement).
-- **Localisation du code** : `classique.html` (le jeu classique, **le fichier à modifier**), **≈ 11 750 lignes, ≈ 560 Ko**. `index.html` (≈ 660 Ko), la page principale du site, est l'édition animée : **GÉNÉRÉE**, jamais éditée à la main.
+- **Localisation du code** : `classique.html` (le jeu classique, **le fichier à modifier**), **≈ 11 860 lignes, ≈ 565 Ko**. `index.html` (≈ 666 Ko), la page principale du site, est l'édition animée : **GÉNÉRÉE**, jamais éditée à la main.
 - **PWA installable** + service worker (`sw.js`) avec cache versionné automatiquement par le SHA du commit.
 - **Aucun npm/yarn/pnpm**. Pour tester : **recharge `classique.html` dans un navigateur** ; pour la page principale, reconstruis (`python3 tools/build_anime.py`) puis recharge `index.html`.
 - **Tests** : pas de tests unitaires du jeu ; la suite `node tools/test_anime.js` compare la page principale au jeu classique (§ 13). Valide manuellement les flux après chaque changement.
@@ -49,7 +49,7 @@ Le fichier monolithique se décompose en 4 zones (les numéros de ligne sont des
 | `<head>` | 1–46 | Meta, OG, favicon SVG inline, link manifest, polices Google |
 | `<style>` | 47–2246 | CSS complet : variables, layout, 13 écrans, animations, a11y |
 | HTML body | 2248–3617 | 13 écrans + 7 modals + footer |
-| `<script>` | 3618–11750 | Logique de jeu : data, état, modes, rendu, événements, PWA, analytics |
+| `<script>` | 3618–11851 | Logique de jeu : data, état, modes, rendu, événements, PWA, analytics |
 
 `index.html` reprend ces 4 zones telles quelles et y ajoute un commentaire « fichier généré » après le doctype, `<style id="fx-style">` avant `</head>` et `<script id="fx-script">` avant `</body>` (§ 13).
 
@@ -62,7 +62,7 @@ Le fichier monolithique se décompose en 4 zones (les numéros de ligne sont des
 - Envoyé par email à un parent ou enseignant
 - Hébergé sur n'importe quel CDN statique sans build
 
-**Si tu envisages de découper le fichier**, demande confirmation explicite à l'utilisateur. C'est un changement architectural majeur. Limite douce : **500 Ko**. `classique.html` fait ≈ 560 Ko : le seuil est **dépassé** (il l'était déjà avant l'audit des questions de novembre 2026) ; `index.html`, la page que chargent les joueurs, fait ≈ 660 Ko (≈ 101 Ko de couche d'animation). Tout ajout volumineux se discute avec l'utilisateur.
+**Si tu envisages de découper le fichier**, demande confirmation explicite à l'utilisateur. C'est un changement architectural majeur. Limite douce : **500 Ko**. `classique.html` fait ≈ 565 Ko : le seuil est **dépassé** (il l'était déjà avant l'audit des questions de novembre 2026) ; `index.html`, la page que chargent les joueurs, fait ≈ 666 Ko (≈ 101 Ko de couche d'animation). Tout ajout volumineux se discute avec l'utilisateur.
 
 -----
 
@@ -92,7 +92,7 @@ Le sélecteur de chapitre est sur l'accueil (onglets 6e/5e/4e/3e). Helper : `get
 
 | Mode | Écran | Fonction d'entrée | Banque | Particularités |
 |---|---|---|---|---|
-| Tracé géométrique | `screen-draw` | `startDrawMode()` | `DRAW_MISSIONS` (6) | Canvas mouse+touch, validation auto |
+| Tracé géométrique | `screen-draw` | `startDrawMode()` | `DRAW_MISSIONS` (7) | Canvas mouse+touch, validation auto |
 | Puzzle emboîtement | `screen-puzzle` | `startPuzzleMode()` | `PUZZLES` (6) | Drag & drop type `match` ou `sort` |
 | Vrai/Faux Speed | `screen-tf` | `startTrueFalse()` | `TRUEFALSE_STATEMENTS` (50) | 7 s/affirmation, raccourcis V/F clavier |
 | Histoire interactive | `screen-story` | `startStoryMode()` | `STORY_MISSIONS` (12 aventures × 4 étapes) | Récit narratif multi-étapes |
@@ -217,9 +217,10 @@ Dictionnaires de **remplacement de texte/emoji** pour adapter les questions Naru
 
 ### 3.5 `DRAW_MISSIONS`, `PUZZLES`
 
-Voir le code source pour le format détaillé. Types de guide tracé : `vertical`, `horizontal`, `diagonal45`, `hyp`, `angle_free`.
+Voir le code source pour le format détaillé. Types de guide tracé : `vertical`, `horizontal`, `diagonal45`, `hyp`, `angle_free`, `bisector`.
 
-- **6 missions de tracé** (la mission « Bissectrice », infaisable telle qu'elle était écrite, a été retirée en novembre 2026). La tolérance se lit sur la mission (`m.tolerance`), pas sur son guide. Pour les missions d'angle, c'est le **dernier** angle tracé qui est jugé.
+- **7 missions de tracé.** La tolérance se lit sur la mission (`m.tolerance`), pas sur son guide. Pour les missions d'angle, c'est le **dernier** angle tracé qui est jugé.
+- **Mission 7 « Bissectrice d'un angle »** (guide `bisector`, reconstruite en novembre 2026 : l'ancienne version n'affichait aucune figure et validait n'importe quel angle aigu). Un angle de 60° de sommet O est dessiné ; l'élève trace une droite avec l'outil Droite. La figure est décrite une seule fois par `bisectorGeometry(W, H, g)`, que partagent le dessin (`drawGuide`), la validation (`validateDraw`) et les tests. C'est la **dernière droite** tracée qui est jugée, sur deux mesures : son écart d'angle avec la bissectrice (modulo 180°) et sa distance au sommet O, comparée à `near = max(12, 0,07 × L)` (L = longueur d'un côté ; jamais la largeur du canvas). Notes : 100 (écart ≤ `m.tolerance` = 4° et distance ≤ `near`), 70 (écart ≤ 8° et distance ≤ 2 × `near`), 40 (bonne direction mais sommet manqué), 20 sinon. Une phrase dit à l'élève en quels angles sa droite partage l'angle, seulement si elle passe vraiment par O ; aucun partage inégal n'est affiché à côté de « Précision parfaite ». Rien n'est dessiné sur la bissectrice avant la validation ; après, elle apparaît en pointillés. Aucun niveau scolaire n'est annoncé : la place de la bissectrice dans les programmes en vigueur n'a pas pu être vérifiée sur un texte officiel.
 - **Puzzles `match`** : après un dépôt faux, la case reprend son étiquette (`slot.dataset.label`), jamais le nom de la bonne pièce.
 - **Puzzles `sort`** : `correctOrder` doit contenir exactement les chaînes de `items` (même signe moins Unicode `−`).
 

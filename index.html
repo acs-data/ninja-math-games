@@ -2684,7 +2684,7 @@ html[data-fx-combo-off]:not([data-fx="off"]) .combo-display { opacity: 0 !import
   <div id="screen-draw" class="screen-page">
     <div class="mission-card mission-card--green">
       <div class="mission-label text-green">✏️ JUTSU DE TRACÉ</div>
-      <div class="mission-title" id="draw-title">Mission 1 / 6</div>
+      <div class="mission-title" id="draw-title">Mission 1 / 7</div>
       <div class="mission-desc" id="draw-instruction">Trace l'axe de symétrie !</div>
     </div>
 
@@ -6329,8 +6329,44 @@ const DRAW_MISSIONS = [
     feedback_ok: "Excellent ! Un angle aigu mesure entre 0° et 90°. Contrairement à l'angle obtus (90°-180°) il est plus petit qu'un angle droit.",
     feedback_bad: "L'angle que tu as tracé est trop grand (≥ 90°). Un angle aigu doit être inférieur à 90° — comme les pointes d'une kunai !",
     xp: 110
+  },
+  {
+    title: "Bissectrice d'un angle",
+    instruction: "✂️ Trace la <strong>bissectrice</strong> de l'angle de 60° : elle passe par le sommet <strong>O</strong> et partage l'angle en <strong>deux angles égaux</strong>. Avec l'outil 📏 Droite, trace un long trait qui passe par O et par le milieu de l'arc !",
+    guide: { type: 'bisector', angle: 60 },
+    tolerance: 4,
+    feedback_ok: "Bravo ! La bissectrice passe par le sommet et partage l'angle en deux angles égaux : 30° + 30° = 60°. Chaque point de la bissectrice est à la même distance des deux côtés de l'angle.",
+    feedback_bad: "Pas tout à fait. La bissectrice passe par le sommet O <strong>et</strong> partage l'angle en deux angles égaux : ici, deux angles de 30°. Astuce : sur papier, au compas, on trace un arc de centre O qui coupe chaque côté en un point ; puis, avec un même écartement assez grand, deux arcs, l'un centré sur le premier point, l'autre sur le second, qui se coupent à l'intérieur de l'angle ; la bissectrice passe par O et par ce point d'intersection.",
+    xp: 90
   }
 ];
+
+/* Figure de la mission « bissectrice » (guide 'bisector'), en pixels du canvas. Seule source de la
+   géométrie : drawGuide la dessine et validateDraw la juge avec les mêmes nombres.
+   Premier côté horizontal vers la droite depuis O ; second côté g.angle degrés au-dessus (l'axe y du
+   canvas pointe vers le bas, d'où le signe moins). Directions = vecteurs unitaires. Les deux
+   étiquettes (texte, ancre, police, alignement) sont décrites ici aussi, pour que drawGuide et les
+   tests de placement lisent les mêmes valeurs. */
+function bisectorGeometry(W, H, g) {
+  const a = g.angle * Math.PI / 180;
+  const L = Math.min(W * 0.78, H * 0.87);      // longueur des côtés
+  const O = { x: (W - L) / 2, y: H * 0.84 };   // sommet ; figure centrée horizontalement
+  const r = L * 0.75;                           // rayon de l'arc qui joint les deux côtés
+  return {
+    O: O,
+    L: L,
+    r: r,
+    u1: { x: 1, y: 0 },
+    u2: { x: Math.cos(a), y: -Math.sin(a) },
+    ub: { x: Math.cos(a / 2), y: -Math.sin(a / 2) },
+    labels: {
+      // « O » sous le sommet, loin du prolongement de la bissectrice
+      vertex: { text: 'O', x: O.x, y: O.y + 21, font: 'bold 16px Nunito, sans-serif', align: 'center', baseline: 'alphabetic' },
+      // Mesure : le long du premier côté, à mi-chemin de l'arc, loin de la direction de la bissectrice
+      angle: { text: g.angle + '°', x: O.x + r * 0.5, y: O.y - 7, font: 'bold 14px Nunito, sans-serif', align: 'left', baseline: 'bottom' }
+    }
+  };
+}
 
 let drawState = {
   missionIdx: 0,
@@ -6628,6 +6664,45 @@ function drawGuide(ctx, W, H, m) {
     ctx.fillText('B', bx + 14, by);
     ctx.setLineDash([8, 6]);
     ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+  } else if (g.type === 'bisector') {
+    // La figure (pas un indice) : deux côtés pleins, le sommet O, l'arc et la mesure. Rien sur la
+    // direction de la bissectrice avant la validation ; après, la vraie bissectrice en pointillés.
+    const G = bisectorGeometry(W, H, g);
+    const O = G.O, L = G.L, r = G.r;
+    const blue = getThemeColor('--blue') || '#5C9DFF';
+    const yellow = getThemeColor('--yellow') || '#FFD700';
+    ctx.globalAlpha = 1;
+    ctx.setLineDash([]);
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = blue;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(O.x + G.u1.x * L, O.y + G.u1.y * L);
+    ctx.lineTo(O.x, O.y);
+    ctx.lineTo(O.x + G.u2.x * L, O.y + G.u2.y * L);
+    ctx.stroke();
+    const label = (t) => {
+      ctx.font = t.font; ctx.textAlign = t.align; ctx.textBaseline = t.baseline;
+      ctx.fillText(t.text, t.x, t.y);
+    };
+    ctx.fillStyle = blue;
+    ctx.beginPath(); ctx.arc(O.x, O.y, 4, 0, Math.PI * 2); ctx.fill();
+    label(G.labels.vertex);
+    // Arc de centre O, du premier côté au second (sens inverse des aiguilles d'une montre à l'écran)
+    ctx.strokeStyle = yellow;
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(O.x, O.y, r, -g.angle * Math.PI / 180, 0); ctx.stroke();
+    ctx.fillStyle = blue;       // mesure en bleu : le jaune n'atteint pas 4,5:1 sur le fond clair
+    label(G.labels.angle);
+    if (drawState.validated) {
+      ctx.strokeStyle = getThemeColor('--purple') || '#C68FDD';
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([8, 6]);
+      ctx.beginPath();
+      ctx.moveTo(O.x, O.y);
+      ctx.lineTo(O.x + G.ub.x * L, O.y + G.ub.y * L);
+      ctx.stroke();
+    }
   }
   ctx.restore();
 }
@@ -6644,6 +6719,7 @@ function validateDraw() {
   }
 
   let score = 0;
+  let extra = '';   // phrase ajoutée à l'explication (mission bissectrice seulement)
   const lastLine = drawState.lines[drawState.lines.length - 1];
 
   if (g.type === 'vertical') {
@@ -6707,6 +6783,42 @@ function validateDraw() {
     } else {
       showToast('Utilise l\'outil 📐 Angle (3 clics : côté 1, sommet, côté 2)'); return;
     }
+  } else if (g.type === 'bisector') {
+    // Jugée sur la dernière droite tracée (une droite n'a pas de sens : écart pris modulo 180°)
+    const line = [...drawState.lines].reverse().find(l => l.type === 'line');
+    if (!line) {
+      showToast("Utilise l'outil 📏 Droite et trace une droite qui passe par le sommet O !"); return;
+    }
+    const G = bisectorGeometry(W, H, g);
+    const dx = line.x2 - line.x1, dy = line.y2 - line.y1;
+    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+    // Direction de la droite en degrés, mesurée depuis le premier côté (y vers le haut), dans [0, 180[
+    let theta = Math.atan2(-dy, dx) * 180 / Math.PI;
+    theta = ((theta % 180) + 180) % 180;
+    let diff = Math.abs(theta - g.angle / 2);
+    if (diff > 90) diff = 180 - diff;
+    // Distance de O à la droite (infinie) qui passe par les deux points
+    const dist = Math.abs(dx * (G.O.y - line.y1) - dy * (G.O.x - line.x1)) / len;
+    const near = Math.max(12, 0.07 * G.L);      // tolérance au sommet, proportionnelle à la figure
+    if (diff <= m.tolerance && dist <= near) score = 100;
+    else if (diff <= 2 * m.tolerance && dist <= 2 * near) score = 70;
+    else if (diff <= 2 * m.tolerance) score = 40;
+    else score = 20;
+    // Partage affiché en degrés entiers, seulement si la droite passe vraiment par O et entre dans
+    // l'angle à cette précision (une droite presque confondue avec un côté ne « partage » rien).
+    const part = Math.round(theta), half = g.angle / 2;
+    const inside = part >= 1 && part <= g.angle - 1;
+    const split = "Ta droite partage l'angle en <strong>" + part + "°</strong> et <strong>" + (g.angle - part) + "°</strong>";
+    if (dist <= near && inside && Math.abs(part - half) <= 1) {
+      extra = "<br><br>" + split + ".";
+    } else if (dist <= near && inside) {
+      // À 100, aucune phrase : « Précision parfaite » ne doit pas voisiner un partage inégal.
+      if (score < 100) extra = "<br><br>" + split + " ; la bissectrice le partage en <strong>" + half + "°</strong> et <strong>" + half + "°</strong>.";
+    } else if (dist > near && dist <= 2 * near && diff <= 2 * m.tolerance) {
+      extra = "<br><br>Ta droite passe près du sommet O, mais pas exactement par lui.";
+    } else if (dist > 2 * near && diff <= 2 * m.tolerance) {
+      extra = "<br><br>Ta droite a la bonne direction, mais elle ne passe pas par le sommet O.";
+    }
   }
 
   drawState.validated = true;
@@ -6716,7 +6828,7 @@ function validateDraw() {
   fb.className = 'feedback-panel' + (isOk ? '' : ' wrong-fb');
   fb.style.display = 'block';
   document.getElementById('draw-fb-title').textContent = isOk ? (score === 100 ? '🎯 Précision parfaite !' : '✅ Bien tracé !') : '📐 Presque...';
-  document.getElementById('draw-fb-text').innerHTML = isOk ? m.feedback_ok : m.feedback_bad + '<br><br><em>Score obtenu : ' + score + '/100. Clique "Mission suivante" pour continuer.</em>';
+  document.getElementById('draw-fb-text').innerHTML = isOk ? m.feedback_ok + extra : m.feedback_bad + extra + '<br><br><em>Score obtenu : ' + score + '/100. Clique "Mission suivante" pour continuer.</em>';
   document.getElementById('draw-score-bar').style.width = score + '%';
   document.getElementById('draw-score-txt').textContent = score + '%';
 
